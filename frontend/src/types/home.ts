@@ -6,7 +6,9 @@ export type Product = {
   promotionalPrice?: number;
   discountPercent?: number;
   freeShipping?: boolean;
-  colors?: string[];
+  colors?: { name: string; hex: string }[];
+  sizes?: string[];
+  model?: string;
   installments?: number;
 };
 
@@ -14,42 +16,18 @@ export type Category = {
   id: string;
   name: string;
   image: string;
-  productCount: number;
   slug: string;
-};
-
-export type Collection = {
-  id: string;
-  title: string;
-  description: string;
-  image: string;
-  slug: string;
-};
-
-export type Benefit = {
-  id: string;
-  icon: "truck" | "whatsapp" | "quality" | "payment";
-  title: string;
-  description: string;
 };
 
 export type HeroSlide = {
   id: string;
   image: string;
-  title: string;
-  subtitle: string;
-  primaryCta: string;
-  secondaryCta: string;
-};
-
-export type InstitutionalBanner = {
-  image: string;
-  title: string;
-  description: string;
-  cta: string;
+  alt: string;
+  href?: string;
 };
 
 export type NavItem = {
   label: string;
   href: string;
+  children?: NavItem[];
 };

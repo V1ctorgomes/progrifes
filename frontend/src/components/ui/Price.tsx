@@ -17,9 +17,9 @@ export function Price({ price, promotionalPrice, installments, className }: Pric
       {hasDiscount && (
         <p className="text-sm text-brand-gray line-through">{formatCurrency(price)}</p>
       )}
-      <p className="text-base font-semibold text-brand-black">{formatCurrency(displayPrice)}</p>
+      <p className="text-sm font-medium text-brand-black">{formatCurrency(displayPrice)}</p>
       {installments && installments > 1 && (
-        <p className="text-xs text-brand-gray">{formatInstallment(displayPrice, installments)}</p>
+        <p className="text-[11px] text-brand-gray">{formatInstallment(displayPrice, installments)}</p>
       )}
     </div>
   );

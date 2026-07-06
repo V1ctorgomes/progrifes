@@ -1,41 +1,33 @@
 import Link from "next/link";
 import { Container } from "@/components/ui/Container";
-import { FacebookIcon, InstagramIcon, WhatsAppIcon } from "@/components/ui/Icons";
 import { storeInfo } from "@/lib/mock-data";
 
-const footerLinks = [
-  { label: "Produtos", href: "#produtos" },
-  { label: "Categorias", href: "#categorias" },
-  { label: "Sobre", href: "#sobre" },
-  { label: "Contato", href: "#contato" },
+const shopLinks = [
+  { label: "Mais vendidos", href: "#mais-vendidos" },
+  { label: "Coleções", href: "#colecoes" },
+  { label: "Outlet", href: "#outlet" },
 ];
 
-const socialLinks = [
-  { label: "Instagram", href: "#", icon: InstagramIcon },
-  { label: "Facebook", href: "#", icon: FacebookIcon },
-  { label: "WhatsApp", href: "#", icon: WhatsAppIcon },
+const legalLinks = [
+  { label: "Trocas e Devoluções", href: "#" },
+  { label: "Política de Privacidade", href: "#" },
+  { label: "Termos de Uso", href: "#" },
+  { label: "Quem Somos", href: "#" },
 ];
+
+const paymentMethods = ["Visa", "Master", "Elo", "Pix", "Boleto"];
 
 export function Footer() {
   return (
     <footer id="contato" className="border-t border-neutral-200 bg-brand-white">
-      <Container className="py-12 sm:py-16">
-        <div className="grid gap-10 sm:grid-cols-2 lg:grid-cols-4">
-          <div>
-            <p className="font-display text-xl font-bold uppercase tracking-[0.3em] text-brand-black">
-              {storeInfo.name}
-            </p>
-            <p className="mt-4 text-sm leading-relaxed text-brand-gray">
-              {storeInfo.description}
-            </p>
-          </div>
-
+      <Container className="py-10 sm:py-14">
+        <div className="grid gap-8 sm:grid-cols-2 lg:grid-cols-4">
           <div>
             <h3 className="text-xs font-semibold uppercase tracking-widest text-brand-black">
-              Links
+              Loja
             </h3>
             <ul className="mt-4 space-y-2">
-              {footerLinks.map((link) => (
+              {shopLinks.map((link) => (
                 <li key={link.href}>
                   <Link
                     href={link.href}
@@ -50,37 +42,52 @@ export function Footer() {
 
           <div>
             <h3 className="text-xs font-semibold uppercase tracking-widest text-brand-black">
-              Contato
+              Institucional
             </h3>
-            <ul className="mt-4 space-y-2 text-sm text-brand-gray">
-              <li>WhatsApp: {storeInfo.whatsapp}</li>
-              <li>{storeInfo.address}</li>
-              <li>{storeInfo.hours}</li>
+            <ul className="mt-4 space-y-2">
+              {legalLinks.map((link) => (
+                <li key={link.label}>
+                  <Link
+                    href={link.href}
+                    className="text-sm text-brand-gray transition-colors hover:text-brand-black"
+                  >
+                    {link.label}
+                  </Link>
+                </li>
+              ))}
             </ul>
           </div>
 
-          <div>
+          <div className="sm:col-span-2 lg:col-span-2">
             <h3 className="text-xs font-semibold uppercase tracking-widest text-brand-black">
-              Redes sociais
+              Contato
             </h3>
-            <div className="mt-4 flex gap-3">
-              {socialLinks.map(({ label, href, icon: Icon }) => (
-                <a
-                  key={label}
-                  href={href}
-                  aria-label={label}
-                  className="flex h-10 w-10 items-center justify-center rounded-full border border-neutral-300 text-brand-black transition-colors hover:border-brand-black hover:bg-brand-light"
-                >
-                  <Icon className="h-4 w-4" />
+            <ul className="mt-4 space-y-2 text-sm text-brand-gray">
+              <li>
+                <a href={`https://wa.me/${storeInfo.whatsappLink}`} className="hover:text-brand-black">
+                  {storeInfo.whatsapp}
                 </a>
-              ))}
-            </div>
+              </li>
+              <li>{storeInfo.address}</li>
+            </ul>
           </div>
         </div>
 
-        <div className="mt-12 border-t border-neutral-200 pt-6 text-center text-xs text-brand-gray">
+        <div className="mt-10 flex flex-wrap items-center justify-center gap-3 border-t border-neutral-200 pt-8">
+          {paymentMethods.map((method) => (
+            <span
+              key={method}
+              className="border border-neutral-300 px-3 py-1 text-[10px] font-medium uppercase tracking-wider text-brand-gray"
+            >
+              {method}
+            </span>
+          ))}
+        </div>
+
+        <div className="mt-8 text-center text-[11px] text-brand-gray">
           <p>
-            Copyright {storeInfo.name} — {new Date().getFullYear()}. Todos os direitos reservados.
+            Copyright {storeInfo.name} — {storeInfo.cnpj} — {new Date().getFullYear()}. Todos os
+            direitos reservados.
           </p>
         </div>
       </Container>
