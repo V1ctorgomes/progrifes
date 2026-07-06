@@ -1,3 +1,4 @@
+import Link from "next/link";
 import Image from "next/image";
 import { Badge } from "@/components/ui/Badge";
 import { Button } from "@/components/ui/Button";
@@ -11,7 +12,7 @@ interface ProductCardProps {
 export function ProductCard({ product }: ProductCardProps) {
   return (
     <article className="group flex flex-col">
-      <div className="relative overflow-hidden bg-brand-light">
+      <Link href={`/produtos/${product.slug}`} className="relative overflow-hidden bg-brand-light">
         <div className="absolute left-3 top-3 z-10 flex flex-col gap-1">
           {product.discountPercent !== undefined && product.discountPercent > 0 && (
             <Badge variant="sale">{product.discountPercent}% OFF</Badge>
@@ -40,12 +41,14 @@ export function ProductCard({ product }: ProductCardProps) {
             </Button>
           </div>
         </div>
-      </div>
+      </Link>
 
       <div className="mt-3 flex flex-1 flex-col gap-2">
-        <h3 className="line-clamp-2 text-sm font-medium leading-snug text-brand-black">
-          {product.name}
-        </h3>
+        <Link href={`/produtos/${product.slug}`}>
+          <h3 className="line-clamp-2 text-sm font-medium leading-snug text-brand-black">
+            {product.name}
+          </h3>
+        </Link>
 
         {product.colors && product.colors.length > 0 && (
           <p className="text-xs text-brand-gray">

@@ -1,5 +1,5 @@
 import { CategoryDetailPage } from "@/features/categories/CategoryDetailPage";
-import { getPublicCategories } from "@/lib/public-api";
+import { getPublicCategories, getPublicProducts } from "@/lib/public-api";
 
 export const dynamic = "force-dynamic";
 
@@ -9,7 +9,16 @@ interface PageProps {
 
 export default async function Page({ params }: PageProps) {
   const { slug } = await params;
-  const categories = await getPublicCategories();
+  const [categories, productsResponse] = await Promise.all([
+    getPublicCategories(),
+    getPublicProducts({ categorySlug: slug, limit: 50 }),
+  ]);
 
-  return <CategoryDetailPage slug={slug} categories={categories} />;
+  return (
+    <CategoryDetailPage
+      slug={slug}
+      categories={categories}
+      products={productsResponse.data}
+    />
+  );
 }

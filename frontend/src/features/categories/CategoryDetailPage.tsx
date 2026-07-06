@@ -14,18 +14,23 @@ import { Input } from "@/components/ui/Input";
 import {
   getBreadcrumbTrail,
   getCategoryBySlug,
-  getProductsForCategoryTree,
   getSubcategories,
 } from "@/lib/categories";
-import { allProducts } from "@/lib/mock-data";
+import { toStoreProducts } from "@/lib/products";
 import type { Category } from "@/types/category";
+import type { Product } from "@/types/product";
 
 interface CategoryDetailPageProps {
   slug: string;
   categories: Category[];
+  products: Product[];
 }
 
-export function CategoryDetailPage({ slug, categories }: CategoryDetailPageProps) {
+export function CategoryDetailPage({
+  slug,
+  categories,
+  products,
+}: CategoryDetailPageProps) {
   const category = getCategoryBySlug(categories, slug);
 
   if (!category) {
@@ -49,7 +54,7 @@ export function CategoryDetailPage({ slug, categories }: CategoryDetailPageProps
   }
 
   const breadcrumb = getBreadcrumbTrail(categories, slug);
-  const products = getProductsForCategoryTree(allProducts, categories, slug);
+  const storeProducts = toStoreProducts(products);
   const subcategories = getSubcategories(categories, category.id);
 
   return (
@@ -67,7 +72,7 @@ export function CategoryDetailPage({ slug, categories }: CategoryDetailPageProps
             <p className="mt-4 max-w-3xl text-sm leading-relaxed text-brand-gray sm:text-base">
               {category.descricao}
             </p>
-            <p className="mt-2 text-xs text-brand-gray">{category.productCount} produtos</p>
+            <p className="mt-2 text-xs text-brand-gray">{storeProducts.length} produtos</p>
           </div>
 
           <CategoryNavigation
@@ -104,10 +109,10 @@ export function CategoryDetailPage({ slug, categories }: CategoryDetailPageProps
               </div>
             </div>
 
-            {products.length > 0 ? (
+            {storeProducts.length > 0 ? (
               <>
                 <div className="grid grid-cols-2 gap-4 sm:gap-6 lg:grid-cols-4">
-                  {products.map((product) => (
+                  {storeProducts.map((product) => (
                     <ProductCard key={product.id} product={product} />
                   ))}
                 </div>

@@ -1,6 +1,7 @@
 import axios, { isAxiosError } from "axios";
 import type { Banner, BannerType } from "@/types/banner";
 import type { Category } from "@/types/category";
+import type { Product, ProductInput, ProductsListResponse } from "@/types/product";
 
 const api = axios.create({
   baseURL: "/api/admin",
@@ -67,6 +68,25 @@ export const categoriesAdminApi = {
     (await api.patch<Category>(`/categories/${id}/deactivate`)).data,
   reorder: async (ids: string[]) =>
     (await api.patch<Category[]>("/categories/reorder", { ids })).data,
+};
+
+export const productsAdminApi = {
+  list: async (params?: {
+    page?: number;
+    limit?: number;
+    search?: string;
+    categoryId?: string;
+    ativo?: boolean;
+    destaque?: boolean;
+    novo?: boolean;
+  }) => (await api.get<ProductsListResponse>("/products", { params })).data,
+  create: async (data: ProductInput) => (await api.post<Product>("/products", data)).data,
+  update: async (id: string, data: Partial<ProductInput>) =>
+    (await api.put<Product>(`/products/${id}`, data)).data,
+  remove: async (id: string) => (await api.delete(`/products/${id}`)).data,
+  activate: async (id: string) => (await api.patch<Product>(`/products/${id}/activate`)).data,
+  deactivate: async (id: string) => (await api.patch<Product>(`/products/${id}/deactivate`)).data,
+  duplicate: async (id: string) => (await api.post<Product>(`/products/${id}/duplicate`)).data,
 };
 
 export { getErrorMessage };

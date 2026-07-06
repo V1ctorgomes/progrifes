@@ -3,7 +3,7 @@ import Link from "next/link";
 const modules = [
   { title: "Banners", href: "/admin/banners", ready: true },
   { title: "Categorias", href: "/admin/categorias", ready: true },
-  { title: "Produtos", href: "/admin/produtos", ready: false },
+  { title: "Produtos", href: "/admin/produtos", ready: true },
   { title: "Pedidos", href: "/admin/pedidos", ready: false },
   { title: "Clientes", href: "/admin/clientes", ready: false },
   { title: "Estoque", href: "/admin/estoque", ready: false },

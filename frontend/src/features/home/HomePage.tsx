@@ -1,5 +1,6 @@
 import type { Banner } from "@/types/banner";
 import type { Category } from "@/types/category";
+import type { Product as StoreProduct } from "@/types/home";
 import {
   BannerHorizontal,
   BannerInstitucional,
@@ -17,19 +18,21 @@ import { Container } from "@/components/ui/Container";
 import { SectionTitle } from "@/components/ui/SectionTitle";
 import { getBannersByType } from "@/lib/banners";
 import { getRootCategories } from "@/lib/categories";
-import {
-  benefits,
-  collections,
-  featuredProducts,
-  recentProducts,
-} from "@/lib/mock-data";
+import { benefits, collections } from "@/lib/mock-data";
 
 interface HomePageProps {
   banners: Banner[];
   categories: Category[];
+  featuredProducts: StoreProduct[];
+  recentProducts: StoreProduct[];
 }
 
-export function HomePage({ banners, categories }: HomePageProps) {
+export function HomePage({
+  banners,
+  categories,
+  featuredProducts,
+  recentProducts,
+}: HomePageProps) {
   const heroBanners = getBannersByType(banners, "hero");
   const horizontalBanners = getBannersByType(banners, "horizontal");
   const promotionalBanners = getBannersByType(banners, "promocional");

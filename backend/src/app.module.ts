@@ -9,6 +9,7 @@ import { AuthModule } from "./modules/auth/auth.module";
 import { AdminModule } from "./modules/admin/admin.module";
 import { BannersModule } from "./modules/banners/banners.module";
 import { CategoriesModule } from "./modules/categories/categories.module";
+import { ProductsModule } from "./modules/products/products.module";
 
 @Module({
   imports: [
@@ -23,6 +24,7 @@ import { CategoriesModule } from "./modules/categories/categories.module";
     AdminModule,
     BannersModule,
     CategoriesModule,
+    ProductsModule,
   ],
   controllers: [AppController],
   providers: [

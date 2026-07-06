@@ -78,10 +78,49 @@ model Category {
   categoriaPaiId  String?    @map("categoria_pai_id")
   categoriaPai    Category?  @relation("CategoryHierarchy", fields: [categoriaPaiId], references: [id], onDelete: SetNull)
   subcategorias   Category[] @relation("CategoryHierarchy")
+  produtos        Product[]
   ordem           Int        @default(0)
   ativo           Boolean    @default(true)
   createdAt       DateTime   @default(now()) @map("created_at")
   updatedAt       DateTime   @updatedAt @map("updated_at")
 
   @@map("categories")
+}
+
+model Product {
+  id                      String         @id @default(uuid())
+  nome                    String
+  slug                    String         @unique
+  descricaoCurta          String         @map("descricao_curta")
+  descricaoCompleta       String         @map("descricao_completa")
+  categoriaId             String         @map("categoria_id")
+  categoria               Category       @relation(fields: [categoriaId], references: [id])
+  codigoInterno           String?        @map("codigo_interno")
+  marca                   String?
+  preco                   Decimal        @db.Decimal(10, 2)
+  precoPromocional        Decimal?       @map("preco_promocional") @db.Decimal(10, 2)
+  custo                   Decimal?       @db.Decimal(10, 2)
+  mostrarPrecoPromocional Boolean        @default(false) @map("mostrar_preco_promocional")
+  ativo                   Boolean        @default(true)
+  destaque                Boolean        @default(false)
+  novo                    Boolean        @default(false)
+  ordem                   Int            @default(0)
+  deletedAt               DateTime?      @map("deleted_at")
+  createdAt               DateTime       @default(now()) @map("created_at")
+  updatedAt               DateTime       @updatedAt @map("updated_at")
+  imagens                 ProductImage[]
+
+  @@map("products")
+}
+
+model ProductImage {
+  id        String   @id @default(uuid())
+  produtoId String   @map("produto_id")
+  produto   Product  @relation(fields: [produtoId], references: [id], onDelete: Cascade)
+  url       String
+  ordem     Int      @default(0)
+  principal Boolean  @default(false)
+  createdAt DateTime @default(now()) @map("created_at")
+
+  @@map("product_images")
 }

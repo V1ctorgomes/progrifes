@@ -71,6 +71,7 @@ docker compose up --build
 - `prd-003.md` — Sistema de Categorias
 - `prd-004.md` — Autenticação e Controle de Acesso
 - `prd-005.md` — Administração de Banners e Categorias
+- `prd-006.md` — Sistema de Produtos
 
 ## Autenticação (PRD-004)
 
