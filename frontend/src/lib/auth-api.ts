@@ -16,6 +16,9 @@ function getErrorMessage(error: unknown): string {
     if (typeof message === "string") {
       return message;
     }
+    if (error.response?.status === 503) {
+      return "API indisponível. Verifique se o backend está online.";
+    }
   }
 
   return "Não foi possível completar a requisição";

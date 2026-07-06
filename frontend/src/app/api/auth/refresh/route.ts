@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { getBackendUrl } from "@/lib/auth-config";
+import { fetchBackend } from "@/lib/backend-fetch";
 import {
   clearAuthCookies,
   getCookieHeader,
@@ -10,7 +10,11 @@ import {
 export async function POST(req: NextRequest) {
   const cookieHeader = getCookieHeader(req.cookies);
 
-  const backendRes = await fetch(`${getBackendUrl()}/api/auth/refresh`, {
+  if (!cookieHeader) {
+    return NextResponse.json({ message: "Não autenticado" }, { status: 401 });
+  }
+
+  const { ok, status, data } = await fetchBackend("/api/auth/refresh", {
     method: "POST",
     headers: {
       "Content-Type": "application/json",
@@ -18,10 +22,8 @@ export async function POST(req: NextRequest) {
     },
   });
 
-  const data = await backendRes.json();
-
-  if (!backendRes.ok) {
-    const response = NextResponse.json(data, { status: backendRes.status });
+  if (!ok) {
+    const response = NextResponse.json(data, { status });
     return clearAuthCookies(response);
   }
 

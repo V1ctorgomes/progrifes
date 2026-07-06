@@ -1,18 +1,15 @@
 import { NextRequest, NextResponse } from "next/server";
-import { getBackendUrl } from "@/lib/auth-config";
+import { fetchBackend } from "@/lib/backend-fetch";
 import { clearAuthCookies, getCookieHeader } from "@/lib/auth-cookies";
 
 export async function POST(req: NextRequest) {
   const cookieHeader = getCookieHeader(req.cookies);
 
-  const backendRes = await fetch(`${getBackendUrl()}/api/auth/logout`, {
+  const { ok, status, data } = await fetchBackend("/api/auth/logout", {
     method: "POST",
-    headers: {
-      Cookie: cookieHeader,
-    },
+    headers: { Cookie: cookieHeader },
   });
 
-  const data = await backendRes.json().catch(() => ({ message: "Logout realizado" }));
-  const response = NextResponse.json(data, { status: backendRes.ok ? 200 : backendRes.status });
+  const response = NextResponse.json(data, { status: ok ? 200 : status });
   return clearAuthCookies(response);
 }

@@ -1,63 +1,64 @@
 import { NextRequest, NextResponse } from "next/server";
-import { AUTH_COOKIES, getBackendUrl } from "@/lib/auth-config";
+import { AUTH_COOKIES } from "@/lib/auth-config";
+import { fetchBackend } from "@/lib/backend-fetch";
 import { clearAuthCookies, getCookieHeader } from "@/lib/auth-cookies";
 
 export async function GET(req: NextRequest) {
   const cookieHeader = getCookieHeader(req.cookies);
+  const hasAccessToken = Boolean(req.cookies.get(AUTH_COOKIES.accessToken)?.value);
+  const hasRefreshToken = Boolean(req.cookies.get(AUTH_COOKIES.refreshToken)?.value);
 
-  if (!req.cookies.get(AUTH_COOKIES.accessToken)?.value) {
-    const refreshToken = req.cookies.get(AUTH_COOKIES.refreshToken)?.value;
-
-    if (refreshToken) {
-      const refreshRes = await fetch(`${getBackendUrl()}/api/auth/refresh`, {
-        method: "POST",
-        headers: { Cookie: cookieHeader },
-      });
-
-      if (refreshRes.ok) {
-        const refreshData = await refreshRes.json();
-        const response = NextResponse.json({
-          user: refreshData.user,
-          permissions: refreshData.permissions,
-        });
-
-        if (refreshData.accessToken) {
-          response.cookies.set(AUTH_COOKIES.accessToken, refreshData.accessToken, {
-            httpOnly: true,
-            secure: process.env.NODE_ENV === "production",
-            sameSite: "lax",
-            path: "/",
-            maxAge: 15 * 60,
-          });
-        }
-
-        if (refreshData.refreshToken) {
-          response.cookies.set(AUTH_COOKIES.refreshToken, refreshData.refreshToken, {
-            httpOnly: true,
-            secure: process.env.NODE_ENV === "production",
-            sameSite: "lax",
-            path: "/",
-            maxAge: 7 * 24 * 60 * 60,
-          });
-        }
-
-        return response;
-      }
-    }
-
+  if (!hasAccessToken && !hasRefreshToken) {
     return NextResponse.json({ message: "Não autenticado" }, { status: 401 });
   }
 
-  const backendRes = await fetch(`${getBackendUrl()}/api/auth/me`, {
+  if (!hasAccessToken && hasRefreshToken) {
+    const refresh = await fetchBackend("/api/auth/refresh", {
+      method: "POST",
+      headers: { Cookie: cookieHeader },
+    });
+
+    if (!refresh.ok) {
+      const response = NextResponse.json(refresh.data, { status: refresh.status });
+      return clearAuthCookies(response);
+    }
+
+    const response = NextResponse.json({
+      user: refresh.data.user,
+      permissions: refresh.data.permissions,
+    });
+
+    if (refresh.data.accessToken) {
+      response.cookies.set(AUTH_COOKIES.accessToken, refresh.data.accessToken as string, {
+        httpOnly: true,
+        secure: process.env.NODE_ENV === "production",
+        sameSite: "lax",
+        path: "/",
+        maxAge: 15 * 60,
+      });
+    }
+
+    if (refresh.data.refreshToken) {
+      response.cookies.set(AUTH_COOKIES.refreshToken, refresh.data.refreshToken as string, {
+        httpOnly: true,
+        secure: process.env.NODE_ENV === "production",
+        sameSite: "lax",
+        path: "/",
+        maxAge: 7 * 24 * 60 * 60,
+      });
+    }
+
+    return response;
+  }
+
+  const me = await fetchBackend("/api/auth/me", {
     headers: { Cookie: cookieHeader },
   });
 
-  const data = await backendRes.json();
-
-  if (!backendRes.ok) {
-    const response = NextResponse.json(data, { status: backendRes.status });
+  if (!me.ok) {
+    const response = NextResponse.json(me.data, { status: me.status });
     return clearAuthCookies(response);
   }
 
-  return NextResponse.json(data);
+  return NextResponse.json(me.data);
 }

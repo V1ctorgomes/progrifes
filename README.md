@@ -49,6 +49,14 @@ Cada serviço possui seu próprio `Dockerfile` otimizado para deploy no EasyPane
 3. Configure as variáveis de ambiente conforme `.env.example`
 4. Exponha a porta correspondente
 
+#### Checklist de autenticação (EasyPanel)
+
+1. **PostgreSQL** rodando e acessível pelo backend
+2. **Backend** com `DATABASE_URL`, `JWT_*` e `CORS_ORIGIN` (URL do frontend)
+3. **Frontend** com `BACKEND_URL` apontando para a URL do backend
+4. Teste: `https://SEU-FRONTEND/api/health` deve retornar `backend: ok`
+5. Teste: `https://SEU-BACKEND/api/health` deve retornar status da API
+
 ### Docker Compose (local)
 
 ```bash
