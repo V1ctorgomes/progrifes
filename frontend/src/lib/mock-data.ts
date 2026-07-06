@@ -22,8 +22,7 @@ export const heroSlides: HeroSlide[] = [
     image:
       "https://images.unsplash.com/photo-1441984904996-e0b6ba687e04?w=1920&q=80",
     title: "Nova Coleção Elements",
-    subtitle:
-      "Estilo urbano com conforto premium. Peças exclusivas para o seu dia a dia.",
+    subtitle: "Estilo urbano com conforto premium. Peças exclusivas para o seu dia a dia.",
     primaryCta: "Ver coleção",
     secondaryCta: "Explorar outlet",
   },
@@ -32,8 +31,7 @@ export const heroSlides: HeroSlide[] = [
     image:
       "https://images.unsplash.com/photo-1490481651871-ab68de25d43d?w=1920&q=80",
     title: "Frete grátis acima de R$ 199",
-    subtitle:
-      "Aproveite as novidades da temporada com entrega rápida para todo o Brasil.",
+    subtitle: "Aproveite as novidades da temporada com entrega rápida para todo o Brasil.",
     primaryCta: "Comprar agora",
     secondaryCta: "Ver promoções",
   },
@@ -44,28 +42,32 @@ export const categories: Category[] = [
     id: "1",
     name: "Masculino",
     image:
-      "https://images.unsplash.com/photo-1617137968427-85924c800a22?w=400&q=80",
+      "https://images.unsplash.com/photo-1617137968427-85924c800a22?w=600&q=80",
+    productCount: 128,
     slug: "masculino",
   },
   {
     id: "2",
     name: "Feminino",
     image:
-      "https://images.unsplash.com/photo-1483985988355-763728e1935b?w=400&q=80",
+      "https://images.unsplash.com/photo-1483985988355-763728e1935b?w=600&q=80",
+    productCount: 96,
     slug: "feminino",
   },
   {
     id: "3",
     name: "Infantil",
     image:
-      "https://images.unsplash.com/photo-1503919545889-aef636e10ad4?w=400&q=80",
+      "https://images.unsplash.com/photo-1503919545889-aef636e10ad4?w=600&q=80",
+    productCount: 54,
     slug: "infantil",
   },
   {
     id: "4",
     name: "Promoções",
     image:
-      "https://images.unsplash.com/photo-1607083206968-13611e3d76db?w=400&q=80",
+      "https://images.unsplash.com/photo-1607083206968-13611e3d76db?w=600&q=80",
+    productCount: 42,
     slug: "promocoes",
   },
 ];
@@ -88,6 +90,7 @@ export const featuredProducts: Product[] = [
     image:
       "https://images.unsplash.com/photo-1583743814966-8936f5b7be1a?w=600&q=80",
     price: 129.99,
+    discountPercent: 0,
     freeShipping: true,
     colors: ["Amarelo"],
     installments: 3,
@@ -98,6 +101,7 @@ export const featuredProducts: Product[] = [
     image:
       "https://images.unsplash.com/photo-1576566588028-4147f3842f27?w=600&q=80",
     price: 129.99,
+    discountPercent: 0,
     freeShipping: true,
     colors: ["Branco"],
     installments: 3,
@@ -108,6 +112,7 @@ export const featuredProducts: Product[] = [
     image:
       "https://images.unsplash.com/photo-1594938298603-c8148c4dae35?w=600&q=80",
     price: 109.99,
+    discountPercent: 0,
     freeShipping: true,
     colors: ["Preto", "Off White"],
     installments: 3,
@@ -121,7 +126,7 @@ export const collections: Collection[] = [
     description:
       "Peças quentes e estilosas para enfrentar o frio com atitude. Moletom, jaquetas e acessórios exclusivos.",
     image:
-      "https://images.unsplash.com/photo-1539533018447-63fcce2678e3?w=800&q=80",
+      "https://images.unsplash.com/photo-1551028711-00167b16eac5?w=800&q=80",
     slug: "inverno",
   },
   {

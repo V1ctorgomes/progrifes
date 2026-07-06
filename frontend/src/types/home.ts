@@ -14,6 +14,7 @@ export type Category = {
   id: string;
   name: string;
   image: string;
+  productCount: number;
   slug: string;
 };
 

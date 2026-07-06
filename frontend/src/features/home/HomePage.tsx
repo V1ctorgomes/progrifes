@@ -1,6 +1,6 @@
 import { Banner } from "@/components/home/Banner";
 import { BenefitCard } from "@/components/home/BenefitCard";
-import { CategoryStrip } from "@/components/home/CategoryStrip";
+import { CategoryCard } from "@/components/home/CategoryCard";
 import { CollectionCard } from "@/components/home/CollectionCard";
 import { Footer } from "@/components/home/Footer";
 import { Hero } from "@/components/home/Hero";
@@ -25,7 +25,17 @@ export function HomePage() {
       <Navbar />
       <main>
         <Hero slides={heroSlides} />
-        <CategoryStrip categories={categories} />
+
+        <section id="categorias" className="py-16 sm:py-20" aria-label="Categorias em destaque">
+          <Container>
+            <SectionTitle title="Categorias" subtitle="Explore nossas principais categorias" />
+            <div className="grid grid-cols-2 gap-3 sm:gap-4 lg:grid-cols-4">
+              {categories.map((category) => (
+                <CategoryCard key={category.id} category={category} />
+              ))}
+            </div>
+          </Container>
+        </section>
 
         <section id="produtos" className="bg-brand-light py-16 sm:py-20" aria-label="Produtos em destaque">
           <Container>
