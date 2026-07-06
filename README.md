@@ -59,3 +59,28 @@ docker compose up --build
 
 - `prd-000.md` — Fundação do projeto
 - `prd-001.md` — Home da loja virtual
+- `prd-002.md` — Sistema de Banners
+- `prd-003.md` — Sistema de Categorias
+- `prd-004.md` — Autenticação e Controle de Acesso
+
+## Autenticação (PRD-004)
+
+### Credenciais iniciais (seed)
+
+- **E-mail:** `admin@grifres.com`
+- **Senha:** `12345678`
+
+### Rotas
+
+- **Login admin:** `/admin/login`
+- **Área administrativa:** `/admin` (protegida)
+
+### Variáveis de ambiente
+
+Configure `backend/.env` conforme `backend/.env.example` (PostgreSQL, JWT, CORS).
+
+No frontend, defina `BACKEND_URL` (ex.: `http://localhost:3001`).
+
+### Docker Compose
+
+O `docker compose up` sobe PostgreSQL, backend e frontend. O backend executa migrations e seed automaticamente na inicialização.

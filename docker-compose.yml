@@ -1,4 +1,16 @@
 services:
+  postgres:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_USER: grifres
+      POSTGRES_PASSWORD: grifres
+      POSTGRES_DB: grifres
+    ports:
+      - "5432:5432"
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    restart: unless-stopped
+
   frontend:
     build:
       context: ./frontend
@@ -7,6 +19,9 @@ services:
       - "3000:3000"
     environment:
       - NODE_ENV=production
+      - BACKEND_URL=http://backend:3001
+    depends_on:
+      - backend
     restart: unless-stopped
 
   backend:
@@ -18,4 +33,17 @@ services:
     environment:
       - NODE_ENV=production
       - PORT=3001
+      - DATABASE_URL=postgresql://grifres:grifres@postgres:5432/grifres?schema=public
+      - CORS_ORIGIN=http://localhost:3000
+      - JWT_ACCESS_SECRET=change-me-access-secret-min-32-chars-long
+      - JWT_REFRESH_SECRET=change-me-refresh-secret-min-32-chars-long
+      - JWT_ACCESS_EXPIRES_IN=15m
+      - JWT_REFRESH_EXPIRES_IN=7d
+      - COOKIE_SECURE=false
+      - COOKIE_SAME_SITE=lax
+    depends_on:
+      - postgres
     restart: unless-stopped
+
+volumes:
+  pgdata:
