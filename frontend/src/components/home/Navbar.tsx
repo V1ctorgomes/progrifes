@@ -2,14 +2,22 @@
 
 import Link from "next/link";
 import { useState } from "react";
+import { CategoryMenu } from "@/components/category/CategoryMenu";
 import { MobileMenu } from "@/components/home/MobileMenu";
 import { Input } from "@/components/ui/Input";
 import { CartIcon, HeartIcon, MenuIcon, SearchIcon } from "@/components/ui/Icons";
 import { Container } from "@/components/ui/Container";
+import { getRootCategories } from "@/lib/categories";
 import { navItems, storeInfo } from "@/lib/mock-data";
+import type { Category } from "@/types/category";
 
-export function Navbar() {
+interface NavbarProps {
+  categories: Category[];
+}
+
+export function Navbar({ categories }: NavbarProps) {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
+  const rootCategories = getRootCategories(categories);
 
   return (
     <header className="sticky top-0 z-30 border-b border-neutral-200 bg-brand-white/95 backdrop-blur-sm">
@@ -40,19 +48,19 @@ export function Navbar() {
             </Link>
           </div>
 
-          <nav className="hidden lg:block" aria-label="Navegação principal">
-            <ul className="flex items-center gap-8">
-              {navItems.map((item) => (
-                <li key={item.href}>
-                  <Link
-                    href={item.href}
-                    className="text-xs font-medium uppercase tracking-widest text-brand-black transition-colors hover:text-brand-gray"
-                  >
-                    {item.label}
-                  </Link>
-                </li>
+          <nav className="hidden items-center gap-8 lg:flex" aria-label="Navegação principal">
+            {navItems
+              .filter((item) => item.label !== "Categorias")
+              .map((item) => (
+                <Link
+                  key={item.href}
+                  href={item.href}
+                  className="text-xs font-medium uppercase tracking-widest text-brand-black transition-colors hover:text-brand-gray"
+                >
+                  {item.label}
+                </Link>
               ))}
-            </ul>
+            <CategoryMenu categories={categories} />
           </nav>
 
           <div className="hidden flex-1 justify-center px-8 md:flex lg:max-w-md">
@@ -99,6 +107,8 @@ export function Navbar() {
         isOpen={isMenuOpen}
         onClose={() => setIsMenuOpen(false)}
         items={navItems}
+        categories={categories}
+        rootCategories={rootCategories}
       />
     </header>
   );

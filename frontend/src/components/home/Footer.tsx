@@ -5,7 +5,7 @@ import { storeInfo } from "@/lib/mock-data";
 
 const footerLinks = [
   { label: "Produtos", href: "#produtos" },
-  { label: "Categorias", href: "#categorias" },
+  { label: "Categorias", href: "/categorias" },
   { label: "Sobre", href: "#sobre" },
   { label: "Contato", href: "#contato" },
 ];

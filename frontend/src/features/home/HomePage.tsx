@@ -4,8 +4,8 @@ import {
   BannerPromocional,
   HeroSlider,
 } from "@/components/banner";
+import { CategoryGrid } from "@/components/category";
 import { BenefitCard } from "@/components/home/BenefitCard";
-import { CategoryCard } from "@/components/home/CategoryCard";
 import { CollectionCard } from "@/components/home/CollectionCard";
 import { Footer } from "@/components/home/Footer";
 import { Navbar } from "@/components/home/Navbar";
@@ -14,10 +14,11 @@ import { WhatsAppCTA } from "@/components/home/WhatsAppCTA";
 import { Container } from "@/components/ui/Container";
 import { SectionTitle } from "@/components/ui/SectionTitle";
 import { getBannersByType } from "@/lib/banners";
+import { getRootCategories } from "@/lib/categories";
 import { mockBanners } from "@/lib/mock-banners";
+import { mockCategories } from "@/lib/mock-categories";
 import {
   benefits,
-  categories,
   collections,
   featuredProducts,
   recentProducts,
@@ -27,22 +28,19 @@ const heroBanners = getBannersByType(mockBanners, "hero");
 const horizontalBanners = getBannersByType(mockBanners, "horizontal");
 const promotionalBanners = getBannersByType(mockBanners, "promocional");
 const institutionalBanners = getBannersByType(mockBanners, "institucional");
+const homeCategories = getRootCategories(mockCategories);
 
 export function HomePage() {
   return (
     <>
-      <Navbar />
+      <Navbar categories={mockCategories} />
       <main>
         <HeroSlider banners={heroBanners} />
 
         <section id="categorias" className="py-16 sm:py-20" aria-label="Categorias em destaque">
           <Container>
             <SectionTitle title="Categorias" subtitle="Explore nossas principais categorias" />
-            <div className="grid grid-cols-2 gap-3 sm:gap-4 lg:grid-cols-4">
-              {categories.map((category) => (
-                <CategoryCard key={category.id} category={category} />
-              ))}
-            </div>
+            <CategoryGrid categories={homeCategories} variant="home" columns={4} />
           </Container>
         </section>
 

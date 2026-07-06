@@ -8,14 +8,7 @@ export type Product = {
   freeShipping?: boolean;
   colors?: string[];
   installments?: number;
-};
-
-export type Category = {
-  id: string;
-  name: string;
-  image: string;
-  productCount: number;
-  slug: string;
+  categorySlug?: string;
 };
 
 export type Collection = {

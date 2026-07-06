@@ -1,52 +1,16 @@
 import type {
   Benefit,
-  Category,
   Collection,
   NavItem,
   Product,
 } from "@/types/home";
 
 export const navItems: NavItem[] = [
-  { label: "Início", href: "#inicio" },
+  { label: "Início", href: "/" },
   { label: "Produtos", href: "#produtos" },
-  { label: "Categorias", href: "#categorias" },
+  { label: "Categorias", href: "/categorias" },
   { label: "Sobre", href: "#sobre" },
   { label: "Contato", href: "#contato" },
-];
-
-export const categories: Category[] = [
-  {
-    id: "1",
-    name: "Masculino",
-    image:
-      "https://images.unsplash.com/photo-1617137968427-85924c800a22?w=600&q=80",
-    productCount: 128,
-    slug: "masculino",
-  },
-  {
-    id: "2",
-    name: "Feminino",
-    image:
-      "https://images.unsplash.com/photo-1483985988355-763728e1935b?w=600&q=80",
-    productCount: 96,
-    slug: "feminino",
-  },
-  {
-    id: "3",
-    name: "Infantil",
-    image:
-      "https://images.unsplash.com/photo-1503919545889-aef636e10ad4?w=600&q=80",
-    productCount: 54,
-    slug: "infantil",
-  },
-  {
-    id: "4",
-    name: "Promoções",
-    image:
-      "https://images.unsplash.com/photo-1607083206968-13611e3d76db?w=600&q=80",
-    productCount: 42,
-    slug: "promocoes",
-  },
 ];
 
 export const featuredProducts: Product[] = [
@@ -60,6 +24,7 @@ export const featuredProducts: Product[] = [
     freeShipping: true,
     colors: ["Off White"],
     installments: 3,
+    categorySlug: "masculino-camisas",
   },
   {
     id: "p2",
@@ -71,6 +36,7 @@ export const featuredProducts: Product[] = [
     freeShipping: true,
     colors: ["Amarelo"],
     installments: 3,
+    categorySlug: "masculino-camisas",
   },
   {
     id: "p3",
@@ -82,6 +48,7 @@ export const featuredProducts: Product[] = [
     freeShipping: true,
     colors: ["Branco"],
     installments: 3,
+    categorySlug: "masculino-camisas",
   },
   {
     id: "p4",
@@ -93,6 +60,7 @@ export const featuredProducts: Product[] = [
     freeShipping: true,
     colors: ["Preto", "Off White"],
     installments: 3,
+    categorySlug: "masculino-bermudas",
   },
 ];
 
@@ -154,6 +122,7 @@ export const recentProducts: Product[] = [
     freeShipping: true,
     colors: ["Amarelo", "Verde", "Azul"],
     installments: 2,
+    categorySlug: "feminino-cropped",
   },
   {
     id: "r2",
@@ -164,6 +133,7 @@ export const recentProducts: Product[] = [
     freeShipping: true,
     colors: ["Azul"],
     installments: 3,
+    categorySlug: "masculino",
   },
   {
     id: "r3",
@@ -175,6 +145,7 @@ export const recentProducts: Product[] = [
     discountPercent: 25,
     freeShipping: true,
     installments: 3,
+    categorySlug: "promocoes",
   },
   {
     id: "r4",
@@ -185,8 +156,11 @@ export const recentProducts: Product[] = [
     freeShipping: true,
     colors: ["Off White"],
     installments: 3,
+    categorySlug: "masculino-camisas",
   },
 ];
+
+export const allProducts: Product[] = [...featuredProducts, ...recentProducts];
 
 export const storeInfo = {
   name: "Grifres",
