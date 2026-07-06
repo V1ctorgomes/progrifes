@@ -109,8 +109,75 @@ model Product {
   createdAt               DateTime       @default(now()) @map("created_at")
   updatedAt               DateTime       @updatedAt @map("updated_at")
   imagens                 ProductImage[]
+  variantes               ProductVariant[]
 
   @@map("products")
+}
+
+model ProductVariant {
+  id               String             @id @default(uuid())
+  produtoId        String             @map("produto_id")
+  produto          Product            @relation(fields: [produtoId], references: [id], onDelete: Cascade)
+  sku              String             @unique
+  codigoBarras     String?            @map("codigo_barras")
+  preco            Decimal?           @db.Decimal(10, 2)
+  precoPromocional Decimal?           @map("preco_promocional") @db.Decimal(10, 2)
+  custo            Decimal?           @db.Decimal(10, 2)
+  estoque          Int                @default(0)
+  estoqueMinimo    Int                @default(0) @map("estoque_minimo")
+  ativo            Boolean            @default(true)
+  deletedAt        DateTime?          @map("deleted_at")
+  createdAt        DateTime           @default(now()) @map("created_at")
+  updatedAt        DateTime           @updatedAt @map("updated_at")
+  imagens          VariantImage[]
+  atributos        VariantAttribute[]
+
+  @@map("product_variants")
+}
+
+model VariantImage {
+  id         String         @id @default(uuid())
+  varianteId String         @map("variante_id")
+  variante   ProductVariant @relation(fields: [varianteId], references: [id], onDelete: Cascade)
+  url        String
+  ordem      Int            @default(0)
+  principal  Boolean        @default(false)
+  createdAt  DateTime       @default(now()) @map("created_at")
+
+  @@map("variant_images")
+}
+
+model Attribute {
+  id        String           @id @default(uuid())
+  nome      String           @unique
+  tipo      String           @default("text")
+  createdAt DateTime         @default(now()) @map("created_at")
+  updatedAt DateTime         @updatedAt @map("updated_at")
+  valores   AttributeValue[]
+
+  @@map("attributes")
+}
+
+model AttributeValue {
+  id          String             @id @default(uuid())
+  attributeId String             @map("attribute_id")
+  attribute   Attribute          @relation(fields: [attributeId], references: [id], onDelete: Cascade)
+  valor       String
+  createdAt   DateTime           @default(now()) @map("created_at")
+  variantes   VariantAttribute[]
+
+  @@unique([attributeId, valor])
+  @@map("attribute_values")
+}
+
+model VariantAttribute {
+  varianteId       String         @map("variante_id")
+  variante         ProductVariant @relation(fields: [varianteId], references: [id], onDelete: Cascade)
+  attributeValueId String         @map("attribute_value_id")
+  attributeValue   AttributeValue @relation(fields: [attributeValueId], references: [id], onDelete: Restrict)
+
+  @@id([varianteId, attributeValueId])
+  @@map("variant_attributes")
 }
 
 model ProductImage {

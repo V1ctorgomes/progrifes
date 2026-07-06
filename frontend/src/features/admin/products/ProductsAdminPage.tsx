@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useMemo, useState } from "react";
 import { Modal } from "@/components/admin/Modal";
@@ -178,6 +179,11 @@ export function ProductsAdminPage() {
                     </td>
                     <td className="px-4 py-3">
                       <div className="flex flex-wrap gap-2">
+                        <Link href={`/admin/produtos/${product.id}/variantes`}>
+                          <Button size="sm" variant="outline" type="button">
+                            Variantes
+                          </Button>
+                        </Link>
                         <Button
                           size="sm"
                           variant="outline"

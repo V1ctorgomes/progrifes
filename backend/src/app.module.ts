@@ -10,6 +10,8 @@ import { AdminModule } from "./modules/admin/admin.module";
 import { BannersModule } from "./modules/banners/banners.module";
 import { CategoriesModule } from "./modules/categories/categories.module";
 import { ProductsModule } from "./modules/products/products.module";
+import { AttributesModule } from "./modules/attributes/attributes.module";
+import { VariantsModule } from "./modules/variants/variants.module";
 
 @Module({
   imports: [
@@ -25,6 +27,8 @@ import { ProductsModule } from "./modules/products/products.module";
     BannersModule,
     CategoriesModule,
     ProductsModule,
+    AttributesModule,
+    VariantsModule,
   ],
   controllers: [AppController],
   providers: [

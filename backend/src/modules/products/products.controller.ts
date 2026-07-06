@@ -39,6 +39,17 @@ export class ProductsController {
   }
 
   @Public()
+  @Get(":id/variants")
+  findVariants(@Param("id") id: string) {
+    return this.productsService.findVariantsByProductId(id, true);
+  }
+
+  @Get(":id/variants/admin")
+  findVariantsAdmin(@Param("id") id: string) {
+    return this.productsService.findVariantsByProductId(id, false);
+  }
+
+  @Public()
   @Get(":id")
   findById(@Param("id") id: string) {
     return this.productsService.findById(id, true);

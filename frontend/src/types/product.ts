@@ -1,3 +1,5 @@
+import type { ProductVariant } from "@/types/variant";
+
 export interface ProductImage {
   id: string;
   url: string;
@@ -30,6 +32,7 @@ export interface Product {
   novo: boolean;
   ordem: number;
   imagens: ProductImage[];
+  variantes?: ProductVariant[];
   createdAt: string;
   updatedAt: string;
 }

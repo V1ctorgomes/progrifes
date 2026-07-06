@@ -1,7 +1,15 @@
 import axios, { isAxiosError } from "axios";
 import type { Banner, BannerType } from "@/types/banner";
+import type { Attribute, AttributeInput } from "@/types/attribute";
 import type { Category } from "@/types/category";
 import type { Product, ProductInput, ProductsListResponse } from "@/types/product";
+import type {
+  BulkUpdateVariantsInput,
+  GenerateVariantsInput,
+  ProductVariant,
+  VariantInput,
+  VariantsListResponse,
+} from "@/types/variant";
 
 const api = axios.create({
   baseURL: "/api/admin",
@@ -80,6 +88,7 @@ export const productsAdminApi = {
     destaque?: boolean;
     novo?: boolean;
   }) => (await api.get<ProductsListResponse>("/products", { params })).data,
+  getById: async (id: string) => (await api.get<Product>(`/products/${id}`)).data,
   create: async (data: ProductInput) => (await api.post<Product>("/products", data)).data,
   update: async (id: string, data: Partial<ProductInput>) =>
     (await api.put<Product>(`/products/${id}`, data)).data,
@@ -87,6 +96,41 @@ export const productsAdminApi = {
   activate: async (id: string) => (await api.patch<Product>(`/products/${id}/activate`)).data,
   deactivate: async (id: string) => (await api.patch<Product>(`/products/${id}/deactivate`)).data,
   duplicate: async (id: string) => (await api.post<Product>(`/products/${id}/duplicate`)).data,
+};
+
+export const variantsAdminApi = {
+  list: async (params?: {
+    produtoId?: string;
+    search?: string;
+    page?: number;
+    limit?: number;
+    ativo?: boolean;
+  }) => (await api.get<VariantsListResponse>("/variants", { params })).data,
+  listByProduct: async (productId: string) =>
+    (await api.get<ProductVariant[]>(`/products/${productId}/variants`)).data,
+  create: async (data: VariantInput) => (await api.post<ProductVariant>("/variants", data)).data,
+  update: async (id: string, data: Partial<VariantInput>) =>
+    (await api.put<ProductVariant>(`/variants/${id}`, data)).data,
+  remove: async (id: string) => (await api.delete(`/variants/${id}`)).data,
+  activate: async (id: string) => (await api.patch<ProductVariant>(`/variants/${id}/activate`)).data,
+  deactivate: async (id: string) =>
+    (await api.patch<ProductVariant>(`/variants/${id}/deactivate`)).data,
+  generate: async (data: GenerateVariantsInput) =>
+    (await api.post<{ created: ProductVariant[]; total: number }>("/variants/generate", data)).data,
+  bulkUpdate: async (data: BulkUpdateVariantsInput) =>
+    (await api.patch<ProductVariant[]>("/variants/bulk", data)).data,
+};
+
+export const attributesAdminApi = {
+  list: async () => (await api.get<Attribute[]>("/attributes")).data,
+  create: async (data: AttributeInput) => (await api.post<Attribute>("/attributes", data)).data,
+  update: async (id: string, data: Partial<AttributeInput>) =>
+    (await api.put<Attribute>(`/attributes/${id}`, data)).data,
+  remove: async (id: string) => (await api.delete(`/attributes/${id}`)).data,
+  addValue: async (attributeId: string, valor: string) =>
+    (await api.post(`/attributes/${attributeId}/values`, { valor })).data,
+  removeValue: async (valueId: string) =>
+    (await api.delete(`/attributes/values/${valueId}`)).data,
 };
 
 export { getErrorMessage };

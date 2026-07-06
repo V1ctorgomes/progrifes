@@ -5,6 +5,11 @@ interface RouteParams {
   params: Promise<{ id: string }>;
 }
 
+export async function GET(req: NextRequest, { params }: RouteParams) {
+  const { id } = await params;
+  return proxyAdminRequest(req, `/api/products/${id}`);
+}
+
 export async function PUT(req: NextRequest, { params }: RouteParams) {
   const { id } = await params;
   return proxyAdminRequest(req, `/api/products/${id}`);

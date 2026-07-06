@@ -1,11 +1,14 @@
 import {
   BadRequestException,
+  Inject,
   Injectable,
   NotFoundException,
+  forwardRef,
 } from "@nestjs/common";
 import { Category, Prisma, Product, ProductImage } from "@prisma/client";
 import { slugify } from "../../common/utils/mappers";
 import { CategoriesRepository } from "../categories/categories.repository";
+import { VariantsService } from "../variants/variants.service";
 import {
   CreateProductDto,
   ListProductsQueryDto,
@@ -24,6 +27,8 @@ export class ProductsService {
   constructor(
     private readonly repository: ProductsRepository,
     private readonly categoriesRepository: CategoriesRepository,
+    @Inject(forwardRef(() => VariantsService))
+    private readonly variantsService: VariantsService,
   ) {}
 
   async findPublic(query: ListProductsQueryDto) {
@@ -49,7 +54,18 @@ export class ProductsService {
     if (!product || !product.ativo) {
       throw new NotFoundException("Produto não encontrado");
     }
-    return this.toResponse(product);
+
+    const variantes = await this.variantsService.findByProductId(product.id, true);
+
+    return {
+      ...this.toResponse(product),
+      variantes,
+    };
+  }
+
+  async findVariantsByProductId(id: string, publicOnly = false) {
+    await this.ensureExists(id);
+    return this.variantsService.findByProductId(id, publicOnly);
   }
 
   async create(dto: CreateProductDto) {
