@@ -126,7 +126,7 @@ export const collections: Collection[] = [
     description:
       "Peças quentes e estilosas para enfrentar o frio com atitude. Moletom, jaquetas e acessórios exclusivos.",
     image:
-      "https://images.unsplash.com/photo-1551028711-00167b16eac5?w=800&q=80",
+      "https://images.unsplash.com/photo-1539533018447-63fcce2678e3?w=800&q=80",
     slug: "inverno",
   },
   {
