@@ -1,19 +1,22 @@
+import { Banner } from "@/components/home/Banner";
+import { BenefitCard } from "@/components/home/BenefitCard";
 import { CategoryStrip } from "@/components/home/CategoryStrip";
-import { CookieBanner } from "@/components/home/CookieBanner";
+import { CollectionCard } from "@/components/home/CollectionCard";
 import { Footer } from "@/components/home/Footer";
 import { Hero } from "@/components/home/Hero";
-import { InstagramSection } from "@/components/home/InstagramSection";
 import { Navbar } from "@/components/home/Navbar";
-import { NewsletterSection } from "@/components/home/NewsletterSection";
 import { ProductCard } from "@/components/home/ProductCard";
+import { WhatsAppCTA } from "@/components/home/WhatsAppCTA";
 import { Container } from "@/components/ui/Container";
-import { ProductSection } from "@/components/ui/SectionTitle";
+import { SectionTitle } from "@/components/ui/SectionTitle";
 import {
-  bestSellers,
+  benefits,
   categories,
+  collections,
+  featuredProducts,
   heroSlides,
-  newArrivals,
-  outletProducts,
+  institutionalBanner,
+  recentProducts,
 } from "@/lib/mock-data";
 
 export function HomePage() {
@@ -24,31 +27,62 @@ export function HomePage() {
         <Hero slides={heroSlides} />
         <CategoryStrip categories={categories} />
 
-        <Container>
-          <ProductSection id="produtos" title="Chegou agora">
-            {newArrivals.map((product) => (
-              <ProductCard key={product.id} product={product} />
-            ))}
-          </ProductSection>
+        <section id="produtos" className="bg-brand-light py-16 sm:py-20" aria-label="Produtos em destaque">
+          <Container>
+            <SectionTitle
+              title="Chegou agora"
+              subtitle="As novidades mais recentes da temporada"
+            />
+            <div className="grid grid-cols-2 gap-4 sm:gap-6 lg:grid-cols-4">
+              {featuredProducts.map((product) => (
+                <ProductCard key={product.id} product={product} />
+              ))}
+            </div>
+          </Container>
+        </section>
 
-          <ProductSection id="mais-vendidos" title="Mais vendidos">
-            {bestSellers.map((product) => (
-              <ProductCard key={product.id} product={product} />
-            ))}
-          </ProductSection>
+        <section className="py-16 sm:py-20" aria-label="Coleções">
+          <Container>
+            <SectionTitle title="Coleções" subtitle="Campanhas e lançamentos exclusivos" />
+            <div className="space-y-16 sm:space-y-20">
+              {collections.map((collection, index) => (
+                <CollectionCard
+                  key={collection.id}
+                  collection={collection}
+                  reversed={index % 2 !== 0}
+                />
+              ))}
+            </div>
+          </Container>
+        </section>
 
-          <ProductSection id="outlet" title="Outlet" className="pb-14 sm:pb-20">
-            {outletProducts.map((product) => (
-              <ProductCard key={product.id} product={product} />
-            ))}
-          </ProductSection>
-        </Container>
+        <section className="border-y border-neutral-200 bg-brand-white py-16 sm:py-20" aria-label="Benefícios">
+          <Container>
+            <SectionTitle title="Por que comprar conosco?" />
+            <div className="grid gap-8 sm:grid-cols-2 lg:grid-cols-4">
+              {benefits.map((benefit) => (
+                <BenefitCard key={benefit.id} benefit={benefit} />
+              ))}
+            </div>
+          </Container>
+        </section>
 
-        <InstagramSection />
-        <NewsletterSection />
+        <Banner data={institutionalBanner} />
+
+        <section className="py-16 sm:py-20" aria-label="Produtos recentes">
+          <Container>
+            <SectionTitle title="Mais vendidos" subtitle="Os favoritos dos nossos clientes" />
+            <div className="grid grid-cols-2 gap-4 sm:gap-6 lg:grid-cols-4">
+              {recentProducts.map((product) => (
+                <ProductCard key={product.id} product={product} />
+              ))}
+            </div>
+          </Container>
+        </section>
+
+        <WhatsAppCTA />
       </main>
       <Footer />
-      <CookieBanner />
     </>
   );
 }

@@ -12,18 +12,18 @@ const config: Config = {
     extend: {
       colors: {
         brand: {
-          black: "#000000",
+          black: "#0a0a0a",
           dark: "#1a1a1a",
-          gray: "#888888",
-          light: "#f7f7f7",
+          gray: "#6b6b6b",
+          light: "#f5f5f5",
           white: "#ffffff",
-          accent: "#000000",
+          accent: "#c8a96e",
           whatsapp: "#25d366",
         },
       },
       fontFamily: {
         sans: ["var(--font-inter)", "system-ui", "sans-serif"],
-        display: ["var(--font-inter)", "system-ui", "sans-serif"],
+        display: ["var(--font-display)", "system-ui", "sans-serif"],
       },
       animation: {
         "fade-in": "fadeIn 0.5s ease-out",
