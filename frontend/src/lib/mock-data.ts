@@ -13,19 +13,21 @@ export const heroSlides: HeroSlide[] = [
     id: "1",
     image:
       "https://images.unsplash.com/photo-1441984904996-e0b6ba687e04?w=1920&q=80",
-    alt: "Nova coleção Elements",
+    title: "Nova Coleção Elements",
+    subtitle:
+      "Estilo urbano com conforto premium. Peças exclusivas para o seu dia a dia.",
+    primaryCta: "Ver coleção",
+    secondaryCta: "Explorar outlet",
   },
   {
     id: "2",
     image:
       "https://images.unsplash.com/photo-1490481651871-ab68de25d43d?w=1920&q=80",
-    alt: "Lançamentos da temporada",
-  },
-  {
-    id: "3",
-    image:
-      "https://images.unsplash.com/photo-1469334031218-e382a71b716b?w=1920&q=80",
-    alt: "Coleção urbana",
+    title: "Frete grátis acima de R$ 199",
+    subtitle:
+      "Aproveite as novidades da temporada com entrega rápida para todo o Brasil.",
+    primaryCta: "Comprar agora",
+    secondaryCta: "Ver promoções",
   },
 ];
 

@@ -22,8 +22,10 @@ export type Category = {
 export type HeroSlide = {
   id: string;
   image: string;
-  alt: string;
-  href?: string;
+  title: string;
+  subtitle: string;
+  primaryCta: string;
+  secondaryCta: string;
 };
 
 export type NavItem = {
