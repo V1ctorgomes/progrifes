@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { fetchBackend } from "@/lib/backend-fetch";
 import {
+  type BackendAuthResponse,
   clearAuthCookies,
   getCookieHeader,
   setAuthCookies,
@@ -14,7 +15,7 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ message: "Não autenticado" }, { status: 401 });
   }
 
-  const { ok, status, data } = await fetchBackend("/api/auth/refresh", {
+  const { ok, status, data } = await fetchBackend<BackendAuthResponse>("/api/auth/refresh", {
     method: "POST",
     headers: {
       "Content-Type": "application/json",

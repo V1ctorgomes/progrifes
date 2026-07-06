@@ -1,11 +1,15 @@
 import { NextRequest, NextResponse } from "next/server";
 import { fetchBackend } from "@/lib/backend-fetch";
-import { setAuthCookies, toClientSession } from "@/lib/auth-cookies";
+import {
+  type BackendAuthResponse,
+  setAuthCookies,
+  toClientSession,
+} from "@/lib/auth-cookies";
 
 export async function POST(req: NextRequest) {
   const body = await req.json();
 
-  const { ok, status, data } = await fetchBackend("/api/auth/login", {
+  const { ok, status, data } = await fetchBackend<BackendAuthResponse>("/api/auth/login", {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify(body),

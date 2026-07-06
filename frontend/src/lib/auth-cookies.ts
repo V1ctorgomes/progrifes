@@ -6,7 +6,7 @@ import {
   authCookieOptions,
 } from "@/lib/auth-config";
 
-interface BackendAuthResponse {
+export interface BackendAuthResponse {
   user: {
     id: string;
     nome: string;
