@@ -22,4 +22,4 @@ COPY --from=builder /app/prisma ./prisma
 COPY package.json ./
 EXPOSE 3001
 ENV PORT=3001
-CMD ["sh", "-c", "npx prisma migrate deploy && npx prisma db seed && node dist/main.js"]
+CMD ["sh", "-c", "npx prisma migrate deploy && node dist/main.js"]
