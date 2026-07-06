@@ -1,28 +1,11 @@
 import type { Category, HeroSlide, NavItem, Product } from "@/types/home";
 
 export const navItems: NavItem[] = [
-  {
-    label: "Mais vendidos",
-    href: "#mais-vendidos",
-    children: [
-      { label: "Moletom", href: "#" },
-      { label: "Camisas", href: "#" },
-      { label: "Bermudas", href: "#" },
-      { label: "Calças", href: "#" },
-      { label: "Acessórios", href: "#" },
-    ],
-  },
-  {
-    label: "Coleções",
-    href: "#colecoes",
-    children: [
-      { label: "Elements", href: "#" },
-      { label: "Love Game", href: "#" },
-      { label: "Futwear", href: "#" },
-      { label: "Verano", href: "#" },
-    ],
-  },
-  { label: "Outlet", href: "#outlet" },
+  { label: "Início", href: "#inicio" },
+  { label: "Produtos", href: "#produtos" },
+  { label: "Categorias", href: "#categorias" },
+  { label: "Sobre", href: "#sobre" },
+  { label: "Contato", href: "#contato" },
 ];
 
 export const heroSlides: HeroSlide[] = [
@@ -328,5 +311,5 @@ export const storeInfo = {
   whatsappLink: "5585989484821",
   address: "Rua Padre Francisco Pita, 528, Jardim das Oliveiras, Fortaleza - CE",
   cnpj: "00.000.000/0001-00",
-  cartCount: 0,
+  cartCount: 2,
 };
