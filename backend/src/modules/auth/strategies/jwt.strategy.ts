@@ -3,7 +3,7 @@ import { PassportStrategy } from "@nestjs/passport";
 import { Request } from "express";
 import { ExtractJwt, Strategy } from "passport-jwt";
 import { UsersRepository } from "../../users/users.repository";
-import { AuthUser, JwtPayload } from "../../common/interfaces/jwt-payload.interface";
+import { AuthUser, JwtPayload } from "../../../common/interfaces/jwt-payload.interface";
 
 function extractAccessToken(req: Request): string | null {
   if (req.cookies?.access_token) {
