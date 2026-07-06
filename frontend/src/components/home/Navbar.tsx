@@ -7,6 +7,7 @@ import { MobileMenu } from "@/components/home/MobileMenu";
 import { Input } from "@/components/ui/Input";
 import { CartIcon, HeartIcon, MenuIcon, SearchIcon } from "@/components/ui/Icons";
 import { Container } from "@/components/ui/Container";
+import { useCart } from "@/features/cart/hooks/useCart";
 import { getRootCategories } from "@/lib/categories";
 import { navItems, storeInfo } from "@/lib/mock-data";
 import type { Category } from "@/types/category";
@@ -17,6 +18,8 @@ interface NavbarProps {
 
 export function Navbar({ categories }: NavbarProps) {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
+  const { totals, openCart, isHydrated } = useCart();
+  const cartCount = isHydrated ? totals.itemCount : 0;
   const rootCategories = getRootCategories(categories);
 
   return (
@@ -92,12 +95,15 @@ export function Navbar({ categories }: NavbarProps) {
             <button
               type="button"
               className="relative rounded p-2 hover:bg-brand-light"
-              aria-label={`Carrinho com ${storeInfo.cartCount} itens`}
+              aria-label={`Carrinho com ${cartCount} itens`}
+              onClick={openCart}
             >
               <CartIcon className="h-5 w-5" />
-              <span className="absolute -right-0.5 -top-0.5 flex h-4 w-4 items-center justify-center rounded-full bg-brand-black text-[10px] font-bold text-brand-white">
-                {storeInfo.cartCount}
-              </span>
+              {cartCount > 0 && (
+                <span className="absolute -right-0.5 -top-0.5 flex h-4 w-4 items-center justify-center rounded-full bg-brand-black text-[10px] font-bold text-brand-white">
+                  {cartCount > 99 ? "99+" : cartCount}
+                </span>
+              )}
             </button>
           </div>
         </div>

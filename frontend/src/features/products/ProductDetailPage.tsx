@@ -4,6 +4,7 @@ import Image from "next/image";
 import Link from "next/link";
 import { useEffect, useMemo, useState } from "react";
 import { Breadcrumb } from "@/components/category";
+import { useCart } from "@/features/cart/hooks/useCart";
 import { StoreLayout } from "@/layouts/StoreLayout";
 import { Button } from "@/components/ui/Button";
 import { Container } from "@/components/ui/Container";
@@ -25,6 +26,15 @@ interface ProductDetailPageProps {
 }
 
 export function ProductDetailPage({ product, categories }: ProductDetailPageProps) {
+  return (
+    <StoreLayout categories={categories}>
+      <ProductDetailContent product={product} />
+    </StoreLayout>
+  );
+}
+
+function ProductDetailContent({ product }: { product: Product }) {
+  const { addProduct, openCart, lastMessage, clearMessage } = useCart();
   const variants = product.variantes ?? [];
   const hasVariants = variants.length > 0;
   const attributeNames = useMemo(() => getAttributeNames(variants), [variants]);
@@ -79,6 +89,25 @@ export function ProductDetailPage({ product, categories }: ProductDetailPageProp
   const canAddToCart =
     selectionComplete && (!selectedVariant || selectedVariant.statusEstoque !== "sem_estoque");
 
+  const [feedback, setFeedback] = useState<string | null>(null);
+
+  useEffect(() => {
+    if (!lastMessage) return;
+    setFeedback(lastMessage);
+    const timer = window.setTimeout(() => {
+      setFeedback(null);
+      clearMessage();
+    }, 3000);
+    return () => window.clearTimeout(timer);
+  }, [lastMessage, clearMessage]);
+
+  const handleAddToCart = () => {
+    const result = addProduct(product, selectedVariant ?? null, 1);
+    if (result.success) {
+      openCart();
+    }
+  };
+
   const handleSelectAttribute = (attributeName: string, valueId: string) => {
     setSelectedAttributes((current) => {
       const next = { ...current, [attributeName]: valueId };
@@ -92,8 +121,7 @@ export function ProductDetailPage({ product, categories }: ProductDetailPageProp
   };
 
   return (
-    <StoreLayout categories={categories}>
-      <main className="py-8 sm:py-12">
+    <main className="py-8 sm:py-12">
         <Container>
           <Breadcrumb
             items={[
@@ -206,7 +234,20 @@ export function ProductDetailPage({ product, categories }: ProductDetailPageProp
                 </div>
               )}
 
-              <Button fullWidth disabled={!canAddToCart}>
+              {feedback && (
+                <p
+                  className={`text-sm ${
+                    feedback.includes("adicionado") || feedback.includes("atualizada")
+                      ? "text-green-700"
+                      : "text-red-600"
+                  }`}
+                  role="status"
+                >
+                  {feedback}
+                </p>
+              )}
+
+              <Button fullWidth disabled={!canAddToCart} onClick={handleAddToCart}>
                 {!hasVariants
                   ? "Adicionar ao carrinho"
                   : !selectionComplete
@@ -232,6 +273,5 @@ export function ProductDetailPage({ product, categories }: ProductDetailPageProp
           </div>
         </Container>
       </main>
-    </StoreLayout>
   );
 }

@@ -73,6 +73,7 @@ docker compose up --build
 - `prd-005.md` — Administração de Banners e Categorias
 - `prd-006.md` — Sistema de Produtos
 - `prd-007.md` — Sistema de Variantes (Cor, Tamanho, SKU e Estoque)
+- `prd-009.md` — Carrinho de Compras
 
 ## Autenticação (PRD-004)
 
