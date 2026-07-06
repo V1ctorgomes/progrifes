@@ -1,30 +1,39 @@
-import { Banner } from "@/components/home/Banner";
+import {
+  BannerHorizontal,
+  BannerInstitucional,
+  BannerPromocional,
+  HeroSlider,
+} from "@/components/banner";
 import { BenefitCard } from "@/components/home/BenefitCard";
 import { CategoryCard } from "@/components/home/CategoryCard";
 import { CollectionCard } from "@/components/home/CollectionCard";
 import { Footer } from "@/components/home/Footer";
-import { Hero } from "@/components/home/Hero";
 import { Navbar } from "@/components/home/Navbar";
 import { ProductCard } from "@/components/home/ProductCard";
 import { WhatsAppCTA } from "@/components/home/WhatsAppCTA";
 import { Container } from "@/components/ui/Container";
 import { SectionTitle } from "@/components/ui/SectionTitle";
+import { getBannersByType } from "@/lib/banners";
+import { mockBanners } from "@/lib/mock-banners";
 import {
   benefits,
   categories,
   collections,
   featuredProducts,
-  heroSlides,
-  institutionalBanner,
   recentProducts,
 } from "@/lib/mock-data";
+
+const heroBanners = getBannersByType(mockBanners, "hero");
+const horizontalBanners = getBannersByType(mockBanners, "horizontal");
+const promotionalBanners = getBannersByType(mockBanners, "promocional");
+const institutionalBanners = getBannersByType(mockBanners, "institucional");
 
 export function HomePage() {
   return (
     <>
       <Navbar />
       <main>
-        <Hero slides={heroSlides} />
+        <HeroSlider banners={heroBanners} />
 
         <section id="categorias" className="py-16 sm:py-20" aria-label="Categorias em destaque">
           <Container>
@@ -36,6 +45,10 @@ export function HomePage() {
             </div>
           </Container>
         </section>
+
+        {horizontalBanners.map((banner) => (
+          <BannerHorizontal key={banner.id} banner={banner} />
+        ))}
 
         <section id="produtos" className="bg-brand-light py-16 sm:py-20" aria-label="Produtos em destaque">
           <Container>
@@ -50,6 +63,19 @@ export function HomePage() {
             </div>
           </Container>
         </section>
+
+        {promotionalBanners.length > 0 && (
+          <section id="promocoes" className="py-16 sm:py-20" aria-label="Promoções">
+            <Container>
+              <SectionTitle title="Promoções" subtitle="Aproveite as melhores ofertas" />
+              <div className="grid gap-4 sm:grid-cols-2 sm:gap-6">
+                {promotionalBanners.map((banner) => (
+                  <BannerPromocional key={banner.id} banner={banner} />
+                ))}
+              </div>
+            </Container>
+          </section>
+        )}
 
         <section className="py-16 sm:py-20" aria-label="Coleções">
           <Container>
@@ -77,7 +103,9 @@ export function HomePage() {
           </Container>
         </section>
 
-        <Banner data={institutionalBanner} />
+        {institutionalBanners.map((banner) => (
+          <BannerInstitucional key={banner.id} banner={banner} />
+        ))}
 
         <section className="py-16 sm:py-20" aria-label="Produtos recentes">
           <Container>

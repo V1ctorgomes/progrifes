@@ -33,22 +33,6 @@ export type Benefit = {
   description: string;
 };
 
-export type HeroSlide = {
-  id: string;
-  image: string;
-  title: string;
-  subtitle: string;
-  primaryCta: string;
-  secondaryCta: string;
-};
-
-export type InstitutionalBanner = {
-  image: string;
-  title: string;
-  description: string;
-  cta: string;
-};
-
 export type NavItem = {
   label: string;
   href: string;

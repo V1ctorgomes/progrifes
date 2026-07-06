@@ -2,8 +2,6 @@ import type {
   Benefit,
   Category,
   Collection,
-  HeroSlide,
-  InstitutionalBanner,
   NavItem,
   Product,
 } from "@/types/home";
@@ -14,27 +12,6 @@ export const navItems: NavItem[] = [
   { label: "Categorias", href: "#categorias" },
   { label: "Sobre", href: "#sobre" },
   { label: "Contato", href: "#contato" },
-];
-
-export const heroSlides: HeroSlide[] = [
-  {
-    id: "1",
-    image:
-      "https://images.unsplash.com/photo-1441984904996-e0b6ba687e04?w=1920&q=80",
-    title: "Nova Coleção Elements",
-    subtitle: "Estilo urbano com conforto premium. Peças exclusivas para o seu dia a dia.",
-    primaryCta: "Ver coleção",
-    secondaryCta: "Explorar outlet",
-  },
-  {
-    id: "2",
-    image:
-      "https://images.unsplash.com/photo-1490481651871-ab68de25d43d?w=1920&q=80",
-    title: "Frete grátis acima de R$ 199",
-    subtitle: "Aproveite as novidades da temporada com entrega rápida para todo o Brasil.",
-    primaryCta: "Comprar agora",
-    secondaryCta: "Ver promoções",
-  },
 ];
 
 export const categories: Category[] = [
@@ -166,15 +143,6 @@ export const benefits: Benefit[] = [
     description: "Parcele em até 3x sem juros ou pague via Pix com desconto.",
   },
 ];
-
-export const institutionalBanner: InstitutionalBanner = {
-  image:
-    "https://images.unsplash.com/photo-1441986300917-64674bd600d8?w=1200&q=80",
-  title: "Grifres — Moda com identidade",
-  description:
-    "Nascemos com a missão de vestir pessoas que valorizam estilo, conforto e autenticidade. Cada coleção é pensada para quem vive a cidade com atitude.",
-  cta: "Conheça nossa história",
-};
 
 export const recentProducts: Product[] = [
   {
