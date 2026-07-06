@@ -41,6 +41,8 @@ services:
       - JWT_REFRESH_EXPIRES_IN=7d
       - COOKIE_SECURE=false
       - COOKIE_SAME_SITE=lax
+      - ADMIN_EMAIL=admin@grifres.com
+      - ADMIN_PASSWORD=12345678
     depends_on:
       - postgres
     restart: unless-stopped
