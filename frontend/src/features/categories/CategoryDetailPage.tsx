@@ -17,19 +17,20 @@ import {
   getProductsForCategoryTree,
   getSubcategories,
 } from "@/lib/categories";
-import { mockCategories } from "@/lib/mock-categories";
 import { allProducts } from "@/lib/mock-data";
+import type { Category } from "@/types/category";
 
 interface CategoryDetailPageProps {
   slug: string;
+  categories: Category[];
 }
 
-export function CategoryDetailPage({ slug }: CategoryDetailPageProps) {
-  const category = getCategoryBySlug(mockCategories, slug);
+export function CategoryDetailPage({ slug, categories }: CategoryDetailPageProps) {
+  const category = getCategoryBySlug(categories, slug);
 
   if (!category) {
     return (
-      <StoreLayout categories={mockCategories}>
+      <StoreLayout categories={categories}>
         <main className="py-16">
           <Container>
             <EmptyState
@@ -47,12 +48,12 @@ export function CategoryDetailPage({ slug }: CategoryDetailPageProps) {
     );
   }
 
-  const breadcrumb = getBreadcrumbTrail(mockCategories, slug);
-  const products = getProductsForCategoryTree(allProducts, mockCategories, slug);
-  const subcategories = getSubcategories(mockCategories, category.id);
+  const breadcrumb = getBreadcrumbTrail(categories, slug);
+  const products = getProductsForCategoryTree(allProducts, categories, slug);
+  const subcategories = getSubcategories(categories, category.id);
 
   return (
-    <StoreLayout categories={mockCategories}>
+    <StoreLayout categories={categories}>
       <main>
         <CategoryBanner category={category} />
 
@@ -70,7 +71,7 @@ export function CategoryDetailPage({ slug }: CategoryDetailPageProps) {
           </div>
 
           <CategoryNavigation
-            categories={mockCategories}
+            categories={categories}
             currentCategory={category}
             className="mb-10"
           />

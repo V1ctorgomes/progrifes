@@ -8,8 +8,9 @@ import { cn } from "@/utils/cn";
 
 const navItems = [
   { href: "/admin", label: "Dashboard" },
-  { href: "/admin/produtos", label: "Produtos" },
+  { href: "/admin/banners", label: "Banners" },
   { href: "/admin/categorias", label: "Categorias" },
+  { href: "/admin/produtos", label: "Produtos" },
   { href: "/admin/pedidos", label: "Pedidos" },
   { href: "/admin/clientes", label: "Clientes" },
   { href: "/admin/estoque", label: "Estoque" },

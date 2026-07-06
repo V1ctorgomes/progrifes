@@ -13,6 +13,13 @@ enum UserRole {
   FUNCIONARIO
 }
 
+enum BannerType {
+  HERO
+  HORIZONTAL
+  PROMOCIONAL
+  INSTITUCIONAL
+}
+
 model User {
   id            String         @id @default(uuid())
   nome          String
@@ -37,4 +44,44 @@ model RefreshToken {
   createdAt DateTime @default(now()) @map("created_at")
 
   @@map("refresh_tokens")
+}
+
+model Banner {
+  id                   String     @id @default(uuid())
+  nome                 String?
+  titulo               String
+  subtitulo            String?
+  descricao            String?
+  imagemDesktop        String     @map("imagem_desktop")
+  imagemMobile         String?    @map("imagem_mobile")
+  tipo                 BannerType
+  link                 String?
+  textoBotaoPrimario   String?    @map("texto_botao_primario")
+  textoBotaoSecundario String?    @map("texto_botao_secundario")
+  linkPrimario         String?    @map("link_primario")
+  linkSecundario       String?    @map("link_secundario")
+  ordem                Int        @default(0)
+  ativo                Boolean    @default(true)
+  createdAt            DateTime   @default(now()) @map("created_at")
+  updatedAt            DateTime   @updatedAt @map("updated_at")
+
+  @@map("banners")
+}
+
+model Category {
+  id              String     @id @default(uuid())
+  nome            String
+  slug            String     @unique
+  descricao       String
+  imagem          String
+  banner          String
+  categoriaPaiId  String?    @map("categoria_pai_id")
+  categoriaPai    Category?  @relation("CategoryHierarchy", fields: [categoriaPaiId], references: [id], onDelete: SetNull)
+  subcategorias   Category[] @relation("CategoryHierarchy")
+  ordem           Int        @default(0)
+  ativo           Boolean    @default(true)
+  createdAt       DateTime   @default(now()) @map("created_at")
+  updatedAt       DateTime   @updatedAt @map("updated_at")
+
+  @@map("categories")
 }

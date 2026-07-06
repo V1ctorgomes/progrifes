@@ -7,6 +7,8 @@ import { DatabaseModule } from "./database/database.module";
 import { JwtAuthGuard } from "./common/guards/jwt-auth.guard";
 import { AuthModule } from "./modules/auth/auth.module";
 import { AdminModule } from "./modules/admin/admin.module";
+import { BannersModule } from "./modules/banners/banners.module";
+import { CategoriesModule } from "./modules/categories/categories.module";
 
 @Module({
   imports: [
@@ -19,6 +21,8 @@ import { AdminModule } from "./modules/admin/admin.module";
     DatabaseModule,
     AuthModule,
     AdminModule,
+    BannersModule,
+    CategoriesModule,
   ],
   controllers: [AppController],
   providers: [

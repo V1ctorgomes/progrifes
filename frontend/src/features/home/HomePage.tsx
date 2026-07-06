@@ -1,3 +1,5 @@
+import type { Banner } from "@/types/banner";
+import type { Category } from "@/types/category";
 import {
   BannerHorizontal,
   BannerInstitucional,
@@ -15,8 +17,6 @@ import { Container } from "@/components/ui/Container";
 import { SectionTitle } from "@/components/ui/SectionTitle";
 import { getBannersByType } from "@/lib/banners";
 import { getRootCategories } from "@/lib/categories";
-import { mockBanners } from "@/lib/mock-banners";
-import { mockCategories } from "@/lib/mock-categories";
 import {
   benefits,
   collections,
@@ -24,16 +24,21 @@ import {
   recentProducts,
 } from "@/lib/mock-data";
 
-const heroBanners = getBannersByType(mockBanners, "hero");
-const horizontalBanners = getBannersByType(mockBanners, "horizontal");
-const promotionalBanners = getBannersByType(mockBanners, "promocional");
-const institutionalBanners = getBannersByType(mockBanners, "institucional");
-const homeCategories = getRootCategories(mockCategories);
+interface HomePageProps {
+  banners: Banner[];
+  categories: Category[];
+}
 
-export function HomePage() {
+export function HomePage({ banners, categories }: HomePageProps) {
+  const heroBanners = getBannersByType(banners, "hero");
+  const horizontalBanners = getBannersByType(banners, "horizontal");
+  const promotionalBanners = getBannersByType(banners, "promocional");
+  const institutionalBanners = getBannersByType(banners, "institucional");
+  const homeCategories = getRootCategories(categories);
+
   return (
     <>
-      <Navbar categories={mockCategories} />
+      <Navbar categories={categories} />
       <main>
         <HeroSlider banners={heroBanners} />
 

@@ -1,1 +1,5 @@
-export { CategoriasPage as default } from "@/features/admin/admin-modules";
+import { CategoriesAdminPage } from "@/features/admin/categories/CategoriesAdminPage";
+
+export default function AdminCategoriesPage() {
+  return <CategoriesAdminPage />;
+}

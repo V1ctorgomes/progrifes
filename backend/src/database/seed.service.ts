@@ -1,5 +1,6 @@
 import { Injectable, OnModuleInit } from "@nestjs/common";
 import { ensureAdminUser } from "./ensure-admin";
+import { ensureInitialContent } from "./ensure-content";
 import { PrismaService } from "./prisma.service";
 
 @Injectable()
@@ -9,8 +10,9 @@ export class SeedService implements OnModuleInit {
   async onModuleInit() {
     try {
       await ensureAdminUser(this.prisma);
+      await ensureInitialContent(this.prisma);
     } catch (error) {
-      console.error("Falha ao garantir usuário administrador:", error);
+      console.error("Falha ao executar seed inicial:", error);
     }
   }
 }

@@ -1,3 +1,15 @@
+import Link from "next/link";
+
+const modules = [
+  { title: "Banners", href: "/admin/banners", ready: true },
+  { title: "Categorias", href: "/admin/categorias", ready: true },
+  { title: "Produtos", href: "/admin/produtos", ready: false },
+  { title: "Pedidos", href: "/admin/pedidos", ready: false },
+  { title: "Clientes", href: "/admin/clientes", ready: false },
+  { title: "Estoque", href: "/admin/estoque", ready: false },
+  { title: "Financeiro", href: "/admin/financeiro", ready: false },
+];
+
 export default function AdminDashboardPage() {
   return (
     <div className="space-y-4">
@@ -5,24 +17,20 @@ export default function AdminDashboardPage() {
         Dashboard
       </h1>
       <p className="text-brand-gray">
-        Bem-vindo à área administrativa do ERP Comercial Grifres. Os módulos internos
-        serão disponibilizados nas próximas etapas.
+        Bem-vindo à área administrativa do ERP Comercial Grifres.
       </p>
       <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-        {[
-          "Produtos",
-          "Categorias",
-          "Pedidos",
-          "Clientes",
-          "Estoque",
-          "Financeiro",
-        ].map((module) => (
-          <div
-            key={module}
-            className="rounded border border-dashed border-neutral-300 p-4 text-sm text-brand-gray"
+        {modules.map((module) => (
+          <Link
+            key={module.href}
+            href={module.href}
+            className="rounded border border-neutral-200 p-4 transition-colors hover:border-brand-black"
           >
-            {module} — em desenvolvimento
-          </div>
+            <p className="font-medium text-brand-black">{module.title}</p>
+            <p className="mt-1 text-sm text-brand-gray">
+              {module.ready ? "Disponível" : "Em desenvolvimento"}
+            </p>
+          </Link>
         ))}
       </div>
     </div>

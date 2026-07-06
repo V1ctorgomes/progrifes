@@ -4,13 +4,17 @@ import { StoreLayout } from "@/layouts/StoreLayout";
 import { Container } from "@/components/ui/Container";
 import { SectionTitle } from "@/components/ui/SectionTitle";
 import { getRootCategories } from "@/lib/categories";
-import { mockCategories } from "@/lib/mock-categories";
+import type { Category } from "@/types/category";
 
-export function CategoriesPage() {
-  const rootCategories = getRootCategories(mockCategories);
+interface CategoriesPageProps {
+  categories: Category[];
+}
+
+export function CategoriesPage({ categories }: CategoriesPageProps) {
+  const rootCategories = getRootCategories(categories);
 
   return (
-    <StoreLayout categories={mockCategories}>
+    <StoreLayout categories={categories}>
       <main className="py-10 sm:py-14">
         <Container>
           <Breadcrumb
