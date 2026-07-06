@@ -22,7 +22,7 @@ export function SectionTitle({
         "mb-8 flex flex-col gap-2 sm:mb-10",
         align === "center" && "items-center text-center",
         align === "left" && "items-start text-left",
-        action && "sm:flex-row sm:items-end sm:justify-between",
+        action != null && "sm:flex-row sm:items-end sm:justify-between",
         className,
       )}
     >
