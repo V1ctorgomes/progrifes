@@ -65,10 +65,11 @@ export function Hero({ slides }: HeroProps) {
               {slide.subtitle}
             </p>
             <div className="mt-8 flex flex-col gap-3 sm:flex-row">
-              <Button variant="primary" className="bg-brand-white text-brand-black hover:bg-brand-light">
-                {slide.primaryCta}
-              </Button>
-              <Button variant="outline" className="border-brand-white text-brand-white hover:bg-brand-white hover:text-brand-black">
+              <Button variant="secondary">{slide.primaryCta}</Button>
+              <Button
+                variant="outline"
+                className="border-brand-white bg-transparent text-brand-white hover:bg-brand-white hover:text-brand-black"
+              >
                 {slide.secondaryCta}
               </Button>
             </div>
