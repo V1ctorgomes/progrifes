@@ -10,12 +10,11 @@ import {
 import { CategoryGrid } from "@/components/category";
 import { BenefitCard } from "@/components/home/BenefitCard";
 import { CollectionCard } from "@/components/home/CollectionCard";
-import { Footer } from "@/components/home/Footer";
-import { Navbar } from "@/components/home/Navbar";
 import { ProductCard } from "@/components/home/ProductCard";
 import { WhatsAppCTA } from "@/components/home/WhatsAppCTA";
 import { Container } from "@/components/ui/Container";
 import { SectionTitle } from "@/components/ui/SectionTitle";
+import { StoreLayout } from "@/layouts/StoreLayout";
 import { getBannersByType } from "@/lib/banners";
 import { getRootCategories } from "@/lib/categories";
 import { benefits, collections } from "@/lib/mock-data";
@@ -40,8 +39,7 @@ export function HomePage({
   const homeCategories = getRootCategories(categories);
 
   return (
-    <>
-      <Navbar categories={categories} />
+    <StoreLayout categories={categories}>
       <main>
         <HeroSlider banners={heroBanners} />
 
@@ -126,7 +124,6 @@ export function HomePage({
 
         <WhatsAppCTA />
       </main>
-      <Footer />
-    </>
+    </StoreLayout>
   );
 }
