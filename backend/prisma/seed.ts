@@ -1,31 +1,13 @@
-import { PrismaClient, UserRole } from "@prisma/client";
-import * as bcrypt from "bcrypt";
+import { PrismaClient } from "@prisma/client";
+import { ensureAdminUser } from "../src/database/ensure-admin";
+import { ensureInitialContent } from "../src/database/ensure-content";
 
 const prisma = new PrismaClient();
 
 async function main() {
-  const email = (process.env.ADMIN_EMAIL ?? "admin@grifres.com").toLowerCase().trim();
-  const senha = process.env.ADMIN_PASSWORD ?? "12345678";
-  const senhaHash = await bcrypt.hash(senha, 10);
-
-  await prisma.user.upsert({
-    where: { email },
-    update: {
-      nome: "Administrador",
-      senha: senhaHash,
-      cargo: UserRole.ADMINISTRADOR,
-      ativo: true,
-    },
-    create: {
-      nome: "Administrador",
-      email,
-      senha: senhaHash,
-      cargo: UserRole.ADMINISTRADOR,
-      ativo: true,
-    },
-  });
-
-  console.log(`Seed concluído: ${email} / ${senha}`);
+  await ensureAdminUser(prisma);
+  await ensureInitialContent(prisma);
+  console.log("Seed concluído");
 }
 
 main()

@@ -92,4 +92,6 @@ No frontend, defina `BACKEND_URL` (ex.: `http://localhost:3001`).
 
 ### Docker Compose
 
-O `docker compose up` sobe PostgreSQL, backend e frontend. O backend executa migrations e seed automaticamente na inicialização.
+O `docker compose up` sobe PostgreSQL, backend e frontend. O backend executa migrations e seed automaticamente na inicialização (`node dist/database/run-seed.js`).
+
+O seed cria/atualiza o admin e popula banners e categorias iniciais quando as tabelas estão vazias.
