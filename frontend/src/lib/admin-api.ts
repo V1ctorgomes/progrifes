@@ -3,6 +3,7 @@ import type { Banner, BannerType } from "@/types/banner";
 import type { Attribute, AttributeInput } from "@/types/attribute";
 import type { Category } from "@/types/category";
 import type { Product, ProductInput, ProductsListResponse } from "@/types/product";
+import type { Order } from "@/types/order";
 import type {
   BulkUpdateVariantsInput,
   GenerateVariantsInput,
@@ -131,6 +132,10 @@ export const attributesAdminApi = {
     (await api.post(`/attributes/${attributeId}/values`, { valor })).data,
   removeValue: async (valueId: string) =>
     (await api.delete(`/attributes/values/${valueId}`)).data,
+};
+
+export const ordersAdminApi = {
+  list: async () => (await api.get<Order[]>("/orders")).data,
 };
 
 export { getErrorMessage };

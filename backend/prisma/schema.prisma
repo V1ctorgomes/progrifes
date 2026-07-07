@@ -20,6 +20,16 @@ enum BannerType {
   INSTITUCIONAL
 }
 
+enum OrderStatus {
+  AGUARDANDO_CONFIRMACAO
+}
+
+enum PaymentMethod {
+  PIX
+  DINHEIRO
+  CARTAO_ENTREGA
+}
+
 model User {
   id            String         @id @default(uuid())
   nome          String
@@ -110,6 +120,7 @@ model Product {
   updatedAt               DateTime       @updatedAt @map("updated_at")
   imagens                 ProductImage[]
   variantes               ProductVariant[]
+  orderItems              OrderItem[]
 
   @@map("products")
 }
@@ -131,6 +142,7 @@ model ProductVariant {
   updatedAt        DateTime           @updatedAt @map("updated_at")
   imagens          VariantImage[]
   atributos        VariantAttribute[]
+  orderItems       OrderItem[]
 
   @@map("product_variants")
 }
@@ -190,4 +202,51 @@ model ProductImage {
   createdAt DateTime @default(now()) @map("created_at")
 
   @@map("product_images")
+}
+
+model Order {
+  id              String        @id @default(uuid())
+  numero          Int           @unique
+  clienteNome     String        @map("cliente_nome")
+  clienteTelefone String        @map("cliente_telefone")
+  clienteEmail    String?       @map("cliente_email")
+  cep             String
+  rua             String
+  numeroEndereco  String        @map("numero_endereco")
+  bairro          String
+  cidade          String
+  estado          String
+  complemento     String?
+  referencia      String?
+  formaPagamento  PaymentMethod @map("forma_pagamento")
+  trocoPara       Decimal?      @map("troco_para") @db.Decimal(10, 2)
+  observacoes     String?
+  subtotal        Decimal       @db.Decimal(10, 2)
+  taxaEntrega     Decimal       @default(0) @map("taxa_entrega") @db.Decimal(10, 2)
+  total           Decimal       @db.Decimal(10, 2)
+  status          OrderStatus   @default(AGUARDANDO_CONFIRMACAO)
+  createdAt       DateTime      @default(now()) @map("created_at")
+  updatedAt       DateTime      @updatedAt @map("updated_at")
+  itens           OrderItem[]
+
+  @@map("orders")
+}
+
+model OrderItem {
+  id            String         @id @default(uuid())
+  orderId       String         @map("order_id")
+  order         Order          @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  produtoId     String         @map("produto_id")
+  produto       Product        @relation(fields: [produtoId], references: [id])
+  variantId     String         @map("variant_id")
+  variant       ProductVariant @relation(fields: [variantId], references: [id])
+  produtoNome   String         @map("produto_nome")
+  sku           String
+  cor           String?
+  tamanho       String?
+  quantidade    Int
+  precoUnitario Decimal        @map("preco_unitario") @db.Decimal(10, 2)
+  subtotal      Decimal        @db.Decimal(10, 2)
+
+  @@map("order_items")
 }

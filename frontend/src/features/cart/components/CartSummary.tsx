@@ -49,14 +49,11 @@ export function CartSummary({
             </Button>
           ) : (
             <Link href={checkoutHref}>
-              <Button fullWidth variant="whatsapp" disabled>
+              <Button fullWidth variant="whatsapp">
                 Finalizar pedido
               </Button>
             </Link>
           )}
-          <p className="text-center text-xs text-brand-gray">
-            Checkout via WhatsApp em breve
-          </p>
         </div>
       )}
     </div>

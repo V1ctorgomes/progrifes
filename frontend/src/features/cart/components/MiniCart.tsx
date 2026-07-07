@@ -55,8 +55,8 @@ export function MiniCart({ onClose }: MiniCartProps) {
               Ver carrinho
             </Button>
           </Link>
-          <Link href="/carrinho" onClick={onClose}>
-            <Button fullWidth variant="whatsapp" disabled>
+          <Link href="/checkout" onClick={onClose}>
+            <Button fullWidth variant="whatsapp">
               Finalizar pedido
             </Button>
           </Link>

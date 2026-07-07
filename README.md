@@ -74,6 +74,7 @@ docker compose up --build
 - `prd-006.md` — Sistema de Produtos
 - `prd-007.md` — Sistema de Variantes (Cor, Tamanho, SKU e Estoque)
 - `prd-009.md` — Carrinho de Compras
+- `prd-010.md` — Checkout via WhatsApp
 
 ## Autenticação (PRD-004)
 
