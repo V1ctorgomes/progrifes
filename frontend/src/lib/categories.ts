@@ -26,6 +26,28 @@ export function getSubcategories(categories: Category[], parentId: string): Cate
   return getActiveCategories(categories).filter((c) => c.categoriaPai === parentId);
 }
 
+export function sortCategories(categories: Category[]): Category[] {
+  return [...categories].sort((a, b) => a.ordem - b.ordem || a.nome.localeCompare(b.nome));
+}
+
+export function getRootCategoriesAll(categories: Category[]): Category[] {
+  return sortCategories(categories.filter((c) => c.categoriaPai === null));
+}
+
+export function getChildCategoriesAll(categories: Category[], parentId: string): Category[] {
+  return sortCategories(categories.filter((c) => c.categoriaPai === parentId));
+}
+
+export function getOrphanCategories(categories: Category[]): Category[] {
+  return sortCategories(
+    categories.filter(
+      (category) =>
+        category.categoriaPai !== null &&
+        !categories.some((parent) => parent.id === category.categoriaPai),
+    ),
+  );
+}
+
 export function getCategoryBySlug(categories: Category[], slug: string): Category | undefined {
   return categories.find((c) => c.slug === slug && c.ativo);
 }

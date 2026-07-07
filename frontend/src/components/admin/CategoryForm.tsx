@@ -9,6 +9,7 @@ import type { Category } from "@/types/category";
 interface CategoryFormProps {
   initial?: Category | null;
   categories: Category[];
+  defaultParentId?: string | null;
   onSubmit: (data: CategoryInput) => Promise<void>;
   onCancel: () => void;
 }
@@ -26,6 +27,7 @@ const emptyForm: CategoryInput = {
 export function CategoryForm({
   initial,
   categories,
+  defaultParentId = null,
   onSubmit,
   onCancel,
 }: CategoryFormProps) {
@@ -47,9 +49,9 @@ export function CategoryForm({
         ativo: initial.ativo,
       });
     } else {
-      setForm(emptyForm);
+      setForm({ ...emptyForm, categoriaPaiId: defaultParentId });
     }
-  }, [initial]);
+  }, [initial, defaultParentId]);
 
   const update = (field: keyof CategoryInput, value: string | boolean | null) => {
     setForm((prev) => ({ ...prev, [field]: value }));
