@@ -18,6 +18,13 @@ import { OrdersModule } from "./modules/orders/orders.module";
 import { SuppliersModule } from "./modules/suppliers/suppliers.module";
 import { PurchaseOrdersModule } from "./modules/purchase-orders/purchase-orders.module";
 import { GoodsReceiptsModule } from "./modules/goods-receipts/goods-receipts.module";
+import { FinancialModule } from "./modules/financial/financial.module";
+import { AccountsReceivableModule } from "./modules/accounts-receivable/accounts-receivable.module";
+import { AccountsPayableModule } from "./modules/accounts-payable/accounts-payable.module";
+import { CashFlowModule } from "./modules/cash-flow/cash-flow.module";
+import { ExpensesModule } from "./modules/expenses/expenses.module";
+import { FinancialDashboardModule } from "./modules/financial-dashboard/financial-dashboard.module";
+import { DeliveryModule } from "./modules/delivery/delivery.module";
 
 @Module({
   imports: [
@@ -41,6 +48,13 @@ import { GoodsReceiptsModule } from "./modules/goods-receipts/goods-receipts.mod
     SuppliersModule,
     PurchaseOrdersModule,
     GoodsReceiptsModule,
+    FinancialModule,
+    AccountsReceivableModule,
+    AccountsPayableModule,
+    CashFlowModule,
+    ExpensesModule,
+    FinancialDashboardModule,
+    DeliveryModule,
   ],
   controllers: [AppController],
   providers: [

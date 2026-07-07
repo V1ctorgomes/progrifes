@@ -7,7 +7,7 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useState } from "react";
 import { Modal } from "@/components/admin/Modal";
 import { Button } from "@/components/ui/Button";
-import { getErrorMessage, ordersAdminApi } from "@/lib/admin-api";
+import { getErrorMessage, ordersAdminApi, deliveryPersonsAdminApi } from "@/lib/admin-api";
 import { formatCurrency } from "@/utils/cn";
 import { PAYMENT_METHOD_LABELS, type OrderStatus } from "@/types/order";
 import { OrderPrintView, printOrder } from "./OrderPrintView";
@@ -34,6 +34,7 @@ export function OrderDetailAdminPage() {
   const [cancelOpen, setCancelOpen] = useState(false);
   const [motivo, setMotivo] = useState("");
   const [actionError, setActionError] = useState("");
+  const [selectedDeliveryPersonId, setSelectedDeliveryPersonId] = useState("");
 
   const { data: order, isLoading } = useQuery({
     queryKey: ["admin", "orders", id],
@@ -47,11 +48,32 @@ export function OrderDetailAdminPage() {
     enabled: Boolean(id),
   });
 
+  const canAssignDeliveryPerson =
+    order && order.status !== "CANCELADO" && order.status !== "ENTREGUE";
+
+  const { data: availableDeliveryPersons = [] } = useQuery({
+    queryKey: ["admin", "delivery-persons", "available"],
+    queryFn: () => deliveryPersonsAdminApi.listAvailable(),
+    enabled: Boolean(canAssignDeliveryPerson),
+  });
+
   const invalidate = async () => {
     await queryClient.invalidateQueries({ queryKey: ["admin", "orders"] });
     await queryClient.invalidateQueries({ queryKey: ["admin", "orders", id] });
     await queryClient.invalidateQueries({ queryKey: ["admin", "orders", id, "history"] });
+    await queryClient.invalidateQueries({ queryKey: ["admin", "delivery-persons"] });
   };
+
+  const assignDeliveryPersonMutation = useMutation({
+    mutationFn: (deliveryPersonId: string | null) =>
+      ordersAdminApi.assignDeliveryPerson(id, deliveryPersonId),
+    onSuccess: async () => {
+      setActionError("");
+      setSelectedDeliveryPersonId("");
+      await invalidate();
+    },
+    onError: (error) => setActionError(getErrorMessage(error)),
+  });
 
   const statusMutation = useMutation({
     mutationFn: (status: OrderStatus) => ordersAdminApi.updateStatus(id, status),
@@ -253,6 +275,67 @@ export function OrderDetailAdminPage() {
               </div>
             )}
           </dl>
+
+          {canAssignDeliveryPerson ? (
+            <div className="border-t border-neutral-200 pt-4">
+              <h2 className="mb-2 text-sm font-semibold uppercase tracking-wide">Entregador</h2>
+              {order.deliveryPerson ? (
+                <p className="text-sm">
+                  {order.deliveryPerson.name}
+                  <span className="ml-2 text-xs uppercase text-brand-gray">
+                    ({order.deliveryPerson.status})
+                  </span>
+                </p>
+              ) : (
+                <p className="text-sm text-brand-gray">Nenhum entregador atribuído.</p>
+              )}
+              <div className="mt-3 space-y-2">
+                <select
+                  className="w-full border border-neutral-300 bg-brand-white px-3 py-2 text-sm"
+                  value={selectedDeliveryPersonId}
+                  disabled={assignDeliveryPersonMutation.isPending}
+                  onChange={(event) => setSelectedDeliveryPersonId(event.target.value)}
+                >
+                  <option value="">Selecionar entregador disponível...</option>
+                  {availableDeliveryPersons.map((person) => (
+                    <option key={person.id} value={person.id}>
+                      {person.name} — {person.phone}
+                    </option>
+                  ))}
+                </select>
+                <div className="flex flex-wrap gap-2">
+                  <Button
+                    type="button"
+                    size="sm"
+                    disabled={
+                      !selectedDeliveryPersonId || assignDeliveryPersonMutation.isPending
+                    }
+                    onClick={() =>
+                      assignDeliveryPersonMutation.mutate(selectedDeliveryPersonId)
+                    }
+                  >
+                    Atribuir
+                  </Button>
+                  {order.deliveryPersonId ? (
+                    <Button
+                      type="button"
+                      size="sm"
+                      variant="outline"
+                      disabled={assignDeliveryPersonMutation.isPending}
+                      onClick={() => assignDeliveryPersonMutation.mutate(null)}
+                    >
+                      Remover
+                    </Button>
+                  ) : null}
+                </div>
+              </div>
+            </div>
+          ) : order.deliveryPerson ? (
+            <div className="border-t border-neutral-200 pt-4">
+              <h2 className="mb-2 text-sm font-semibold uppercase tracking-wide">Entregador</h2>
+              <p className="text-sm">{order.deliveryPerson.name}</p>
+            </div>
+          ) : null}
         </section>
 
         <section className="border border-neutral-200 p-4 lg:col-span-2">
@@ -301,6 +384,12 @@ export function OrderDetailAdminPage() {
               <span className="text-brand-gray">Entrega</span>
               <span>{formatCurrency(order.taxaEntrega)}</span>
             </div>
+            {order.prazoEntregaMinutos ? (
+              <div className="flex justify-between py-1">
+                <span className="text-brand-gray">Prazo informado</span>
+                <span>{order.prazoEntregaMinutos} min</span>
+              </div>
+            ) : null}
             <div className="flex justify-between py-2 text-base font-semibold">
               <span>Total</span>
               <span>{formatCurrency(order.total)}</span>

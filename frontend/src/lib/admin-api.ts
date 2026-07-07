@@ -68,6 +68,83 @@ import type {
   VariantInput,
   VariantsListResponse,
 } from "@/types/variant";
+import type {
+  FinancialBankAccount,
+  FinancialCashbox,
+  FinancialCategory,
+  FinancialOverview,
+  FinancialPaymentMethod,
+  FinancialTransactionsListResponse,
+  FinancialTransactionStatus,
+  FinancialTransactionType,
+} from "@/types/financial";
+import type {
+  AccountReceivableDetail,
+  AccountsReceivableDashboard,
+  AccountsReceivableListResponse,
+  CreateAccountReceivableInput,
+  ReceiveAccountReceivableInput,
+  ReceivableStatus,
+} from "@/types/accounts-receivable";
+import type {
+  AccountPayableDetail,
+  AccountsPayableDashboard,
+  AccountsPayableListResponse,
+  CreateAccountPayableInput,
+  PayAccountPayableInput,
+  PayableStatus,
+} from "@/types/accounts-payable";
+import type {
+  CashFlowDashboard,
+  CashFlowStatementResponse,
+  CashFlowType,
+  CloseCashboxInput,
+  CreateCashAdjustmentInput,
+  CreateCashTransferInput,
+  OpenCashboxInput,
+} from "@/types/cash-flow";
+import type {
+  CreateExpenseInput,
+  ExpenseDetail,
+  ExpensesDashboard,
+  ExpensesListResponse,
+  ExpenseStatus,
+  PayExpenseInput,
+  UpdateExpenseInput,
+} from "@/types/expenses";
+import type {
+  DashboardPeriodPreset,
+  FinancialDashboard,
+  FinancialDashboardAlerts,
+  FinancialDashboardSummary,
+} from "@/types/financial-dashboard";
+import type {
+  DeliverySettings,
+  UpdateDeliverySettingsInput,
+} from "@/types/delivery";
+import type {
+  CreateNeighborhoodInput,
+  DeliveryNeighborhood,
+  NeighborhoodLookupResponse,
+  NeighborhoodsListResponse,
+  UpdateNeighborhoodInput,
+} from "@/types/neighborhood";
+import type {
+  CreateDeliveryPersonInput,
+  DeliveryPerson,
+  DeliveryPersonDashboard,
+  DeliveryPersonDetail,
+  DeliveryPersonsListResponse,
+  DeliveryPersonStatus,
+  UpdateDeliveryPersonInput,
+} from "@/types/delivery-person";
+import type {
+  DeliveriesDashboard,
+  DeliveriesListResponse,
+  DeliveryDetail,
+  DeliveryListItem,
+  DeliveryStatus,
+} from "@/types/delivery-tracking";
 
 const api = axios.create({
   baseURL: "/api/admin",
@@ -421,6 +498,252 @@ export const attributesAdminApi = {
     (await api.delete(`/attributes/values/${valueId}`)).data,
 };
 
+export const financialAdminApi = {
+  overview: async () => (await api.get<FinancialOverview>("/financial")).data,
+  transactions: async (params?: {
+    page?: number;
+    limit?: number;
+    tipo?: FinancialTransactionType;
+    status?: FinancialTransactionStatus;
+    dataInicio?: string;
+    dataFim?: string;
+  }) =>
+    (await api.get<FinancialTransactionsListResponse>("/financial/transactions", { params }))
+      .data,
+  accounts: async () => (await api.get<FinancialBankAccount[]>("/financial/accounts")).data,
+  categories: async () => (await api.get<FinancialCategory[]>("/financial/categories")).data,
+  paymentMethods: async () =>
+    (await api.get<FinancialPaymentMethod[]>("/financial/payment-methods")).data,
+  cashboxes: async () => (await api.get<FinancialCashbox[]>("/financial/cashboxes")).data,
+};
+
+export const accountsReceivableAdminApi = {
+  list: async (params?: {
+    page?: number;
+    limit?: number;
+    search?: string;
+    status?: ReceivableStatus;
+    customerId?: string;
+    categoryId?: string;
+    paymentMethodId?: string;
+    financialAccountId?: string;
+    costCenterId?: string;
+    dataInicio?: string;
+    dataFim?: string;
+  }) =>
+    (await api.get<AccountsReceivableListResponse>("/accounts-receivable", { params })).data,
+  dashboard: async () =>
+    (await api.get<AccountsReceivableDashboard>("/accounts-receivable/dashboard")).data,
+  getById: async (id: string) =>
+    (await api.get<AccountReceivableDetail>(`/accounts-receivable/${id}`)).data,
+  create: async (data: CreateAccountReceivableInput) =>
+    (await api.post<AccountReceivableDetail>("/accounts-receivable", data)).data,
+  receive: async (id: string, data: ReceiveAccountReceivableInput) =>
+    (await api.patch<AccountReceivableDetail>(`/accounts-receivable/${id}/receive`, data)).data,
+  cancel: async (id: string, data: { motivo: string }) =>
+    (await api.patch<AccountReceivableDetail>(`/accounts-receivable/${id}/cancel`, data)).data,
+  reverse: async (id: string, data: { receiptId: string; motivo?: string }) =>
+    (await api.patch<AccountReceivableDetail>(`/accounts-receivable/${id}/reverse`, data)).data,
+};
+
+export const accountsPayableAdminApi = {
+  list: async (params?: {
+    page?: number;
+    limit?: number;
+    search?: string;
+    status?: PayableStatus;
+    supplierId?: string;
+    categoryId?: string;
+    paymentMethodId?: string;
+    financialAccountId?: string;
+    costCenterId?: string;
+    dataInicio?: string;
+    dataFim?: string;
+  }) =>
+    (await api.get<AccountsPayableListResponse>("/accounts-payable", { params })).data,
+  dashboard: async () =>
+    (await api.get<AccountsPayableDashboard>("/accounts-payable/dashboard")).data,
+  getById: async (id: string) =>
+    (await api.get<AccountPayableDetail>(`/accounts-payable/${id}`)).data,
+  create: async (data: CreateAccountPayableInput) =>
+    (await api.post<AccountPayableDetail>("/accounts-payable", data)).data,
+  pay: async (id: string, data: PayAccountPayableInput) =>
+    (await api.patch<AccountPayableDetail>(`/accounts-payable/${id}/pay`, data)).data,
+  cancel: async (id: string, data: { motivo: string }) =>
+    (await api.patch<AccountPayableDetail>(`/accounts-payable/${id}/cancel`, data)).data,
+  reverse: async (id: string, data: { paymentId: string; motivo?: string }) =>
+    (await api.patch<AccountPayableDetail>(`/accounts-payable/${id}/reverse`, data)).data,
+};
+
+export const cashFlowAdminApi = {
+  dashboard: async () =>
+    (await api.get<CashFlowDashboard>("/cash-flow")).data,
+  statement: async (params?: {
+    page?: number;
+    limit?: number;
+    search?: string;
+    tipo?: CashFlowType;
+    financialAccountId?: string;
+    cashboxId?: string;
+    categoryId?: string;
+    usuarioId?: string;
+    dataInicio?: string;
+    dataFim?: string;
+  }) =>
+    (await api.get<CashFlowStatementResponse>("/cash-flow/statement", { params }))
+      .data,
+  transfer: async (data: CreateCashTransferInput) =>
+    (await api.post("/cash-flow/transfer", data)).data,
+  adjust: async (data: CreateCashAdjustmentInput) =>
+    (await api.post("/cash-flow/adjustment", data)).data,
+  openCashbox: async (data: OpenCashboxInput) =>
+    (await api.post("/cash-flow/open", data)).data,
+  closeCashbox: async (data: CloseCashboxInput) =>
+    (await api.post("/cash-flow/close", data)).data,
+};
+
+export const expensesAdminApi = {
+  list: async (params?: {
+    page?: number;
+    limit?: number;
+    search?: string;
+    status?: ExpenseStatus;
+    supplierId?: string;
+    categoryId?: string;
+    costCenterId?: string;
+    financialAccountId?: string;
+    paymentMethodId?: string;
+    dataInicio?: string;
+    dataFim?: string;
+  }) => (await api.get<ExpensesListResponse>("/expenses", { params })).data,
+  dashboard: async () =>
+    (await api.get<ExpensesDashboard>("/expenses/dashboard")).data,
+  getById: async (id: string) =>
+    (await api.get<ExpenseDetail>(`/expenses/${id}`)).data,
+  create: async (data: CreateExpenseInput) =>
+    (await api.post<ExpenseDetail>("/expenses", data)).data,
+  update: async (id: string, data: UpdateExpenseInput) =>
+    (await api.put<ExpenseDetail>(`/expenses/${id}`, data)).data,
+  pay: async (id: string, data: PayExpenseInput) =>
+    (await api.patch<ExpenseDetail>(`/expenses/${id}/pay`, data)).data,
+  cancel: async (id: string, data: { motivo: string }) =>
+    (await api.patch<ExpenseDetail>(`/expenses/${id}/cancel`, data)).data,
+  reverse: async (id: string, data: { paymentId: string; motivo?: string }) =>
+    (await api.patch<ExpenseDetail>(`/expenses/${id}/reverse`, data)).data,
+  addAttachment: async (
+    id: string,
+    data: { nome: string; tipo: string; conteudoBase64: string },
+  ) => (await api.post(`/expenses/${id}/attachments`, data)).data,
+};
+
+export const financialDashboardAdminApi = {
+  get: async (params?: {
+    preset?: DashboardPeriodPreset;
+    dataInicio?: string;
+    dataFim?: string;
+  }) => (await api.get<FinancialDashboard>("/dashboard/financial", { params })).data,
+  cards: async (params?: {
+    preset?: DashboardPeriodPreset;
+    dataInicio?: string;
+    dataFim?: string;
+  }) => (await api.get("/dashboard/financial/cards", { params })).data,
+  charts: async (params?: {
+    preset?: DashboardPeriodPreset;
+    dataInicio?: string;
+    dataFim?: string;
+  }) => (await api.get("/dashboard/financial/charts", { params })).data,
+  alerts: async () =>
+    (await api.get<FinancialDashboardAlerts>("/dashboard/financial/alerts")).data,
+  summary: async (params?: {
+    preset?: DashboardPeriodPreset;
+    dataInicio?: string;
+    dataFim?: string;
+    comparativo?: "DIA" | "SEMANA" | "MES" | "ANO";
+  }) =>
+    (await api.get<FinancialDashboardSummary>("/dashboard/financial/summary", { params }))
+      .data,
+};
+
+export const deliveryAdminApi = {
+  getSettings: async () =>
+    (await api.get<DeliverySettings>("/delivery/settings")).data,
+  updateSettings: async (data: UpdateDeliverySettingsInput) =>
+    (await api.put<DeliverySettings>("/delivery/settings", data)).data,
+};
+
+export const neighborhoodsAdminApi = {
+  list: async (params?: {
+    page?: number;
+    limit?: number;
+    search?: string;
+    city?: string;
+    state?: string;
+    isActive?: boolean;
+    feeMin?: number;
+    feeMax?: number;
+    averageDeliveryTime?: number;
+    sort?: "name" | "fee" | "time" | "city" | "status" | "recent";
+  }) => (await api.get<NeighborhoodsListResponse>("/delivery/neighborhoods", { params })).data,
+  getById: async (id: string) =>
+    (await api.get<DeliveryNeighborhood>(`/delivery/neighborhoods/${id}`)).data,
+  create: async (data: CreateNeighborhoodInput) =>
+    (await api.post<DeliveryNeighborhood>("/delivery/neighborhoods", data)).data,
+  update: async (id: string, data: UpdateNeighborhoodInput) =>
+    (await api.put<DeliveryNeighborhood>(`/delivery/neighborhoods/${id}`, data)).data,
+  updateStatus: async (id: string, isActive: boolean) =>
+    (await api.patch<DeliveryNeighborhood>(`/delivery/neighborhoods/${id}/status`, { isActive }))
+      .data,
+  remove: async (id: string) => (await api.delete(`/delivery/neighborhoods/${id}`)).data,
+  duplicate: async (id: string) =>
+    (await api.post<DeliveryNeighborhood>(`/delivery/neighborhoods/${id}/duplicate`)).data,
+};
+
+export const deliveryPersonsAdminApi = {
+  dashboard: async () =>
+    (await api.get<DeliveryPersonDashboard>("/delivery-persons/dashboard")).data,
+  listAvailable: async () =>
+    (await api.get<DeliveryPerson[]>("/delivery-persons/available")).data,
+  list: async (params?: {
+    page?: number;
+    limit?: number;
+    search?: string;
+    status?: DeliveryPersonStatus;
+  }) => (await api.get<DeliveryPersonsListResponse>("/delivery-persons", { params })).data,
+  getById: async (id: string) =>
+    (await api.get<DeliveryPersonDetail>(`/delivery-persons/${id}`)).data,
+  create: async (data: CreateDeliveryPersonInput) =>
+    (await api.post<DeliveryPerson>("/delivery-persons", data)).data,
+  update: async (id: string, data: UpdateDeliveryPersonInput) =>
+    (await api.put<DeliveryPerson>(`/delivery-persons/${id}`, data)).data,
+  updateStatus: async (id: string, status: DeliveryPersonStatus) =>
+    (await api.patch<DeliveryPerson>(`/delivery-persons/${id}/status`, { status })).data,
+  remove: async (id: string) => (await api.delete(`/delivery-persons/${id}`)).data,
+};
+
+export const deliveriesAdminApi = {
+  dashboard: async () => (await api.get<DeliveriesDashboard>("/deliveries/dashboard")).data,
+  list: async (params?: {
+    page?: number;
+    limit?: number;
+    search?: string;
+    status?: DeliveryStatus;
+    deliveryPersonId?: string;
+    bairro?: string;
+    dataInicio?: string;
+    dataFim?: string;
+    formaPagamento?: string;
+  }) => (await api.get<DeliveriesListResponse>("/deliveries", { params })).data,
+  getById: async (id: string) => (await api.get<DeliveryDetail>(`/deliveries/${id}`)).data,
+  updateStatus: async (id: string, status: DeliveryStatus, notes?: string) =>
+    (await api.patch<DeliveryDetail>(`/deliveries/${id}/status`, { status, notes })).data,
+  assignDeliveryPerson: async (id: string, deliveryPersonId: string | null) =>
+    (
+      await api.patch<DeliveryListItem>(`/deliveries/${id}/assign-delivery-person`, {
+        deliveryPersonId,
+      })
+    ).data,
+};
+
 export const ordersAdminApi = {
   list: async (params?: {
     page?: number;
@@ -443,6 +766,8 @@ export const ordersAdminApi = {
     (await api.patch<Order>(`/orders/${id}/status`, { status })).data,
   cancel: async (id: string, motivo: string) =>
     (await api.patch<Order>(`/orders/${id}/cancel`, { motivo })).data,
+  assignDeliveryPerson: async (id: string, deliveryPersonId: string | null) =>
+    (await api.patch<Order>(`/orders/${id}/delivery-person`, { deliveryPersonId })).data,
 };
 
 export { getErrorMessage };

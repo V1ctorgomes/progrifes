@@ -12,7 +12,8 @@ import { PrismaService } from "../../database/prisma.service";
 import { InventoryEntryService } from "../inventory/inventory-entry.service";
 import { PurchaseOrderHistoryService } from "../purchase-orders/purchase-order-history.service";
 import { getStatusDescription } from "../purchase-orders/purchase-order-status.config";
-import { AccountsPayableService } from "./accounts-payable.service";
+import { PayableSettlementService } from "../accounts-payable/payable-settlement.service";
+import { formatPayableNumero } from "../accounts-payable/accounts-payable.mapper";
 import { CreateGoodsReceiptDto, ListGoodsReceiptsQueryDto } from "./dto/goods-receipt.dto";
 import { ErpSettingsService } from "./erp-settings.service";
 import { GoodsReceiptsRepository } from "./goods-receipts.repository";
@@ -34,8 +35,8 @@ export class GoodsReceiptsService {
     private readonly prisma: PrismaService,
     private readonly inventoryEntryService: InventoryEntryService,
     private readonly purchaseOrderHistoryService: PurchaseOrderHistoryService,
-    private readonly accountsPayableService: AccountsPayableService,
     private readonly erpSettingsService: ErpSettingsService,
+    private readonly payableSettlementService: PayableSettlementService,
   ) {}
 
   async findAll(query: ListGoodsReceiptsQueryDto) {
@@ -299,19 +300,22 @@ export class GoodsReceiptsService {
             ? order.total
             : receiptValue;
 
-        await this.accountsPayableService.create(
+        await this.payableSettlementService.createFromGoodsReceipt(
           {
             supplierId: order.supplierId,
             purchaseOrderId: order.id,
             goodsReceiptId:
               payableMode === PayableGenerationMode.PER_RECEIPT ? created.id : null,
-            descricao:
-              payableMode === PayableGenerationMode.AT_COMPLETION
-                ? `Conta a pagar — ${ocFormatado}`
-                : `Conta a pagar — ${numeroFormatado} (${ocFormatado})`,
+            goodsReceiptNumero: created.numero,
+            purchaseOrderNumero: order.numero,
             valor: payableValue,
             usuarioId,
             vencimento: order.previsaoEntrega,
+            observacoes:
+              payableMode === PayableGenerationMode.AT_COMPLETION
+                ? `Conta a pagar — ${ocFormatado}`
+                : `Conta a pagar — ${numeroFormatado} (${ocFormatado})`,
+            atCompletion: payableMode === PayableGenerationMode.AT_COMPLETION,
           },
           tx,
         );
@@ -477,10 +481,11 @@ export class GoodsReceiptsService {
         ? {
             id: receipt.contaPagar.id,
             numero: receipt.contaPagar.numero,
-            numeroFormatado: this.accountsPayableService.formatNumero(receipt.contaPagar.numero),
-            valor: Number(receipt.contaPagar.valor),
+            numeroFormatado: formatPayableNumero(receipt.contaPagar.numero),
+            valorOriginal: Number(receipt.contaPagar.valorOriginal),
+            saldo: Number(receipt.contaPagar.saldo),
             status: receipt.contaPagar.status,
-            vencimento: receipt.contaPagar.vencimento?.toISOString() ?? null,
+            vencimento: receipt.contaPagar.vencimento.toISOString(),
           }
         : null,
       itens: receipt.itens.map((item) => ({

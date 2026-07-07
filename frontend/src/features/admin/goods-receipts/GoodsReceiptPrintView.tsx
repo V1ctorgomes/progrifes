@@ -82,7 +82,7 @@ export function GoodsReceiptPrintView({ receipt }: GoodsReceiptPrintViewProps) {
           {receipt.contaPagar && (
             <p className="mt-2 text-xs">
               Conta a pagar gerada: {receipt.contaPagar.numeroFormatado} —{" "}
-              {formatCurrency(receipt.contaPagar.valor)}
+              {formatCurrency(receipt.contaPagar.saldo)}
             </p>
           )}
         </section>

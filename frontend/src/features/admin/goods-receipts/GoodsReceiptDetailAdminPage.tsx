@@ -81,7 +81,7 @@ export function GoodsReceiptDetailAdminPage() {
         <div className="border border-emerald-200 bg-emerald-50 p-4 text-sm">
           <p className="font-medium text-emerald-900">Conta a pagar gerada</p>
           <p className="text-emerald-800">
-            {receipt.contaPagar.numeroFormatado} — {formatCurrency(receipt.contaPagar.valor)} —{" "}
+            {receipt.contaPagar.numeroFormatado} — {formatCurrency(receipt.contaPagar.saldo)} —{" "}
             {receipt.contaPagar.status}
           </p>
         </div>

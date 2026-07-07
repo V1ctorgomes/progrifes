@@ -61,6 +61,15 @@ export interface Order extends OrderListItem {
   observacoes?: string | null;
   subtotal: number;
   taxaEntrega: number;
+  prazoEntregaMinutos?: number | null;
+  deliveryNeighborhoodId?: string | null;
+  deliveryPersonId?: string | null;
+  deliveryPerson?: {
+    id: string;
+    name: string;
+    phone: string;
+    status: string;
+  } | null;
   statusDescricao: string;
   motivoCancelamento?: string | null;
   confirmadoEm?: string | null;

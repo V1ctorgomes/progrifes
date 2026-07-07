@@ -41,9 +41,10 @@ export interface GoodsReceipt extends GoodsReceiptListItem {
     id: string;
     numero: number;
     numeroFormatado: string;
-    valor: number;
+    valorOriginal: number;
+    saldo: number;
     status: string;
-    vencimento?: string | null;
+    vencimento: string;
   } | null;
   itens: GoodsReceiptItem[];
 }

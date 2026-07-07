@@ -154,3 +154,9 @@ export class CancelOrderDto {
   @IsNotEmpty()
   motivo!: string;
 }
+
+export class AssignDeliveryPersonDto {
+  @IsOptional()
+  @IsString()
+  deliveryPersonId?: string | null;
+}

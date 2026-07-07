@@ -1,19 +1,27 @@
 import {
   BadRequestException,
+  Inject,
   Injectable,
   NotFoundException,
+  forwardRef,
 } from "@nestjs/common";
 import { Order, OrderItem, OrderStatus, PaymentMethod, Prisma } from "@prisma/client";
 import { PrismaService } from "../../database/prisma.service";
 import {
   CancelOrderDto,
+  AssignDeliveryPersonDto,
   CreateOrderDto,
   ListOrdersQueryDto,
   UpdateOrderStatusDto,
 } from "./dto/order.dto";
 import { OrderHistoryService } from "./order-history.service";
+import { ReceivableSettlementService } from "../accounts-receivable/receivable-settlement.service";
 import { InventoryService } from "../inventory/inventory.service";
 import { CustomersService } from "../customers/customers.service";
+import { DeliverySettingsService } from "../delivery/delivery-settings.service";
+import { DeliveryPersonService } from "../delivery/delivery-person.service";
+import { DeliveryTrackingService } from "../delivery/delivery-tracking.service";
+import { NeighborhoodService } from "../delivery/neighborhood.service";
 import {
   getNextStatuses,
   getStatusDescription,
@@ -27,7 +35,15 @@ type OrderItemWithVariant = OrderItem & {
   variant: { imagens: Array<{ url: string }> };
 };
 
-type OrderWithItems = Order & { itens: OrderItemWithVariant[] };
+type OrderWithItems = Order & {
+  itens: OrderItemWithVariant[];
+  deliveryPerson?: {
+    id: string;
+    name: string;
+    phone: string;
+    status: string;
+  } | null;
+};
 
 @Injectable()
 export class OrdersService {
@@ -36,7 +52,13 @@ export class OrdersService {
     private readonly prisma: PrismaService,
     private readonly historyService: OrderHistoryService,
     private readonly customersService: CustomersService,
+    private readonly deliverySettingsService: DeliverySettingsService,
+    private readonly neighborhoodService: NeighborhoodService,
+    private readonly deliveryPersonService: DeliveryPersonService,
+    @Inject(forwardRef(() => DeliveryTrackingService))
+    private readonly deliveryTrackingService: DeliveryTrackingService,
     private readonly inventoryService: InventoryService,
+    private readonly receivableSettlementService: ReceivableSettlementService,
   ) {}
 
   getStatusDefinitions() {
@@ -128,41 +150,9 @@ export class OrdersService {
       throw new BadRequestException("Transição de status inválida");
     }
 
-    const timestampField = getStatusTimestampField(dto.status);
-    const now = new Date();
-
     const updated = await this.prisma.$transaction(async (tx) => {
-      const result = await this.repository.update(
-        id,
-        {
-          status: dto.status,
-          ...(timestampField ? { [timestampField]: now } : {}),
-        },
-        tx,
-      );
-
-      await this.historyService.recordStatusChange(
-        id,
-        dto.status,
-        usuarioId,
-        getStatusDescription(dto.status),
-        tx,
-      );
-
-      if (dto.status === "ENTREGUE") {
-        const orderItems = await tx.orderItem.findMany({ where: { orderId: id } });
-        await this.inventoryService.finalizeForOrder(
-          id,
-          orderItems.map((item) => ({
-            variantId: item.variantId,
-            quantidade: item.quantidade,
-            produtoNome: item.produtoNome,
-            sku: item.sku,
-          })),
-          tx,
-        );
-      }
-
+      const result = await this.applyStatusInTransaction(id, dto.status, usuarioId, tx);
+      await this.deliveryTrackingService.syncFromOrder(id, dto.status, tx, usuarioId);
       return result;
     });
 
@@ -180,30 +170,165 @@ export class OrdersService {
       throw new BadRequestException("Não é possível cancelar um pedido entregue");
     }
 
-    const now = new Date();
-
-    const orderItems = order.itens;
-
     const updated = await this.prisma.$transaction(async (tx) => {
-      const result = await this.repository.update(
-        id,
-        {
-          status: "CANCELADO",
-          motivoCancelamento: dto.motivo.trim(),
-          canceladoEm: now,
-        },
-        tx,
-      );
-
-      await this.historyService.recordStatusChange(
+      const result = await this.cancelInTransaction(id, dto.motivo.trim(), usuarioId, tx);
+      await this.deliveryTrackingService.syncFromOrder(
         id,
         "CANCELADO",
+        tx,
         usuarioId,
         `Pedido cancelado: ${dto.motivo.trim()}`,
+      );
+      return result;
+    });
+
+    return this.toDetailResponse(updated);
+  }
+
+  async syncToOrderStatus(
+    id: string,
+    targetStatus: OrderStatus,
+    usuarioId?: string,
+    tx?: Prisma.TransactionClient,
+  ) {
+    const run = async (client: Prisma.TransactionClient) => {
+      const order = await client.order.findUniqueOrThrow({ where: { id } });
+      if (order.status === targetStatus) {
+        return order;
+      }
+
+      const flow: OrderStatus[] = [
+        "AGUARDANDO_CONFIRMACAO",
+        "CONFIRMADO",
+        "SEPARANDO",
+        "PRONTO_PARA_ENTREGA",
+        "SAIU_PARA_ENTREGA",
+        "ENTREGUE",
+      ];
+
+      const currentIndex = flow.indexOf(order.status);
+      const targetIndex = flow.indexOf(targetStatus);
+
+      if (currentIndex < 0 || targetIndex < 0 || targetIndex < currentIndex) {
+        throw new BadRequestException("Transição de status do pedido inválida");
+      }
+
+      let current = order;
+      for (let index = currentIndex + 1; index <= targetIndex; index += 1) {
+        current = await this.applyStatusInTransaction(id, flow[index], usuarioId, client);
+      }
+
+      return current;
+    };
+
+    if (tx) {
+      return run(tx);
+    }
+
+    return this.prisma.$transaction(run);
+  }
+
+  async cancelInTransaction(
+    id: string,
+    motivo: string,
+    usuarioId: string | undefined,
+    tx: Prisma.TransactionClient,
+  ) {
+    const order = await tx.order.findUniqueOrThrow({
+      where: { id },
+      include: { itens: true },
+    });
+
+    if (order.status === "CANCELADO") {
+      throw new BadRequestException("Pedido já está cancelado");
+    }
+
+    if (order.status === "ENTREGUE") {
+      throw new BadRequestException("Não é possível cancelar um pedido entregue");
+    }
+
+    const now = new Date();
+
+    const result = await this.repository.update(
+      id,
+      {
+        status: "CANCELADO",
+        motivoCancelamento: motivo,
+        canceladoEm: now,
+      },
+      tx,
+    );
+
+    await this.historyService.recordStatusChange(
+      id,
+      "CANCELADO",
+      usuarioId,
+      `Pedido cancelado: ${motivo}`,
+      tx,
+    );
+
+    await this.receivableSettlementService.cancelFromOrder(id, motivo, usuarioId, tx);
+
+    await this.inventoryService.releaseForOrder(
+      id,
+      order.itens.map((item) => ({
+        variantId: item.variantId,
+        quantidade: item.quantidade,
+        produtoNome: item.produtoNome,
+        sku: item.sku,
+      })),
+      tx,
+    );
+
+    await this.deliveryPersonService.handleOrderStatusChange(id, "CANCELADO", tx);
+
+    return result;
+  }
+
+  async applyStatusInTransaction(
+    id: string,
+    status: OrderStatus,
+    usuarioId: string | undefined,
+    tx: Prisma.TransactionClient,
+  ) {
+    const timestampField = getStatusTimestampField(status);
+    const now = new Date();
+
+    const result = await this.repository.update(
+      id,
+      {
+        status,
+        ...(timestampField ? { [timestampField]: now } : {}),
+      },
+      tx,
+    );
+
+    await this.historyService.recordStatusChange(
+      id,
+      status,
+      usuarioId,
+      getStatusDescription(status),
+      tx,
+    );
+
+    if (status === "CONFIRMADO") {
+      await this.receivableSettlementService.createFromOrder(
+        {
+          id: result.id,
+          numero: result.numero,
+          customerId: result.customerId,
+          total: result.total,
+          formaPagamento: result.formaPagamento,
+          createdAt: result.createdAt,
+        },
+        usuarioId,
         tx,
       );
+    }
 
-      await this.inventoryService.releaseForOrder(
+    if (status === "ENTREGUE") {
+      const orderItems = await tx.orderItem.findMany({ where: { orderId: id } });
+      await this.inventoryService.finalizeForOrder(
         id,
         orderItems.map((item) => ({
           variantId: item.variantId,
@@ -213,18 +338,36 @@ export class OrdersService {
         })),
         tx,
       );
+    }
 
-      return result;
-    });
+    await this.deliveryPersonService.handleOrderStatusChange(id, status, tx);
 
-    return this.toDetailResponse(updated);
+    return result;
+  }
+
+  async assignDeliveryPerson(
+    id: string,
+    dto: AssignDeliveryPersonDto,
+    usuarioId?: string,
+  ) {
+    await this.deliveryPersonService.assignToOrder(id, dto.deliveryPersonId, usuarioId);
+    await this.deliveryTrackingService.syncDeliveryPersonFromOrder(id, dto.deliveryPersonId ?? null);
+    return this.findById(id);
   }
 
   async create(dto: CreateOrderDto) {
+    const preparedItems = await this.prepareItems(dto.itens, this.prisma);
+    const subtotal = preparedItems.reduce((sum, item) => sum + item.subtotal, 0);
+    await this.deliverySettingsService.validateCheckoutAllowed(subtotal);
+    const neighborhood = await this.neighborhoodService.resolveForOrder(
+      dto.bairro,
+      dto.cidade,
+      dto.estado,
+    );
+    const taxaEntrega = Number(neighborhood.deliveryFee);
+    const prazoEntregaMinutos = neighborhood.averageDeliveryTime;
+
     const order = await this.prisma.$transaction(async (tx) => {
-      const preparedItems = await this.prepareItems(dto.itens, tx);
-      const subtotal = preparedItems.reduce((sum, item) => sum + item.subtotal, 0);
-      const taxaEntrega = 0;
       const total = subtotal + taxaEntrega;
       const numero = await this.repository.getNextNumero(tx);
 
@@ -255,9 +398,9 @@ export class OrdersService {
           cep: dto.cep.trim(),
           rua: dto.rua.trim(),
           numeroEndereco: dto.numeroEndereco.trim(),
-          bairro: dto.bairro.trim(),
-          cidade: dto.cidade.trim(),
-          estado: dto.estado.trim().toUpperCase(),
+          bairro: neighborhood.name,
+          cidade: neighborhood.city,
+          estado: neighborhood.state,
           complemento: dto.complemento?.trim() || null,
           referencia: dto.referencia?.trim() || null,
           formaPagamento: dto.formaPagamento,
@@ -266,6 +409,8 @@ export class OrdersService {
           subtotal,
           taxaEntrega,
           total,
+          deliveryNeighborhoodId: neighborhood.id,
+          prazoEntregaMinutos,
           itens: {
             create: preparedItems.map((item) => ({
               produtoId: item.produtoId,
@@ -299,6 +444,15 @@ export class OrdersService {
           produtoNome: item.produtoNome,
           sku: item.sku,
         })),
+        tx,
+      );
+
+      await this.deliveryTrackingService.createForOrder(
+        {
+          id: created.id,
+          deliveryPersonId: created.deliveryPersonId,
+          prazoEntregaMinutos: created.prazoEntregaMinutos,
+        },
         tx,
       );
 
@@ -515,6 +669,17 @@ export class OrdersService {
       observacoes: order.observacoes,
       subtotal: Number(order.subtotal),
       taxaEntrega: Number(order.taxaEntrega),
+      prazoEntregaMinutos: order.prazoEntregaMinutos,
+      deliveryNeighborhoodId: order.deliveryNeighborhoodId,
+      deliveryPersonId: order.deliveryPersonId,
+      deliveryPerson: order.deliveryPerson
+        ? {
+            id: order.deliveryPerson.id,
+            name: order.deliveryPerson.name,
+            phone: order.deliveryPerson.phone,
+            status: order.deliveryPerson.status,
+          }
+        : null,
       total: Number(order.total),
       status: order.status,
       statusLabel: statusMeta.nome,
@@ -549,6 +714,9 @@ export class OrdersService {
 }
 
 const orderInclude = {
+  deliveryPerson: {
+    select: { id: true, name: true, phone: true, status: true },
+  },
   itens: {
     orderBy: { produtoNome: "asc" as const },
     include: {

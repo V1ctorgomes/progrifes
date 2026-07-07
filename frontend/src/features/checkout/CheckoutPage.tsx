@@ -4,9 +4,11 @@ import Image from "next/image";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
+import { useQuery } from "@tanstack/react-query";
 import { CartSummary } from "@/features/cart/components/CartSummary";
 import { useCart } from "@/features/cart/hooks/useCart";
 import { StoreLayout } from "@/layouts/StoreLayout";
+import { getDeliverySettings, lookupNeighborhood } from "@/lib/delivery-api";
 import { createOrder, getOrderErrorMessage } from "@/lib/orders-api";
 import { Button } from "@/components/ui/Button";
 import { Container } from "@/components/ui/Container";
@@ -70,12 +72,76 @@ function CheckoutContent() {
   const [form, setForm] = useState<CheckoutForm>(emptyForm);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [debouncedAddress, setDebouncedAddress] = useState({
+    bairro: "",
+    cidade: "",
+    estado: "",
+  });
+
+  const { data: deliverySettings, isLoading: deliveryLoading } = useQuery({
+    queryKey: ["delivery", "settings"],
+    queryFn: getDeliverySettings,
+    staleTime: 60_000,
+  });
+
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setDebouncedAddress({
+        bairro: form.bairro.trim(),
+        cidade: form.cidade.trim(),
+        estado: form.estado.trim(),
+      });
+    }, 400);
+    return () => clearTimeout(timer);
+  }, [form.bairro, form.cidade, form.estado]);
+
+  const canLookupNeighborhood =
+    debouncedAddress.bairro.length > 0 &&
+    debouncedAddress.cidade.length > 0 &&
+    debouncedAddress.estado.length > 0;
+
+  const { data: neighborhoodLookup, isFetching: neighborhoodLoading } = useQuery({
+    queryKey: ["delivery", "neighborhood-lookup", debouncedAddress],
+    queryFn: () => lookupNeighborhood(debouncedAddress),
+    enabled: canLookupNeighborhood,
+    staleTime: 30_000,
+  });
+
+  const shippingFee = neighborhoodLookup?.found ? neighborhoodLookup.neighborhood.deliveryFee : null;
+  const deliveryTimeMinutes = neighborhoodLookup?.found
+    ? neighborhoodLookup.neighborhood.averageDeliveryTime
+    : null;
+  const neighborhoodBlocked =
+    canLookupNeighborhood && neighborhoodLookup && !neighborhoodLookup.found;
+
+  const canCheckout =
+    (deliverySettings?.availability.canAcceptOrders ?? false) &&
+    (!canLookupNeighborhood || neighborhoodLookup?.found === true);
+  const checkoutDisabledReason = !deliverySettings?.enabled
+    ? "As entregas estão temporariamente indisponíveis."
+    : !deliverySettings?.availability.isOpenNow
+      ? deliverySettings?.closedMessage
+      : neighborhoodBlocked
+        ? neighborhoodLookup?.message
+        : totals.subtotal < (deliverySettings?.minimumOrderValue ?? 0)
+          ? `Pedido mínimo para entrega: ${formatCurrency(deliverySettings?.minimumOrderValue ?? 0)}`
+          : canLookupNeighborhood && neighborhoodLoading
+            ? "Validando bairro de entrega..."
+            : !canLookupNeighborhood
+              ? "Informe bairro, cidade e estado para calcular a entrega"
+              : undefined;
 
   useEffect(() => {
     if (isHydrated && items.length === 0) {
       router.replace("/carrinho");
     }
   }, [isHydrated, items.length, router]);
+
+  useEffect(() => {
+    if (deliverySettings && !deliverySettings.enabled) {
+      router.replace("/carrinho");
+    }
+  }, [deliverySettings, router]);
 
   const update = (field: keyof CheckoutForm, value: string | boolean) => {
     setForm((current) => ({ ...current, [field]: value }));
@@ -84,6 +150,11 @@ function CheckoutContent() {
   const handleSubmit = async (event: React.FormEvent) => {
     event.preventDefault();
     setError(null);
+
+    if (!canCheckout || neighborhoodBlocked) {
+      setError(checkoutDisabledReason ?? "Entrega indisponível no momento");
+      return;
+    }
 
     if (!form.clienteNome.trim() || !form.clienteTelefone.trim()) {
       setError("Nome e telefone são obrigatórios");
@@ -150,10 +221,18 @@ function CheckoutContent() {
     }
   };
 
-  if (!isHydrated || items.length === 0) {
+  if (!isHydrated || items.length === 0 || deliveryLoading) {
     return (
       <Container className="py-12">
         <p className="text-sm text-brand-gray">Carregando checkout...</p>
+      </Container>
+    );
+  }
+
+  if (!deliverySettings?.enabled) {
+    return (
+      <Container className="py-12">
+        <p className="text-sm text-brand-gray">Entrega indisponível no momento.</p>
       </Container>
     );
   }
@@ -171,6 +250,21 @@ function CheckoutContent() {
             <p className="mt-2 text-sm text-brand-gray">
               Preencha seus dados para finalizar o pedido via WhatsApp
             </p>
+            {deliverySettings.message ? (
+              <p className="mt-3 whitespace-pre-line rounded border border-neutral-200 bg-brand-light p-3 text-sm text-brand-gray">
+                {deliverySettings.message}
+              </p>
+            ) : null}
+            {!canCheckout && checkoutDisabledReason ? (
+              <p className="mt-3 text-sm text-red-600">{checkoutDisabledReason}</p>
+            ) : null}
+            {neighborhoodLookup?.found ? (
+              <p className="mt-3 text-sm text-emerald-700">
+                Entrega disponível para {neighborhoodLookup.neighborhood.name}:{" "}
+                {formatCurrency(neighborhoodLookup.neighborhood.deliveryFee)} · Prazo médio de{" "}
+                {neighborhoodLookup.neighborhood.averageDeliveryTime} min
+              </p>
+            ) : null}
           </div>
 
           <form onSubmit={handleSubmit} className="grid gap-8 lg:grid-cols-[1fr_360px]">
@@ -347,11 +441,23 @@ function CheckoutContent() {
                 </div>
               </div>
 
-              <CartSummary totals={totals} showCheckout={false} />
+              <CartSummary
+                totals={totals}
+                showCheckout={false}
+                deliveryMessage={deliverySettings.message}
+                minimumOrderValue={deliverySettings.minimumOrderValue}
+                shippingFee={shippingFee}
+                deliveryTimeMinutes={deliveryTimeMinutes}
+              />
 
               {error && <p className="text-sm text-red-600">{error}</p>}
 
-              <Button type="submit" fullWidth variant="whatsapp" disabled={loading}>
+              <Button
+                type="submit"
+                fullWidth
+                variant="whatsapp"
+                disabled={loading || !canCheckout}
+              >
                 {loading ? "Processando..." : "Finalizar pedido"}
               </Button>
             </div>

@@ -10,7 +10,7 @@ const modules = [
   { title: "Fornecedores", href: "/admin/fornecedores", ready: true },
   { title: "Compras", href: "/admin/compras", ready: true },
   { title: "Estoque", href: "/admin/estoque", ready: true },
-  { title: "Financeiro", href: "/admin/financeiro", ready: false },
+  { title: "Financeiro", href: "/admin/financeiro", ready: true },
 ];
 
 export default function AdminDashboardPage() {

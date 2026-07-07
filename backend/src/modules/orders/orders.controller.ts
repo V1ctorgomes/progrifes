@@ -13,6 +13,7 @@ import { Public } from "../../common/decorators/public.decorator";
 import { AuthUser } from "../../common/interfaces/jwt-payload.interface";
 import {
   CancelOrderDto,
+  AssignDeliveryPersonDto,
   CreateOrderDto,
   ListOrdersQueryDto,
   UpdateOrderStatusDto,
@@ -71,6 +72,15 @@ export class OrdersController {
     @CurrentUser() user: AuthUser,
   ) {
     return this.ordersService.cancel(id, dto, user.id);
+  }
+
+  @Patch(":id/delivery-person")
+  assignDeliveryPerson(
+    @Param("id") id: string,
+    @Body() dto: AssignDeliveryPersonDto,
+    @CurrentUser() user: AuthUser,
+  ) {
+    return this.ordersService.assignDeliveryPerson(id, dto, user.id);
   }
 
   @Get(":id")

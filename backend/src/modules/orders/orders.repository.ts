@@ -3,6 +3,9 @@ import { OrderStatus, PaymentMethod, Prisma } from "@prisma/client";
 import { PrismaService } from "../../database/prisma.service";
 
 const orderInclude = {
+  deliveryPerson: {
+    select: { id: true, name: true, phone: true, status: true },
+  },
   itens: {
     orderBy: { produtoNome: "asc" as const },
     include: {

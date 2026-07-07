@@ -49,12 +49,140 @@ enum PurchaseOrderStatus {
 enum PayableStatus {
   PENDENTE
   PAGO
+  PARCIALMENTE_PAGO
+  VENCIDO
+  CANCELADO
+  ESTORNADO
+}
+
+enum PayableOriginType {
+  RECEBIMENTO_MERCADORIAS
+  COMPRA_MANUAL
+  DESPESA_MANUAL
+  FORNECEDOR
+  AJUSTE_FINANCEIRO
+  OUTRAS_OBRIGACOES
+}
+
+enum CashFlowType {
+  ENTRADA
+  SAIDA
+  TRANSFERENCIA
+  AJUSTE_POSITIVO
+  AJUSTE_NEGATIVO
+}
+
+enum CashClosingStatus {
+  ABERTO
+  FECHADO
+}
+
+enum ExpenseStatus {
+  PENDENTE
+  PAGO
+  PARCIALMENTE_PAGO
+  VENCIDO
+  CANCELADO
+  ESTORNADO
+}
+
+enum ExpenseRecurrenceFrequency {
+  SEMANAL
+  QUINZENAL
+  MENSAL
+  BIMESTRAL
+  TRIMESTRAL
+  SEMESTRAL
+  ANUAL
+}
+
+enum Weekday {
+  DOMINGO
+  SEGUNDA_FEIRA
+  TERCA_FEIRA
+  QUARTA_FEIRA
+  QUINTA_FEIRA
+  SEXTA_FEIRA
+  SABADO
+}
+
+enum DeliveryPersonStatus {
+  DISPONIVEL
+  EM_ENTREGA
+  AUSENTE
+  FOLGA
+  INATIVO
+}
+
+enum DeliveryStatus {
+  PEDIDO_RECEBIDO
+  EM_SEPARACAO
+  PRONTO_PARA_ENTREGA
+  SAIU_PARA_ENTREGA
+  ENTREGUE
+  NAO_ENTREGUE
   CANCELADO
 }
 
 enum PayableGenerationMode {
   PER_RECEIPT
   AT_COMPLETION
+}
+
+enum FinancialAccountType {
+  CONTA_CORRENTE
+  CONTA_POUPANCA
+  CONTA_DIGITAL
+}
+
+enum FinancialTransactionType {
+  RECEITA
+  DESPESA
+  TRANSFERENCIA
+  AJUSTE
+}
+
+enum FinancialTransactionStatus {
+  PENDENTE
+  RECEBIDO
+  PAGO
+  CANCELADO
+  VENCIDO
+  PARCIALMENTE_PAGO
+}
+
+enum FinancialOriginType {
+  PEDIDO
+  COMPRA
+  RECEBIMENTO
+  CLIENTE
+  FORNECEDOR
+  DESPESA
+  TRANSFERENCIA
+  AJUSTE
+  LANCAMENTO_MANUAL
+}
+
+enum ChartAccountType {
+  RECEITA
+  DESPESA
+}
+
+enum ReceivableOriginType {
+  PEDIDO
+  VENDA_MANUAL
+  LANCAMENTO_MANUAL
+  AJUSTE_FINANCEIRO
+  OUTRAS_RECEITAS
+}
+
+enum ReceivableStatus {
+  PENDENTE
+  RECEBIDO
+  PARCIALMENTE_RECEBIDO
+  VENCIDO
+  CANCELADO
+  ESTORNADO
 }
 
 model User {
@@ -78,6 +206,23 @@ model User {
   historicoOrdensCompra PurchaseOrderHistory[]
   recebimentos GoodsReceipt[]
   contasPagar AccountPayable[]
+  lancamentosFinanceiros FinancialTransaction[]
+  historicoFinanceiro FinancialTransactionHistory[]
+  contasReceber AccountReceivable[]
+  recebimentosContasReceber AccountReceivableReceipt[]
+  historicoContasReceber AccountReceivableHistory[]
+  pagamentosContasPagar AccountPayablePayment[]
+  historicoContasPagar AccountPayableHistory[]
+  transferenciasCashFlow CashTransfer[]
+  fechamentosCaixa CashClosing[]
+  movimentosFluxoCaixa CashFlowEntry[]
+  despesas Expense[]
+  anexosDespesas ExpenseAttachment[]
+  historicoDespesas ExpenseHistory[]
+  historicoEntrega DeliverySettingsHistory[]
+  historicoBairrosEntrega DeliveryNeighborhoodHistory[]
+  historicoEntregadores DeliveryPersonHistory[]
+  historicoAcompanhamentoEntregas DeliveryHistory[]
 
   @@map("users")
 }
@@ -437,6 +582,7 @@ model Customer {
   pedidos               Order[]
   notas                 CustomerNote[]
   tags                  CustomerTagRelation[]
+  contasReceber         AccountReceivable[]
 
   @@index([nome])
   @@index([email])
@@ -519,6 +665,7 @@ model Supplier {
   contatos          SupplierContact[]
   ordensCompra      PurchaseOrder[]
   contasPagar       AccountPayable[]
+  despesas          Expense[]
 
   @@index([nomeFantasia])
   @@index([razaoSocial])
@@ -674,26 +821,51 @@ model GoodsReceiptItem {
 }
 
 model AccountPayable {
-  id              String        @id @default(uuid())
-  numero          Int           @unique
-  supplierId      String        @map("supplier_id")
-  supplier        Supplier      @relation(fields: [supplierId], references: [id], onDelete: Restrict)
-  purchaseOrderId String        @map("purchase_order_id")
-  purchaseOrder   PurchaseOrder @relation(fields: [purchaseOrderId], references: [id], onDelete: Restrict)
-  goodsReceiptId  String?       @unique @map("goods_receipt_id")
-  goodsReceipt    GoodsReceipt? @relation(fields: [goodsReceiptId], references: [id], onDelete: SetNull)
-  descricao       String
-  valor           Decimal       @db.Decimal(10, 2)
-  status          PayableStatus @default(PENDENTE)
-  vencimento      DateTime?
-  usuarioId       String?       @map("usuario_id")
-  usuario         User?         @relation(fields: [usuarioId], references: [id], onDelete: SetNull)
-  createdAt       DateTime      @default(now()) @map("created_at")
-  updatedAt       DateTime      @updatedAt @map("updated_at")
+  id                 String               @id @default(uuid())
+  numero             Int                  @unique
+  supplierId         String?              @map("supplier_id")
+  supplier           Supplier?            @relation(fields: [supplierId], references: [id], onDelete: SetNull)
+  originType         PayableOriginType    @map("origin_type")
+  originId           String?              @map("origin_id")
+  purchaseOrderId    String?              @map("purchase_order_id")
+  purchaseOrder      PurchaseOrder?       @relation(fields: [purchaseOrderId], references: [id], onDelete: SetNull)
+  goodsReceiptId     String?              @unique @map("goods_receipt_id")
+  goodsReceipt       GoodsReceipt?        @relation(fields: [goodsReceiptId], references: [id], onDelete: SetNull)
+  categoryId         String               @map("category_id")
+  category           FinancialCategory    @relation(fields: [categoryId], references: [id], onDelete: Restrict)
+  chartAccountId     String               @map("chart_account_id")
+  chartAccount       FinancialChartAccount @relation(fields: [chartAccountId], references: [id], onDelete: Restrict)
+  costCenterId       String?              @map("cost_center_id")
+  costCenter         FinancialCostCenter? @relation(fields: [costCenterId], references: [id], onDelete: SetNull)
+  paymentMethodId    String               @map("payment_method_id")
+  paymentMethod      FinancialPaymentMethod @relation(fields: [paymentMethodId], references: [id], onDelete: Restrict)
+  financialAccountId String?              @map("financial_account_id")
+  financialAccount   FinancialAccount?    @relation(fields: [financialAccountId], references: [id], onDelete: SetNull)
+  documento          String?
+  numeroNota         String?              @map("numero_nota")
+  referenciaExterna  String?              @map("referencia_externa")
+  valorOriginal      Decimal              @map("valor_original") @db.Decimal(12, 2)
+  valorPago          Decimal              @default(0) @map("valor_pago") @db.Decimal(12, 2)
+  saldo              Decimal              @db.Decimal(12, 2)
+  competencia        DateTime
+  vencimento         DateTime
+  status             PayableStatus        @default(PENDENTE)
+  observacoes        String?
+  usuarioId          String?              @map("usuario_id")
+  usuario            User?                @relation(fields: [usuarioId], references: [id], onDelete: SetNull)
+  deletedAt          DateTime?            @map("deleted_at")
+  createdAt          DateTime             @default(now()) @map("created_at")
+  updatedAt          DateTime             @updatedAt @map("updated_at")
+  pagamentos         AccountPayablePayment[]
+  historico          AccountPayableHistory[]
+  despesa            Expense?
 
   @@index([supplierId])
   @@index([purchaseOrderId])
+  @@index([vencimento])
   @@index([status])
+  @@index([originType])
+  @@index([competencia])
   @@map("accounts_payable")
 }
 
@@ -732,7 +904,16 @@ model Order {
   itens               OrderItem[]
   historico           OrderHistory[]
   movimentosEstoque   InventoryMovement[]
+  contaReceber        AccountReceivable?
+  deliveryNeighborhoodId String?              @map("delivery_neighborhood_id")
+  deliveryNeighborhood   DeliveryNeighborhood? @relation(fields: [deliveryNeighborhoodId], references: [id], onDelete: SetNull)
+  prazoEntregaMinutos    Int?                  @map("prazo_entrega_minutos")
+  deliveryPersonId       String?               @map("delivery_person_id")
+  deliveryPerson         DeliveryPerson?       @relation(fields: [deliveryPersonId], references: [id], onDelete: SetNull)
+  delivery               Delivery?
 
+  @@index([deliveryNeighborhoodId])
+  @@index([deliveryPersonId])
   @@map("orders")
 }
 
@@ -766,4 +947,657 @@ model OrderHistory {
   createdAt DateTime    @default(now()) @map("created_at")
 
   @@map("order_history")
+}
+
+model FinancialChartAccount {
+  id           String                  @id @default(uuid())
+  codigo       String                  @unique
+  nome         String
+  tipo         ChartAccountType
+  parentId     String?                 @map("parent_id")
+  parent       FinancialChartAccount?  @relation("ChartAccountHierarchy", fields: [parentId], references: [id], onDelete: Restrict)
+  children     FinancialChartAccount[] @relation("ChartAccountHierarchy")
+  ativo        Boolean                 @default(true)
+  deletedAt    DateTime?               @map("deleted_at")
+  createdAt    DateTime                @default(now()) @map("created_at")
+  updatedAt    DateTime                @updatedAt @map("updated_at")
+  categorias   FinancialCategory[]
+  lancamentos  FinancialTransaction[]
+  contasReceber AccountReceivable[]
+  contasPagar     AccountPayable[]
+  despesas        Expense[]
+
+  @@index([parentId])
+  @@index([tipo])
+  @@map("financial_chart_accounts")
+}
+
+model FinancialCategory {
+  id             String                 @id @default(uuid())
+  codigo         String                 @unique
+  nome           String
+  chartAccountId String?                @map("chart_account_id")
+  chartAccount   FinancialChartAccount? @relation(fields: [chartAccountId], references: [id], onDelete: SetNull)
+  ativo          Boolean                @default(true)
+  deletedAt      DateTime?              @map("deleted_at")
+  createdAt      DateTime               @default(now()) @map("created_at")
+  updatedAt      DateTime               @updatedAt @map("updated_at")
+  lancamentos    FinancialTransaction[]
+  contasReceber  AccountReceivable[]
+  contasPagar    AccountPayable[]
+  despesas       Expense[]
+
+  @@index([chartAccountId])
+  @@map("financial_categories")
+}
+
+model FinancialCostCenter {
+  id          String                 @id @default(uuid())
+  codigo      String                 @unique
+  nome        String
+  principal   Boolean                @default(false)
+  ativo       Boolean                @default(true)
+  deletedAt   DateTime?              @map("deleted_at")
+  createdAt   DateTime               @default(now()) @map("created_at")
+  updatedAt   DateTime               @updatedAt @map("updated_at")
+  lancamentos FinancialTransaction[]
+  contasReceber AccountReceivable[]
+  contasPagar     AccountPayable[]
+  despesas        Expense[]
+
+  @@map("financial_cost_centers")
+}
+
+model FinancialAccount {
+  id           String                 @id @default(uuid())
+  nome         String
+  banco        String?
+  agencia      String?
+  conta        String?
+  tipo         FinancialAccountType
+  saldoInicial Decimal                @default(0) @map("saldo_inicial") @db.Decimal(12, 2)
+  ativo        Boolean                @default(true)
+  deletedAt    DateTime?              @map("deleted_at")
+  createdAt    DateTime               @default(now()) @map("created_at")
+  updatedAt    DateTime               @updatedAt @map("updated_at")
+  lancamentos  FinancialTransaction[]
+  contasReceber AccountReceivable[]
+  contasPagar     AccountPayable[]
+  recebimentosContasReceber AccountReceivableReceipt[] @relation("ReceiptBankAccount")
+  pagamentosContasPagar AccountPayablePayment[] @relation("PaymentBankAccount")
+  movimentosFluxoCaixa CashFlowEntry[]
+  transferenciasOrigem CashTransfer[] @relation("TransferFromAccount")
+  transferenciasDestino CashTransfer[] @relation("TransferToAccount")
+  despesas Expense[]
+
+  @@index([ativo])
+  @@map("financial_accounts")
+}
+
+model FinancialCashbox {
+  id           String                 @id @default(uuid())
+  codigo       String                 @unique
+  nome         String
+  saldoInicial Decimal                @default(0) @map("saldo_inicial") @db.Decimal(12, 2)
+  ativo        Boolean                @default(true)
+  deletedAt    DateTime?              @map("deleted_at")
+  createdAt    DateTime               @default(now()) @map("created_at")
+  updatedAt    DateTime               @updatedAt @map("updated_at")
+  lancamentos  FinancialTransaction[]
+  recebimentosContasReceber AccountReceivableReceipt[]
+  pagamentosContasPagar AccountPayablePayment[]
+  movimentosFluxoCaixa CashFlowEntry[]
+  transferenciasOrigem CashTransfer[] @relation("TransferFromCashbox")
+  transferenciasDestino CashTransfer[] @relation("TransferToCashbox")
+  fechamentos CashClosing[]
+
+  @@map("financial_cashboxes")
+}
+
+model CashFlowEntry {
+  id                     String               @id @default(uuid())
+  financialTransactionId String               @unique @map("financial_transaction_id")
+  financialTransaction   FinancialTransaction @relation(fields: [financialTransactionId], references: [id], onDelete: Restrict)
+  tipo                   CashFlowType
+  origem                 FinancialOriginType
+  descricao              String
+  financialAccountId     String?              @map("financial_account_id")
+  financialAccount       FinancialAccount?    @relation(fields: [financialAccountId], references: [id], onDelete: SetNull)
+  cashboxId              String?              @map("cashbox_id")
+  cashbox                FinancialCashbox?    @relation(fields: [cashboxId], references: [id], onDelete: SetNull)
+  valor                  Decimal              @db.Decimal(12, 2)
+  saldoApos              Decimal              @map("saldo_apos") @db.Decimal(12, 2)
+  transferId             String?              @map("transfer_id")
+  transfer               CashTransfer?        @relation(fields: [transferId], references: [id], onDelete: SetNull)
+  usuarioId              String?              @map("usuario_id")
+  usuario                User?                @relation(fields: [usuarioId], references: [id], onDelete: SetNull)
+  createdAt              DateTime             @default(now()) @map("created_at")
+
+  @@index([createdAt])
+  @@index([financialAccountId])
+  @@index([cashboxId])
+  @@index([tipo])
+  @@index([origem])
+  @@map("cash_flow")
+}
+
+model CashTransfer {
+  id                     String          @id @default(uuid())
+  numero                 Int             @unique
+  fromFinancialAccountId String?         @map("from_financial_account_id")
+  fromFinancialAccount   FinancialAccount? @relation("TransferFromAccount", fields: [fromFinancialAccountId], references: [id], onDelete: SetNull)
+  fromCashboxId          String?         @map("from_cashbox_id")
+  fromCashbox            FinancialCashbox? @relation("TransferFromCashbox", fields: [fromCashboxId], references: [id], onDelete: SetNull)
+  toFinancialAccountId   String?         @map("to_financial_account_id")
+  toFinancialAccount     FinancialAccount? @relation("TransferToAccount", fields: [toFinancialAccountId], references: [id], onDelete: SetNull)
+  toCashboxId            String?         @map("to_cashbox_id")
+  toCashbox              FinancialCashbox? @relation("TransferToCashbox", fields: [toCashboxId], references: [id], onDelete: SetNull)
+  valor                  Decimal         @db.Decimal(12, 2)
+  outTransactionId       String          @unique @map("out_transaction_id")
+  outTransaction         FinancialTransaction @relation("TransferOutTransaction", fields: [outTransactionId], references: [id], onDelete: Restrict)
+  inTransactionId        String          @unique @map("in_transaction_id")
+  inTransaction          FinancialTransaction @relation("TransferInTransaction", fields: [inTransactionId], references: [id], onDelete: Restrict)
+  usuarioId              String?         @map("usuario_id")
+  usuario                User?           @relation(fields: [usuarioId], references: [id], onDelete: SetNull)
+  createdAt              DateTime        @default(now()) @map("created_at")
+  movimentos             CashFlowEntry[]
+
+  @@index([createdAt])
+  @@map("cash_transfers")
+}
+
+model CashClosing {
+  id           String            @id @default(uuid())
+  cashboxId    String            @map("cashbox_id")
+  cashbox      FinancialCashbox  @relation(fields: [cashboxId], references: [id], onDelete: Restrict)
+  saldoInicial Decimal           @map("saldo_inicial") @db.Decimal(12, 2)
+  saldoFinal   Decimal?          @map("saldo_final") @db.Decimal(12, 2)
+  status       CashClosingStatus @default(ABERTO)
+  observacoes  String?
+  usuarioId    String?           @map("usuario_id")
+  usuario      User?             @relation(fields: [usuarioId], references: [id], onDelete: SetNull)
+  openedAt     DateTime          @default(now()) @map("opened_at")
+  closedAt     DateTime?         @map("closed_at")
+
+  @@index([cashboxId])
+  @@index([status])
+  @@index([openedAt])
+  @@map("cash_closings")
+}
+
+model FinancialPaymentMethod {
+  id          String                 @id @default(uuid())
+  codigo      String                 @unique
+  nome        String
+  ativo       Boolean                @default(true)
+  deletedAt   DateTime?              @map("deleted_at")
+  createdAt   DateTime               @default(now()) @map("created_at")
+  updatedAt   DateTime               @updatedAt @map("updated_at")
+  lancamentos FinancialTransaction[]
+  contasReceber AccountReceivable[]
+  recebimentosContasReceber AccountReceivableReceipt[]
+  contasPagar     AccountPayable[]
+  pagamentosContasPagar AccountPayablePayment[]
+  despesas Expense[]
+
+  @@map("financial_payment_methods")
+}
+
+model FinancialTransaction {
+  id                 String                     @id @default(uuid())
+  numero             Int                        @unique
+  tipo               FinancialTransactionType
+  origem             FinancialOriginType
+  origemReferenciaId String?                    @map("origem_referencia_id")
+  categoryId         String                     @map("category_id")
+  category           FinancialCategory          @relation(fields: [categoryId], references: [id], onDelete: Restrict)
+  chartAccountId     String?                    @map("chart_account_id")
+  chartAccount       FinancialChartAccount?     @relation(fields: [chartAccountId], references: [id], onDelete: SetNull)
+  costCenterId       String?                    @map("cost_center_id")
+  costCenter         FinancialCostCenter?         @relation(fields: [costCenterId], references: [id], onDelete: SetNull)
+  bankAccountId      String?                    @map("bank_account_id")
+  bankAccount        FinancialAccount?          @relation(fields: [bankAccountId], references: [id], onDelete: SetNull)
+  cashboxId          String?                    @map("cashbox_id")
+  cashbox            FinancialCashbox?          @relation(fields: [cashboxId], references: [id], onDelete: SetNull)
+  paymentMethodId    String?                    @map("payment_method_id")
+  paymentMethod      FinancialPaymentMethod?    @relation(fields: [paymentMethodId], references: [id], onDelete: SetNull)
+  valor              Decimal                    @db.Decimal(12, 2)
+  data               DateTime
+  competencia        DateTime
+  vencimento         DateTime?
+  pagamento          DateTime?
+  status             FinancialTransactionStatus @default(PENDENTE)
+  observacoes        String?
+  usuarioId          String?                    @map("usuario_id")
+  usuario            User?                      @relation(fields: [usuarioId], references: [id], onDelete: SetNull)
+  deletedAt          DateTime?                  @map("deleted_at")
+  createdAt          DateTime                   @default(now()) @map("created_at")
+  updatedAt          DateTime                   @updatedAt @map("updated_at")
+  historico          FinancialTransactionHistory[]
+  recebimentoContaReceber AccountReceivableReceipt?
+  estornoRecebimento AccountReceivableReceipt?     @relation("ReceiptReversalTransaction")
+  pagamentoContaPagar AccountPayablePayment?
+  estornoPagamentoContaPagar AccountPayablePayment? @relation("PaymentReversalTransaction")
+  movimentoFluxoCaixa CashFlowEntry?
+  transferenciaSaida CashTransfer? @relation("TransferOutTransaction")
+  transferenciaEntrada CashTransfer? @relation("TransferInTransaction")
+
+  @@index([data])
+  @@index([competencia])
+  @@index([categoryId])
+  @@index([bankAccountId])
+  @@index([cashboxId])
+  @@index([status])
+  @@index([origem])
+  @@index([tipo])
+  @@index([vencimento])
+  @@map("financial_transactions")
+}
+
+model FinancialTransactionHistory {
+  id            String               @id @default(uuid())
+  transactionId String               @map("transaction_id")
+  transaction   FinancialTransaction @relation(fields: [transactionId], references: [id], onDelete: Cascade)
+  operacao      String
+  usuarioId     String?              @map("usuario_id")
+  usuario       User?                @relation(fields: [usuarioId], references: [id], onDelete: SetNull)
+  ip            String?
+  origem        String?
+  valorAnterior Decimal?             @map("valor_anterior") @db.Decimal(12, 2)
+  valorNovo     Decimal?             @map("valor_novo") @db.Decimal(12, 2)
+  descricao     String?
+  createdAt     DateTime             @default(now()) @map("created_at")
+
+  @@index([transactionId])
+  @@index([createdAt])
+  @@map("financial_transaction_history")
+}
+
+model AccountReceivable {
+  id                 String               @id @default(uuid())
+  numero             Int                  @unique
+  customerId         String               @map("customer_id")
+  customer           Customer             @relation(fields: [customerId], references: [id], onDelete: Restrict)
+  originType         ReceivableOriginType @map("origin_type")
+  originId           String?              @map("origin_id")
+  orderId            String?              @unique @map("order_id")
+  order              Order?               @relation(fields: [orderId], references: [id], onDelete: SetNull)
+  categoryId         String               @map("category_id")
+  category           FinancialCategory    @relation(fields: [categoryId], references: [id], onDelete: Restrict)
+  chartAccountId     String               @map("chart_account_id")
+  chartAccount       FinancialChartAccount @relation(fields: [chartAccountId], references: [id], onDelete: Restrict)
+  costCenterId       String?              @map("cost_center_id")
+  costCenter         FinancialCostCenter? @relation(fields: [costCenterId], references: [id], onDelete: SetNull)
+  paymentMethodId    String               @map("payment_method_id")
+  paymentMethod      FinancialPaymentMethod @relation(fields: [paymentMethodId], references: [id], onDelete: Restrict)
+  financialAccountId String?              @map("financial_account_id")
+  financialAccount   FinancialAccount?    @relation(fields: [financialAccountId], references: [id], onDelete: SetNull)
+  documento          String?
+  referenciaExterna  String?              @map("referencia_externa")
+  valorOriginal      Decimal              @map("valor_original") @db.Decimal(12, 2)
+  valorRecebido      Decimal              @default(0) @map("valor_recebido") @db.Decimal(12, 2)
+  saldo              Decimal              @db.Decimal(12, 2)
+  competencia        DateTime
+  vencimento         DateTime
+  status             ReceivableStatus     @default(PENDENTE)
+  observacoes        String?
+  usuarioId          String?              @map("usuario_id")
+  usuario            User?                @relation(fields: [usuarioId], references: [id], onDelete: SetNull)
+  deletedAt          DateTime?            @map("deleted_at")
+  createdAt          DateTime             @default(now()) @map("created_at")
+  updatedAt          DateTime             @updatedAt @map("updated_at")
+  recebimentos       AccountReceivableReceipt[]
+  historico          AccountReceivableHistory[]
+
+  @@index([customerId])
+  @@index([vencimento])
+  @@index([status])
+  @@index([originType])
+  @@index([competencia])
+  @@map("accounts_receivable")
+}
+
+model AccountReceivableReceipt {
+  id                     String               @id @default(uuid())
+  accountReceivableId    String               @map("account_receivable_id")
+  accountReceivable      AccountReceivable    @relation(fields: [accountReceivableId], references: [id], onDelete: Cascade)
+  financialTransactionId String               @unique @map("financial_transaction_id")
+  financialTransaction   FinancialTransaction @relation(fields: [financialTransactionId], references: [id], onDelete: Restrict)
+  valor                  Decimal              @db.Decimal(12, 2)
+  paymentMethodId        String               @map("payment_method_id")
+  paymentMethod          FinancialPaymentMethod @relation(fields: [paymentMethodId], references: [id], onDelete: Restrict)
+  financialAccountId     String?              @map("financial_account_id")
+  financialAccount       FinancialAccount?    @relation("ReceiptBankAccount", fields: [financialAccountId], references: [id], onDelete: SetNull)
+  cashboxId              String?              @map("cashbox_id")
+  cashbox                FinancialCashbox?    @relation(fields: [cashboxId], references: [id], onDelete: SetNull)
+  recebidoEm             DateTime             @map("recebido_em")
+  usuarioId              String?              @map("usuario_id")
+  usuario                User?                @relation(fields: [usuarioId], references: [id], onDelete: SetNull)
+  estornado              Boolean              @default(false)
+  estornoTransactionId   String?              @unique @map("estorno_transaction_id")
+  estornoTransaction     FinancialTransaction? @relation("ReceiptReversalTransaction", fields: [estornoTransactionId], references: [id], onDelete: SetNull)
+  createdAt              DateTime             @default(now()) @map("created_at")
+
+  @@index([accountReceivableId])
+  @@index([recebidoEm])
+  @@map("accounts_receivable_receipts")
+}
+
+model AccountReceivableHistory {
+  id                  String            @id @default(uuid())
+  accountReceivableId String            @map("account_receivable_id")
+  accountReceivable   AccountReceivable @relation(fields: [accountReceivableId], references: [id], onDelete: Cascade)
+  operacao            String
+  usuarioId           String?           @map("usuario_id")
+  usuario             User?             @relation(fields: [usuarioId], references: [id], onDelete: SetNull)
+  descricao           String
+  valorAnterior       Decimal?          @map("valor_anterior") @db.Decimal(12, 2)
+  valorNovo           Decimal?          @map("valor_novo") @db.Decimal(12, 2)
+  createdAt           DateTime          @default(now()) @map("created_at")
+
+  @@index([accountReceivableId])
+  @@index([createdAt])
+  @@map("accounts_receivable_history")
+}
+
+model AccountPayablePayment {
+  id                     String               @id @default(uuid())
+  accountPayableId       String               @map("account_payable_id")
+  accountPayable         AccountPayable       @relation(fields: [accountPayableId], references: [id], onDelete: Cascade)
+  financialTransactionId String               @unique @map("financial_transaction_id")
+  financialTransaction   FinancialTransaction @relation(fields: [financialTransactionId], references: [id], onDelete: Restrict)
+  valor                  Decimal              @db.Decimal(12, 2)
+  paymentMethodId        String               @map("payment_method_id")
+  paymentMethod          FinancialPaymentMethod @relation(fields: [paymentMethodId], references: [id], onDelete: Restrict)
+  financialAccountId     String?              @map("financial_account_id")
+  financialAccount       FinancialAccount?    @relation("PaymentBankAccount", fields: [financialAccountId], references: [id], onDelete: SetNull)
+  cashboxId              String?              @map("cashbox_id")
+  cashbox                FinancialCashbox?    @relation(fields: [cashboxId], references: [id], onDelete: SetNull)
+  pagoEm                 DateTime             @map("pago_em")
+  usuarioId              String?              @map("usuario_id")
+  usuario                User?                @relation(fields: [usuarioId], references: [id], onDelete: SetNull)
+  estornado              Boolean              @default(false)
+  estornoTransactionId   String?              @unique @map("estorno_transaction_id")
+  estornoTransaction     FinancialTransaction? @relation("PaymentReversalTransaction", fields: [estornoTransactionId], references: [id], onDelete: SetNull)
+  createdAt              DateTime             @default(now()) @map("created_at")
+
+  @@index([accountPayableId])
+  @@index([pagoEm])
+  @@map("accounts_payable_payments")
+}
+
+model AccountPayableHistory {
+  id               String         @id @default(uuid())
+  accountPayableId String         @map("account_payable_id")
+  accountPayable   AccountPayable @relation(fields: [accountPayableId], references: [id], onDelete: Cascade)
+  operacao         String
+  usuarioId        String?        @map("usuario_id")
+  usuario          User?          @relation(fields: [usuarioId], references: [id], onDelete: SetNull)
+  descricao        String
+  valorAnterior    Decimal?       @map("valor_anterior") @db.Decimal(12, 2)
+  valorNovo        Decimal?       @map("valor_novo") @db.Decimal(12, 2)
+  createdAt        DateTime       @default(now()) @map("created_at")
+
+  @@index([accountPayableId])
+  @@index([createdAt])
+  @@map("accounts_payable_history")
+}
+
+model Expense {
+  id                   String                      @id @default(uuid())
+  numero               Int                         @unique
+  supplierId           String?                     @map("supplier_id")
+  supplier             Supplier?                   @relation(fields: [supplierId], references: [id], onDelete: SetNull)
+  categoryId           String                      @map("category_id")
+  category             FinancialCategory           @relation(fields: [categoryId], references: [id], onDelete: Restrict)
+  chartAccountId       String                      @map("chart_account_id")
+  chartAccount         FinancialChartAccount       @relation(fields: [chartAccountId], references: [id], onDelete: Restrict)
+  costCenterId         String                      @map("cost_center_id")
+  costCenter           FinancialCostCenter         @relation(fields: [costCenterId], references: [id], onDelete: Restrict)
+  financialAccountId   String?                     @map("financial_account_id")
+  financialAccount     FinancialAccount?           @relation(fields: [financialAccountId], references: [id], onDelete: SetNull)
+  paymentMethodId      String?                     @map("payment_method_id")
+  paymentMethod        FinancialPaymentMethod?     @relation(fields: [paymentMethodId], references: [id], onDelete: SetNull)
+  accountPayableId     String                      @unique @map("account_payable_id")
+  accountPayable       AccountPayable              @relation(fields: [accountPayableId], references: [id], onDelete: Restrict)
+  descricao            String
+  documento            String?
+  valor                Decimal                     @db.Decimal(12, 2)
+  competencia          DateTime
+  vencimento           DateTime
+  status               ExpenseStatus               @default(PENDENTE)
+  recorrente           Boolean                     @default(false)
+  frequencia           ExpenseRecurrenceFrequency?
+  variavel             Boolean                     @default(true)
+  grupoParcelasId      String?                     @map("grupo_parcelas_id")
+  parcelaNumero        Int?                        @map("parcela_numero")
+  totalParcelas        Int?                        @map("total_parcelas")
+  recorrenciaOrigemId  String?                     @map("recorrencia_origem_id")
+  recorrenciaOrigem    Expense?                    @relation("ExpenseRecurrence", fields: [recorrenciaOrigemId], references: [id], onDelete: SetNull)
+  ocorrenciasRecorrentes Expense[]                 @relation("ExpenseRecurrence")
+  proximaRecorrencia   DateTime?                   @map("proxima_recorrencia")
+  observacoes          String?
+  usuarioId            String?                     @map("usuario_id")
+  usuario              User?                       @relation(fields: [usuarioId], references: [id], onDelete: SetNull)
+  deletedAt            DateTime?                   @map("deleted_at")
+  createdAt            DateTime                    @default(now()) @map("created_at")
+  updatedAt            DateTime                    @updatedAt @map("updated_at")
+  parcela              ExpenseInstallment?
+  anexos               ExpenseAttachment[]
+  historico            ExpenseHistory[]
+
+  @@index([supplierId])
+  @@index([categoryId])
+  @@index([costCenterId])
+  @@index([vencimento])
+  @@index([status])
+  @@index([grupoParcelasId])
+  @@index([recorrente])
+  @@map("expenses")
+}
+
+model ExpenseInstallment {
+  id         String        @id @default(uuid())
+  grupoId    String        @map("grupo_id")
+  expenseId  String        @unique @map("expense_id")
+  expense    Expense       @relation(fields: [expenseId], references: [id], onDelete: Cascade)
+  numero     Int
+  valor      Decimal       @db.Decimal(12, 2)
+  vencimento DateTime
+  status     ExpenseStatus @default(PENDENTE)
+  createdAt  DateTime      @default(now()) @map("created_at")
+
+  @@index([grupoId])
+  @@index([vencimento])
+  @@index([status])
+  @@map("expense_installments")
+}
+
+model ExpenseAttachment {
+  id         String   @id @default(uuid())
+  expenseId  String   @map("expense_id")
+  expense    Expense  @relation(fields: [expenseId], references: [id], onDelete: Cascade)
+  nome       String
+  arquivo    String
+  tipo       String
+  usuarioId  String?  @map("usuario_id")
+  usuario    User?    @relation(fields: [usuarioId], references: [id], onDelete: SetNull)
+  createdAt  DateTime @default(now()) @map("created_at")
+
+  @@index([expenseId])
+  @@map("expense_attachments")
+}
+
+model ExpenseHistory {
+  id            String   @id @default(uuid())
+  expenseId     String   @map("expense_id")
+  expense       Expense  @relation(fields: [expenseId], references: [id], onDelete: Cascade)
+  operacao      String
+  descricao     String
+  usuarioId     String?  @map("usuario_id")
+  usuario       User?    @relation(fields: [usuarioId], references: [id], onDelete: SetNull)
+  valorAnterior Decimal? @map("valor_anterior") @db.Decimal(12, 2)
+  valorNovo     Decimal? @map("valor_novo") @db.Decimal(12, 2)
+  createdAt     DateTime @default(now()) @map("created_at")
+
+  @@index([expenseId])
+  @@index([createdAt])
+  @@map("expense_history")
+}
+
+model DeliverySettings {
+  id                  String                   @id @default("default")
+  enabled             Boolean                  @default(true)
+  minimumOrderValue   Decimal                  @default(0) @map("minimum_order_value") @db.Decimal(10, 2)
+  averageDeliveryTime Int                      @default(45) @map("average_delivery_time")
+  message             String                   @default("Entrega realizada pela própria loja.")
+  closedMessage       String                   @default("No momento estamos fora do horário de entrega.") @map("closed_message")
+  createdAt           DateTime                 @default(now()) @map("created_at")
+  updatedAt           DateTime                 @updatedAt @map("updated_at")
+  businessHours       DeliveryBusinessHour[]
+  history             DeliverySettingsHistory[]
+
+  @@map("delivery_settings")
+}
+
+model DeliveryBusinessHour {
+  id         String           @id @default(uuid())
+  settingsId String           @map("settings_id")
+  settings   DeliverySettings @relation(fields: [settingsId], references: [id], onDelete: Cascade)
+  weekday    Weekday
+  isOpen     Boolean          @default(true) @map("is_open")
+  startTime  String           @default("09:00") @map("start_time")
+  endTime    String           @default("18:00") @map("end_time")
+  createdAt  DateTime         @default(now()) @map("created_at")
+  updatedAt  DateTime         @updatedAt @map("updated_at")
+
+  @@unique([settingsId, weekday])
+  @@map("delivery_business_hours")
+}
+
+model DeliverySettingsHistory {
+  id         String           @id @default(uuid())
+  settingsId String           @map("settings_id")
+  settings   DeliverySettings @relation(fields: [settingsId], references: [id], onDelete: Cascade)
+  operacao   String
+  descricao  String
+  usuarioId  String?          @map("usuario_id")
+  usuario    User?            @relation(fields: [usuarioId], references: [id], onDelete: SetNull)
+  createdAt  DateTime         @default(now()) @map("created_at")
+
+  @@index([settingsId])
+  @@index([createdAt])
+  @@map("delivery_settings_history")
+}
+
+model DeliveryNeighborhood {
+  id                    String                      @id @default(uuid())
+  name                  String
+  city                  String
+  state                 String
+  deliveryFee           Decimal                     @default(0) @map("delivery_fee") @db.Decimal(10, 2)
+  averageDeliveryTime   Int                         @default(45) @map("average_delivery_time")
+  isActive              Boolean                     @default(true) @map("is_active")
+  notes                 String?
+  deletedAt             DateTime?                   @map("deleted_at")
+  createdAt             DateTime                    @default(now()) @map("created_at")
+  updatedAt             DateTime                    @updatedAt @map("updated_at")
+  pedidos               Order[]
+  history               DeliveryNeighborhoodHistory[]
+
+  @@index([name])
+  @@index([city])
+  @@index([state])
+  @@index([isActive])
+  @@index([deletedAt])
+  @@map("delivery_neighborhoods")
+}
+
+model DeliveryNeighborhoodHistory {
+  id             String               @id @default(uuid())
+  neighborhoodId String               @map("neighborhood_id")
+  neighborhood   DeliveryNeighborhood @relation(fields: [neighborhoodId], references: [id], onDelete: Cascade)
+  operacao       String
+  descricao      String
+  usuarioId      String?              @map("usuario_id")
+  usuario        User?                @relation(fields: [usuarioId], references: [id], onDelete: SetNull)
+  createdAt      DateTime             @default(now()) @map("created_at")
+
+  @@index([neighborhoodId])
+  @@index([createdAt])
+  @@map("delivery_neighborhood_history")
+}
+
+model DeliveryPerson {
+  id        String               @id @default(uuid())
+  name      String
+  phone     String
+  cpf       String?
+  document  String?
+  status    DeliveryPersonStatus @default(DISPONIVEL)
+  notes     String?
+  deletedAt DateTime?            @map("deleted_at")
+  createdAt DateTime             @default(now()) @map("created_at")
+  updatedAt DateTime             @updatedAt @map("updated_at")
+  pedidos   Order[]
+  entregas  Delivery[]
+  history   DeliveryPersonHistory[]
+
+  @@index([name])
+  @@index([phone])
+  @@index([status])
+  @@index([deletedAt])
+  @@map("delivery_persons")
+}
+
+model DeliveryPersonHistory {
+  id               String         @id @default(uuid())
+  deliveryPersonId String         @map("delivery_person_id")
+  deliveryPerson   DeliveryPerson @relation(fields: [deliveryPersonId], references: [id], onDelete: Cascade)
+  operacao         String
+  descricao        String
+  usuarioId        String?        @map("usuario_id")
+  usuario          User?          @relation(fields: [usuarioId], references: [id], onDelete: SetNull)
+  createdAt        DateTime       @default(now()) @map("created_at")
+
+  @@index([deliveryPersonId])
+  @@index([createdAt])
+  @@map("delivery_person_history")
+}
+
+model Delivery {
+  id                    String          @id @default(uuid())
+  orderId               String          @unique @map("order_id")
+  order                 Order           @relation(fields: [orderId], references: [id], onDelete: Restrict)
+  deliveryPersonId      String?         @map("delivery_person_id")
+  deliveryPerson        DeliveryPerson? @relation(fields: [deliveryPersonId], references: [id], onDelete: SetNull)
+  status                DeliveryStatus  @default(PEDIDO_RECEBIDO)
+  estimatedDeliveryTime Int?            @map("estimated_delivery_time")
+  leftForDeliveryAt     DateTime?       @map("left_for_delivery_at")
+  deliveredAt           DateTime?       @map("delivered_at")
+  notes                 String?
+  createdAt             DateTime        @default(now()) @map("created_at")
+  updatedAt             DateTime        @updatedAt @map("updated_at")
+  history               DeliveryHistory[]
+
+  @@index([status])
+  @@index([deliveryPersonId])
+  @@index([orderId])
+  @@index([createdAt])
+  @@map("deliveries")
+}
+
+model DeliveryHistory {
+  id         String         @id @default(uuid())
+  deliveryId String         @map("delivery_id")
+  delivery   Delivery       @relation(fields: [deliveryId], references: [id], onDelete: Cascade)
+  status     DeliveryStatus
+  usuarioId  String?        @map("usuario_id")
+  usuario    User?          @relation(fields: [usuarioId], references: [id], onDelete: SetNull)
+  notes      String?
+  createdAt  DateTime       @default(now()) @map("created_at")
+
+  @@index([deliveryId])
+  @@index([createdAt])
+  @@map("delivery_history")
 }

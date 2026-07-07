@@ -7,7 +7,7 @@ import { ProtectedRoute } from "@/components/auth/ProtectedRoute";
 import { useAuth } from "@/hooks/useAuth";
 import { cn } from "@/utils/cn";
 
-const navItems = [
+const navItems: Array<{ href: string; label: string; disabled?: boolean }> = [
   { href: "/admin", label: "Dashboard" },
   { href: "/admin/banners", label: "Banners" },
   { href: "/admin/categorias", label: "Categorias" },
@@ -18,7 +18,11 @@ const navItems = [
   { href: "/admin/fornecedores", label: "Fornecedores" },
   { href: "/admin/compras", label: "Compras" },
   { href: "/admin/estoque", label: "Estoque" },
-  { href: "/admin/financeiro", label: "Financeiro", disabled: true },
+  { href: "/admin/financeiro", label: "Financeiro" },
+  { href: "/admin/configuracoes/entrega", label: "Entrega" },
+  { href: "/admin/entregas", label: "Entregas" },
+  { href: "/admin/entregas/bairros", label: "Bairros" },
+  { href: "/admin/entregadores", label: "Entregadores" },
 ];
 
 function isNavActive(pathname: string, href: string) {

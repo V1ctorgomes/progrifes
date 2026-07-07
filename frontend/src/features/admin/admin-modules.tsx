@@ -25,6 +25,6 @@ export const CategoriasPage = createPlaceholderPage("Categorias");
 export const PedidosPage = createPlaceholderPage("Pedidos");
 export const ClientesPage = createPlaceholderPage("Clientes");
 export const EstoquePage = createPlaceholderPage("Estoque");
-export const FinanceiroPage = createPlaceholderPage("Financeiro");
+export { FinancialOverviewPage as FinanceiroPage } from "@/features/admin/financial/FinancialOverviewPage";
 
 export { adminModules };

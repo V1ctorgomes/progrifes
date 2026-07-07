@@ -1,10 +1,12 @@
 "use client";
 
 import Link from "next/link";
+import { useQuery } from "@tanstack/react-query";
 import { CartItem } from "@/features/cart/components/CartItem";
 import { CartSummary } from "@/features/cart/components/CartSummary";
 import { useCart } from "@/features/cart/hooks/useCart";
 import { StoreLayout } from "@/layouts/StoreLayout";
+import { getDeliverySettings } from "@/lib/delivery-api";
 import { Button } from "@/components/ui/Button";
 import { Container } from "@/components/ui/Container";
 import type { Category } from "@/types/category";
@@ -23,6 +25,18 @@ export function CartPage({ categories }: CartPageProps) {
 
 function CartPageContent() {
   const { items, totals, updateQuantity, removeItem, clearCart } = useCart();
+  const { data: deliverySettings } = useQuery({
+    queryKey: ["delivery", "settings"],
+    queryFn: getDeliverySettings,
+    staleTime: 60_000,
+  });
+
+  const canCheckout = deliverySettings?.availability.canAcceptOrders ?? true;
+  const checkoutDisabledReason = !deliverySettings?.enabled
+    ? "As entregas estão temporariamente indisponíveis."
+    : !deliverySettings?.availability.isOpenNow
+      ? deliverySettings?.closedMessage
+      : undefined;
 
   return (
     <main className="py-8 sm:py-12">
@@ -63,7 +77,13 @@ function CartPageContent() {
                 ))}
               </div>
 
-              <CartSummary totals={totals} />
+              <CartSummary
+                totals={totals}
+                canCheckout={canCheckout}
+                checkoutDisabledReason={checkoutDisabledReason}
+                deliveryMessage={deliverySettings?.message}
+                minimumOrderValue={deliverySettings?.minimumOrderValue ?? 0}
+              />
             </div>
           )}
         </Container>
