@@ -23,6 +23,8 @@ export interface ProductVariant {
   precoPromocional?: number | null;
   custo?: number | null;
   estoque: number;
+  estoqueTotal?: number;
+  estoqueReservado?: number;
   estoqueMinimo: number;
   statusEstoque: StockStatus;
   ativo: boolean;

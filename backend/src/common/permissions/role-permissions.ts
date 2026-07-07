@@ -14,6 +14,7 @@ const ROLE_PERMISSIONS: Record<UserRole, Permission[]> = {
     "stock:read",
     "stock:write",
     "customers:read",
+    "customers:write",
   ],
   [UserRole.FUNCIONARIO]: [
     "products:read",

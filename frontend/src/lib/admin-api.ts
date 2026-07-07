@@ -11,6 +11,25 @@ import type {
   OrderStatus,
 } from "@/types/order";
 import type {
+  Customer,
+  CustomerAddress,
+  CustomerAddressInput,
+  CustomerCrm,
+  CustomerInput,
+  CustomerNote,
+  CustomerOrdersResponse,
+  CustomersListResponse,
+  CustomerStatistics,
+  CustomerTag,
+  CustomerTimelineEntry,
+} from "@/types/customer";
+import type { InventoryAlerts, InventoryListItem, InventoryListResponse } from "@/types/inventory";
+import type {
+  CreateInventoryEntryInput,
+  InventoryEntriesListResponse,
+  InventoryEntryDetail,
+} from "@/types/inventory-entry";
+import type {
   BulkUpdateVariantsInput,
   GenerateVariantsInput,
   ProductVariant,
@@ -103,6 +122,97 @@ export const productsAdminApi = {
   activate: async (id: string) => (await api.patch<Product>(`/products/${id}/activate`)).data,
   deactivate: async (id: string) => (await api.patch<Product>(`/products/${id}/deactivate`)).data,
   duplicate: async (id: string) => (await api.post<Product>(`/products/${id}/duplicate`)).data,
+};
+
+export const customersAdminApi = {
+  list: async (params?: {
+    page?: number;
+    limit?: number;
+    search?: string;
+    cidade?: string;
+    bairro?: string;
+    ativo?: boolean;
+  }) => (await api.get<CustomersListResponse>("/customers", { params })).data,
+  getById: async (id: string) => (await api.get<Customer>(`/customers/${id}`)).data,
+  create: async (data: CustomerInput) => (await api.post<Customer>("/customers", data)).data,
+  update: async (id: string, data: Partial<CustomerInput>) =>
+    (await api.put<Customer>(`/customers/${id}`, data)).data,
+  remove: async (id: string) => (await api.delete(`/customers/${id}`)).data,
+  activate: async (id: string) =>
+    (await api.patch<Customer>(`/customers/${id}/activate`)).data,
+  deactivate: async (id: string) =>
+    (await api.patch<Customer>(`/customers/${id}/deactivate`)).data,
+  addAddress: async (id: string, data: CustomerAddressInput) =>
+    (await api.post<CustomerAddress>(`/customers/${id}/addresses`, data)).data,
+  updateAddress: async (id: string, addressId: string, data: CustomerAddressInput) =>
+    (await api.put<CustomerAddress>(`/customers/${id}/addresses/${addressId}`, data)).data,
+  removeAddress: async (id: string, addressId: string) =>
+    (await api.delete(`/customers/${id}/addresses/${addressId}`)).data,
+  setPrincipalAddress: async (id: string, addressId: string) =>
+    (await api.patch<Customer>(`/customers/${id}/addresses/${addressId}/principal`)).data,
+  getStatistics: async (id: string) =>
+    (await api.get<CustomerStatistics>(`/customers/${id}/statistics`)).data,
+  getHistory: async (id: string) =>
+    (await api.get<CustomerTimelineEntry[]>(`/customers/${id}/history`)).data,
+  getOrders: async (id: string, params?: { page?: number; limit?: number }) =>
+    (await api.get<CustomerOrdersResponse>(`/customers/${id}/orders`, { params })).data,
+  getNotes: async (id: string) => (await api.get<CustomerNote[]>(`/customers/${id}/notes`)).data,
+  createNote: async (id: string, descricao: string) =>
+    (await api.post<CustomerNote>(`/customers/${id}/notes`, { descricao })).data,
+  deleteNote: async (id: string, noteId: string) =>
+    (await api.delete(`/customers/${id}/notes/${noteId}`)).data,
+  getCrm: async (id: string) => (await api.get<CustomerCrm>(`/customers/${id}/crm`)).data,
+  updateCrm: async (
+    id: string,
+    data: {
+      origem?: string | null;
+      canalAtendimento?: string | null;
+      responsavelId?: string | null;
+      observacoesComerciais?: string | null;
+    },
+  ) => (await api.patch<CustomerCrm>(`/customers/${id}/crm`, data)).data,
+  listTags: async () => (await api.get<CustomerTag[]>("/customers/tags")).data,
+  createTag: async (data: { nome: string; cor?: string }) =>
+    (await api.post<CustomerTag>("/customers/tags", data)).data,
+  assignTag: async (id: string, data: { tagId?: string; nome?: string; cor?: string }) =>
+    (await api.post<CustomerCrm>(`/customers/${id}/tags`, data)).data,
+  removeTag: async (id: string, tagId: string) =>
+    (await api.delete(`/customers/${id}/tags/${tagId}`)).data,
+};
+
+export const inventoryAdminApi = {
+  list: async (params?: {
+    page?: number;
+    limit?: number;
+    search?: string;
+    status?: string;
+    categoriaId?: string;
+    produtoId?: string;
+    produtoAtivo?: boolean;
+    sort?: string;
+  }) => (await api.get<InventoryListResponse>("/inventory", { params })).data,
+  getByVariantId: async (variantId: string) =>
+    (await api.get<InventoryListItem>(`/inventory/${variantId}`)).data,
+  getAlerts: async () => (await api.get<InventoryAlerts>("/inventory/alerts")).data,
+  getLowStock: async () => (await api.get<InventoryListItem[]>("/inventory/low-stock")).data,
+  getOutOfStock: async () =>
+    (await api.get<InventoryListItem[]>("/inventory/out-of-stock")).data,
+  listEntries: async (params?: {
+    page?: number;
+    limit?: number;
+    search?: string;
+    tipo?: string;
+    produtoId?: string;
+    categoriaId?: string;
+    fornecedor?: string;
+    usuarioId?: string;
+    dataInicio?: string;
+    dataFim?: string;
+  }) => (await api.get<InventoryEntriesListResponse>("/inventory/entries", { params })).data,
+  getEntryById: async (id: string) =>
+    (await api.get<InventoryEntryDetail>(`/inventory/entries/${id}`)).data,
+  createEntry: async (data: CreateInventoryEntryInput) =>
+    (await api.post<InventoryEntryDetail>("/inventory/entries", data)).data,
 };
 
 export const variantsAdminApi = {

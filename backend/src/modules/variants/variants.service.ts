@@ -21,6 +21,8 @@ import {
   VariantImageDto,
 } from "./dto/variant.dto";
 import { VariantsRepository } from "./variants.repository";
+import { InventoryService } from "../inventory/inventory.service";
+import { toStockStatusKey } from "../inventory/inventory-stock.config";
 
 type VariantAttributeRelation = {
   attributeValue: AttributeValue & { attribute: Attribute };
@@ -30,6 +32,13 @@ type VariantWithRelations = ProductVariant & {
   imagens: VariantImage[];
   atributos: VariantAttributeRelation[];
   produto?: Product;
+  inventory?: {
+    quantidadeTotal: number;
+    quantidadeReservada: number;
+    quantidadeDisponivel: number;
+    estoqueMinimo: number;
+    status: import("@prisma/client").InventoryStatus;
+  } | null;
 };
 
 export type StockStatus = "em_estoque" | "estoque_baixo" | "sem_estoque";
@@ -40,6 +49,7 @@ export class VariantsService {
     private readonly repository: VariantsRepository,
     private readonly productsRepository: ProductsRepository,
     private readonly attributesRepository: AttributesRepository,
+    private readonly inventoryService: InventoryService,
   ) {}
 
   async findAll(query: ListVariantsQueryDto) {
@@ -106,7 +116,14 @@ export class VariantsService {
         : undefined,
     });
 
-    return this.toResponse(variant, product);
+    await this.inventoryService.ensureForVariant(
+      variant.id,
+      dto.estoque ?? 0,
+      dto.estoqueMinimo ?? 0,
+    );
+
+    const refreshed = await this.repository.findById(variant.id);
+    return this.toResponse(refreshed!, product);
   }
 
   async update(id: string, dto: UpdateVariantDto) {
@@ -126,13 +143,18 @@ export class VariantsService {
       await this.repository.deleteImagesByVariantId(id);
     }
 
+    if (dto.estoque !== undefined && dto.estoque !== current.estoque) {
+      throw new BadRequestException(
+        "O saldo de estoque só pode ser alterado pelo módulo de entradas de estoque",
+      );
+    }
+
     const variant = await this.repository.update(id, {
       sku: dto.sku ? dto.sku.trim().toUpperCase() : undefined,
       codigoBarras: dto.codigoBarras,
       preco: dto.preco,
       precoPromocional: dto.precoPromocional,
       custo: dto.custo,
-      estoque: dto.estoque,
       estoqueMinimo: dto.estoqueMinimo,
       ativo: dto.ativo,
       atributos: dto.attributeValueIds
@@ -147,7 +169,16 @@ export class VariantsService {
         : undefined,
     });
 
-    return this.toResponse(variant);
+    if (dto.estoqueMinimo !== undefined) {
+      await this.inventoryService.syncFromVariantUpdate(
+        id,
+        current.estoque,
+        dto.estoqueMinimo,
+      );
+    }
+
+    const refreshed = await this.repository.findById(id);
+    return this.toResponse(refreshed!);
   }
 
   async remove(id: string) {
@@ -173,11 +204,16 @@ export class VariantsService {
       throw new BadRequestException("Informe ao menos uma variante");
     }
 
+    if (dto.estoque !== undefined) {
+      throw new BadRequestException(
+        "O saldo de estoque só pode ser alterado pelo módulo de entradas de estoque",
+      );
+    }
+
     const hasField =
       dto.preco !== undefined ||
       dto.precoPromocional !== undefined ||
       dto.custo !== undefined ||
-      dto.estoque !== undefined ||
       dto.estoqueMinimo !== undefined ||
       dto.ativo !== undefined;
 
@@ -189,10 +225,21 @@ export class VariantsService {
       preco: dto.preco,
       precoPromocional: dto.precoPromocional,
       custo: dto.custo,
-      estoque: dto.estoque,
       estoqueMinimo: dto.estoqueMinimo,
       ativo: dto.ativo,
     });
+
+    if (dto.estoqueMinimo !== undefined) {
+      for (const variantId of dto.ids) {
+        const variant = await this.repository.findById(variantId);
+        if (!variant) continue;
+        await this.inventoryService.syncFromVariantUpdate(
+          variantId,
+          variant.estoque,
+          dto.estoqueMinimo,
+        );
+      }
+    }
 
     const variants = await this.repository.findMany({
       id: { in: dto.ids },
@@ -264,8 +311,15 @@ export class VariantsService {
         },
       });
 
-      created.push(this.toResponse(variant, product));
-      existing.push(variant);
+      await this.inventoryService.ensureForVariant(
+        variant.id,
+        dto.estoqueInicial ?? 0,
+        dto.estoqueMinimo ?? 0,
+      );
+
+      const refreshed = await this.repository.findById(variant.id);
+      created.push(this.toResponse(refreshed!, product));
+      existing.push(refreshed!);
     }
 
     return { created, total: created.length };
@@ -287,6 +341,15 @@ export class VariantsService {
       ? Number(resolvedProduct.precoPromocional)
       : null;
 
+    const inventory = variant.inventory;
+    const estoqueTotal = inventory?.quantidadeTotal ?? variant.estoque;
+    const estoqueReservado = inventory?.quantidadeReservada ?? 0;
+    const estoqueDisponivel = inventory?.quantidadeDisponivel ?? variant.estoque;
+    const estoqueMinimo = inventory?.estoqueMinimo ?? variant.estoqueMinimo;
+    const statusEstoque = inventory
+      ? toStockStatusKey(inventory.status)
+      : this.getStockStatus(estoqueDisponivel, estoqueMinimo);
+
     return {
       id: variant.id,
       produtoId: variant.produtoId,
@@ -299,9 +362,11 @@ export class VariantsService {
         : resolvedProduct?.custo
           ? Number(resolvedProduct.custo)
           : null,
-      estoque: variant.estoque,
-      estoqueMinimo: variant.estoqueMinimo,
-      statusEstoque: this.getStockStatus(variant.estoque, variant.estoqueMinimo),
+      estoque: estoqueDisponivel,
+      estoqueTotal,
+      estoqueReservado,
+      estoqueMinimo,
+      statusEstoque,
       ativo: variant.ativo,
       atributos: variant.atributos.map((item) => ({
         attributeId: item.attributeValue.attribute.id,

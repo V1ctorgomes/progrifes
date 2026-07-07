@@ -12,6 +12,7 @@ export const variantInclude = {
     },
   },
   produto: true,
+  inventory: true,
 };
 
 @Injectable()

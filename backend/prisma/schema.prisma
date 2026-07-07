@@ -48,6 +48,10 @@ model User {
   updatedAt     DateTime       @updatedAt @map("updated_at")
   refreshTokens RefreshToken[]
   orderHistory  OrderHistory[]
+  customerNotes CustomerNote[]
+  clientesResponsavel Customer[] @relation("CustomerResponsavel")
+  entradasEstoque InventoryEntry[]
+  movimentosEstoque InventoryMovement[]
 
   @@map("users")
 }
@@ -132,6 +136,92 @@ model Product {
   @@map("products")
 }
 
+enum InventoryEntryType {
+  COMPRA
+  REPOSICAO
+  DEVOLUCAO_CLIENTE
+  AJUSTE_POSITIVO
+  PRODUCAO
+  OUTROS
+}
+
+enum InventoryMovementType {
+  ENTRADA
+  RESERVA
+  LIBERACAO
+  BAIXA
+}
+
+enum InventoryStatus {
+  EM_ESTOQUE
+  ESTOQUE_BAIXO
+  SEM_ESTOQUE
+}
+
+model Inventory {
+  id                  String              @id @default(uuid())
+  variantId           String              @unique @map("variant_id")
+  variant             ProductVariant      @relation(fields: [variantId], references: [id], onDelete: Cascade)
+  quantidadeTotal     Int                 @default(0) @map("quantidade_total")
+  quantidadeReservada Int                 @default(0) @map("quantidade_reservada")
+  quantidadeDisponivel Int                @default(0) @map("quantidade_disponivel")
+  estoqueMinimo       Int                 @default(0) @map("estoque_minimo")
+  status              InventoryStatus     @default(SEM_ESTOQUE)
+  updatedAt           DateTime            @updatedAt @map("updated_at")
+
+  @@index([status])
+  @@map("inventory")
+}
+
+model InventoryEntry {
+  id            String             @id @default(uuid())
+  numero        Int                @unique
+  variantId     String             @map("variant_id")
+  variant       ProductVariant     @relation(fields: [variantId], references: [id], onDelete: Restrict)
+  tipo          InventoryEntryType
+  quantidade    Int
+  valorUnitario Decimal?           @map("valor_unitario") @db.Decimal(10, 2)
+  documento     String?
+  notaFiscal    String?            @map("nota_fiscal")
+  fornecedor    String?
+  observacoes   String?
+  usuarioId     String?            @map("usuario_id")
+  usuario       User?              @relation(fields: [usuarioId], references: [id], onDelete: SetNull)
+  dataEntrada   DateTime           @default(now()) @map("data_entrada")
+  createdAt     DateTime           @default(now()) @map("created_at")
+  movimento     InventoryMovement?
+
+  @@index([variantId])
+  @@index([tipo])
+  @@index([dataEntrada])
+  @@map("inventory_entries")
+}
+
+model InventoryMovement {
+  id            String                 @id @default(uuid())
+  variantId     String                 @map("variant_id")
+  variant       ProductVariant         @relation(fields: [variantId], references: [id], onDelete: Cascade)
+  orderId       String?                @map("order_id")
+  order         Order?                 @relation(fields: [orderId], references: [id], onDelete: SetNull)
+  entryId       String?                @unique @map("entry_id")
+  entry         InventoryEntry?        @relation(fields: [entryId], references: [id], onDelete: SetNull)
+  usuarioId     String?                @map("usuario_id")
+  usuario       User?                  @relation(fields: [usuarioId], references: [id], onDelete: SetNull)
+  tipo          InventoryMovementType
+  origem        String?
+  quantidade    Int
+  saldoAnterior Int?                   @map("saldo_anterior")
+  saldoAtual    Int?                   @map("saldo_atual")
+  referenciaId  String?                @map("referencia_id")
+  descricao     String
+  createdAt     DateTime               @default(now()) @map("created_at")
+
+  @@index([variantId])
+  @@index([orderId])
+  @@index([tipo])
+  @@map("inventory_movements")
+}
+
 model ProductVariant {
   id               String             @id @default(uuid())
   produtoId        String             @map("produto_id")
@@ -150,6 +240,9 @@ model ProductVariant {
   imagens          VariantImage[]
   atributos        VariantAttribute[]
   orderItems       OrderItem[]
+  inventory        Inventory?
+  entradasEstoque  InventoryEntry[]
+  movimentosEstoque InventoryMovement[]
 
   @@map("product_variants")
 }
@@ -211,9 +304,94 @@ model ProductImage {
   @@map("product_images")
 }
 
+model Customer {
+  id                    String                 @id @default(uuid())
+  nome                  String
+  telefone              String                 @unique
+  email                 String?
+  cpf                   String?
+  dataNascimento        DateTime?              @map("data_nascimento")
+  observacoes           String?
+  origem                String?
+  canalAtendimento      String?                @map("canal_atendimento")
+  responsavelId         String?                @map("responsavel_id")
+  responsavel           User?                  @relation("CustomerResponsavel", fields: [responsavelId], references: [id], onDelete: SetNull)
+  observacoesComerciais String?                @map("observacoes_comerciais")
+  ativo                 Boolean                @default(true)
+  createdAt             DateTime               @default(now()) @map("created_at")
+  updatedAt             DateTime               @updatedAt @map("updated_at")
+  enderecos             CustomerAddress[]
+  pedidos               Order[]
+  notas                 CustomerNote[]
+  tags                  CustomerTagRelation[]
+
+  @@index([nome])
+  @@index([email])
+  @@index([cpf])
+  @@map("customers")
+}
+
+model CustomerNote {
+  id         String    @id @default(uuid())
+  customerId String    @map("customer_id")
+  customer   Customer  @relation(fields: [customerId], references: [id], onDelete: Cascade)
+  usuarioId  String?   @map("usuario_id")
+  usuario    User?     @relation(fields: [usuarioId], references: [id], onDelete: SetNull)
+  descricao  String
+  deletedAt  DateTime? @map("deleted_at")
+  createdAt  DateTime  @default(now()) @map("created_at")
+
+  @@index([customerId])
+  @@map("customer_notes")
+}
+
+model CustomerTag {
+  id        String                @id @default(uuid())
+  nome      String                @unique
+  cor       String                @default("#111111")
+  createdAt DateTime              @default(now()) @map("created_at")
+  clientes  CustomerTagRelation[]
+
+  @@map("customer_tags")
+}
+
+model CustomerTagRelation {
+  customerId String      @map("customer_id")
+  customer   Customer    @relation(fields: [customerId], references: [id], onDelete: Cascade)
+  tagId      String      @map("tag_id")
+  tag        CustomerTag @relation(fields: [tagId], references: [id], onDelete: Cascade)
+  createdAt  DateTime    @default(now()) @map("created_at")
+
+  @@id([customerId, tagId])
+  @@map("customer_tag_relations")
+}
+
+model CustomerAddress {
+  id          String   @id @default(uuid())
+  customerId  String   @map("customer_id")
+  customer    Customer @relation(fields: [customerId], references: [id], onDelete: Cascade)
+  cep         String
+  rua         String
+  numero      String
+  complemento String?
+  bairro      String
+  cidade      String
+  estado      String
+  referencia  String?
+  principal   Boolean  @default(false)
+  createdAt   DateTime @default(now()) @map("created_at")
+  updatedAt   DateTime @updatedAt @map("updated_at")
+
+  @@index([cidade])
+  @@index([bairro])
+  @@map("customer_addresses")
+}
+
 model Order {
   id              String        @id @default(uuid())
   numero          Int           @unique
+  customerId      String?       @map("customer_id")
+  customer        Customer?     @relation(fields: [customerId], references: [id], onDelete: Restrict)
   clienteNome     String        @map("cliente_nome")
   clienteTelefone String        @map("cliente_telefone")
   clienteEmail    String?       @map("cliente_email")
@@ -243,6 +421,7 @@ model Order {
   updatedAt           DateTime       @updatedAt @map("updated_at")
   itens               OrderItem[]
   historico           OrderHistory[]
+  movimentosEstoque   InventoryMovement[]
 
   @@map("orders")
 }

@@ -12,6 +12,8 @@ import {
   UpdateOrderStatusDto,
 } from "./dto/order.dto";
 import { OrderHistoryService } from "./order-history.service";
+import { InventoryService } from "../inventory/inventory.service";
+import { CustomersService } from "../customers/customers.service";
 import {
   getNextStatuses,
   getStatusDescription,
@@ -33,6 +35,8 @@ export class OrdersService {
     private readonly repository: OrdersRepository,
     private readonly prisma: PrismaService,
     private readonly historyService: OrderHistoryService,
+    private readonly customersService: CustomersService,
+    private readonly inventoryService: InventoryService,
   ) {}
 
   getStatusDefinitions() {
@@ -145,6 +149,20 @@ export class OrdersService {
         tx,
       );
 
+      if (dto.status === "ENTREGUE") {
+        const orderItems = await tx.orderItem.findMany({ where: { orderId: id } });
+        await this.inventoryService.finalizeForOrder(
+          id,
+          orderItems.map((item) => ({
+            variantId: item.variantId,
+            quantidade: item.quantidade,
+            produtoNome: item.produtoNome,
+            sku: item.sku,
+          })),
+          tx,
+        );
+      }
+
       return result;
     });
 
@@ -163,6 +181,8 @@ export class OrdersService {
     }
 
     const now = new Date();
+
+    const orderItems = order.itens;
 
     const updated = await this.prisma.$transaction(async (tx) => {
       const result = await this.repository.update(
@@ -183,6 +203,17 @@ export class OrdersService {
         tx,
       );
 
+      await this.inventoryService.releaseForOrder(
+        id,
+        orderItems.map((item) => ({
+          variantId: item.variantId,
+          quantidade: item.quantidade,
+          produtoNome: item.produtoNome,
+          sku: item.sku,
+        })),
+        tx,
+      );
+
       return result;
     });
 
@@ -197,9 +228,27 @@ export class OrdersService {
       const total = subtotal + taxaEntrega;
       const numero = await this.repository.getNextNumero(tx);
 
+      const customer = await this.customersService.upsertFromCheckout(
+        {
+          nome: dto.clienteNome,
+          telefone: dto.clienteTelefone,
+          email: dto.clienteEmail,
+          cep: dto.cep,
+          rua: dto.rua,
+          numero: dto.numeroEndereco,
+          bairro: dto.bairro,
+          cidade: dto.cidade,
+          estado: dto.estado,
+          complemento: dto.complemento,
+          referencia: dto.referencia,
+        },
+        tx,
+      );
+
       const created = await tx.order.create({
         data: {
           numero,
+          customerId: customer.id,
           clienteNome: dto.clienteNome.trim(),
           clienteTelefone: dto.clienteTelefone.trim(),
           clienteEmail: dto.clienteEmail?.trim() || null,
@@ -239,6 +288,17 @@ export class OrdersService {
         "AGUARDANDO_CONFIRMACAO",
         null,
         "Pedido criado",
+        tx,
+      );
+
+      await this.inventoryService.reserveForOrder(
+        created.id,
+        preparedItems.map((item) => ({
+          variantId: item.variantId,
+          quantidade: item.quantidade,
+          produtoNome: item.produtoNome,
+          sku: item.sku,
+        })),
         tx,
       );
 
@@ -337,9 +397,12 @@ export class OrdersService {
         throw new BadRequestException(`Variante inválida ou indisponível: ${item.varianteId}`);
       }
 
-      if (variant.estoque < item.quantidade) {
+      const inventory = await tx.inventory.findUnique({ where: { variantId: variant.id } });
+      const disponivel = inventory?.quantidadeDisponivel ?? variant.estoque;
+
+      if (disponivel < item.quantidade) {
         throw new BadRequestException(
-          `Estoque insuficiente para ${variant.produto.nome} (${variant.sku}). Disponível: ${variant.estoque}`,
+          `Estoque insuficiente para ${variant.produto.nome} (${variant.sku}). Disponível: ${disponivel}`,
         );
       }
 
@@ -412,6 +475,7 @@ export class OrdersService {
 
     return {
       id: order.id,
+      customerId: order.customerId,
       numero: order.numero,
       numeroFormatado: this.formatNumero(order.numero),
       clienteNome: order.clienteNome,
@@ -432,6 +496,7 @@ export class OrdersService {
 
     return {
       id: order.id,
+      customerId: order.customerId,
       numero: order.numero,
       numeroFormatado: this.formatNumero(order.numero),
       clienteNome: order.clienteNome,

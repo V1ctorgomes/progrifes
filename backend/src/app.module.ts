@@ -12,6 +12,8 @@ import { CategoriesModule } from "./modules/categories/categories.module";
 import { ProductsModule } from "./modules/products/products.module";
 import { AttributesModule } from "./modules/attributes/attributes.module";
 import { VariantsModule } from "./modules/variants/variants.module";
+import { InventoryModule } from "./modules/inventory/inventory.module";
+import { CustomersModule } from "./modules/customers/customers.module";
 import { OrdersModule } from "./modules/orders/orders.module";
 
 @Module({
@@ -30,6 +32,8 @@ import { OrdersModule } from "./modules/orders/orders.module";
     ProductsModule,
     AttributesModule,
     VariantsModule,
+    CustomersModule,
+    InventoryModule,
     OrdersModule,
   ],
   controllers: [AppController],

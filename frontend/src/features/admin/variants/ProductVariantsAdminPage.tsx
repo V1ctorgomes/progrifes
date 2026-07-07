@@ -21,20 +21,25 @@ interface ProductVariantsAdminPageProps {
   product: Product;
 }
 
-function toVariantPayload(productId: string, form: VariantFormData) {
-  return {
+function toVariantPayload(productId: string, form: VariantFormData, editing: boolean) {
+  const payload = {
     produtoId: productId,
     sku: form.sku.trim(),
     codigoBarras: form.codigoBarras || undefined,
     preco: form.preco ? Number(form.preco) : undefined,
     precoPromocional: form.precoPromocional ? Number(form.precoPromocional) : undefined,
     custo: form.custo ? Number(form.custo) : undefined,
-    estoque: Number(form.estoque) || 0,
     estoqueMinimo: Number(form.estoqueMinimo) || 0,
     ativo: form.ativo,
     attributeValueIds: form.attributeValueIds,
     imagens: form.imagens.filter((image) => image.url.trim()),
   };
+
+  if (!editing) {
+    return { ...payload, estoque: Number(form.estoque) || 0 };
+  }
+
+  return payload;
 }
 
 export function ProductVariantsAdminPage({ product }: ProductVariantsAdminPageProps) {
@@ -48,7 +53,6 @@ export function ProductVariantsAdminPage({ product }: ProductVariantsAdminPagePr
   const [bulkForm, setBulkForm] = useState({
     preco: "",
     custo: "",
-    estoque: "",
     estoqueMinimo: "",
     ativo: "" as "" | "true" | "false",
   });
@@ -70,7 +74,7 @@ export function ProductVariantsAdminPage({ product }: ProductVariantsAdminPagePr
 
   const saveMutation = useMutation({
     mutationFn: async (form: VariantFormData) => {
-      const payload = toVariantPayload(product.id, form);
+      const payload = toVariantPayload(product.id, form, Boolean(editing));
       if (editing) return variantsAdminApi.update(editing.id, payload);
       return variantsAdminApi.create(payload);
     },
@@ -115,7 +119,6 @@ export function ProductVariantsAdminPage({ product }: ProductVariantsAdminPagePr
         ids: selectedIds,
         preco: bulkForm.preco ? Number(bulkForm.preco) : undefined,
         custo: bulkForm.custo ? Number(bulkForm.custo) : undefined,
-        estoque: bulkForm.estoque ? Number(bulkForm.estoque) : undefined,
         estoqueMinimo: bulkForm.estoqueMinimo ? Number(bulkForm.estoqueMinimo) : undefined,
         ativo: bulkForm.ativo === "" ? undefined : bulkForm.ativo === "true",
       }),
@@ -284,6 +287,7 @@ export function ProductVariantsAdminPage({ product }: ProductVariantsAdminPagePr
         <VariantForm
           initial={editing}
           attributes={attributes}
+          readOnlyEstoque={Boolean(editing)}
           onCancel={() => {
             setModalOpen(false);
             setEditing(null);
@@ -382,12 +386,6 @@ export function ProductVariantsAdminPage({ product }: ProductVariantsAdminPagePr
               step="0.01"
               value={bulkForm.custo}
               onChange={(e) => setBulkForm((current) => ({ ...current, custo: e.target.value }))}
-            />
-            <Input
-              label="Estoque"
-              type="number"
-              value={bulkForm.estoque}
-              onChange={(e) => setBulkForm((current) => ({ ...current, estoque: e.target.value }))}
             />
             <Input
               label="Estoque mínimo"

@@ -197,6 +197,19 @@ export function OrderDetailAdminPage() {
               <dt className="text-brand-gray">Telefone</dt>
               <dd>{order.clienteTelefone}</dd>
             </div>
+            {order.customerId && (
+              <div>
+                <dt className="text-brand-gray">Cadastro</dt>
+                <dd>
+                  <Link
+                    href={`/admin/clientes/${order.customerId}`}
+                    className="text-sm font-medium underline hover:no-underline"
+                  >
+                    Ver cliente no ERP
+                  </Link>
+                </dd>
+              </div>
+            )}
             {order.clienteEmail && (
               <div>
                 <dt className="text-brand-gray">E-mail</dt>

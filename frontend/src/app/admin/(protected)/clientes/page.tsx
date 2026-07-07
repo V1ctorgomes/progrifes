@@ -1,1 +1,1 @@
-export { ClientesPage as default } from "@/features/admin/admin-modules";
+export { CustomersAdminPage as default } from "@/features/admin/customers/CustomersAdminPage";

@@ -33,6 +33,7 @@ export interface OrderItem {
 
 export interface OrderListItem {
   id: string;
+  customerId?: string | null;
   numero: number;
   numeroFormatado: string;
   clienteNome: string;

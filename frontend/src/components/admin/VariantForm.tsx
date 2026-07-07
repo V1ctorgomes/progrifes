@@ -24,6 +24,7 @@ interface VariantFormProps {
   attributes: Attribute[];
   onSubmit: (data: VariantFormData) => Promise<void>;
   onCancel: () => void;
+  readOnlyEstoque?: boolean;
 }
 
 const emptyForm: VariantFormData = {
@@ -39,7 +40,13 @@ const emptyForm: VariantFormData = {
   imagens: [{ url: "", principal: true }],
 };
 
-export function VariantForm({ initial, attributes, onSubmit, onCancel }: VariantFormProps) {
+export function VariantForm({
+  initial,
+  attributes,
+  onSubmit,
+  onCancel,
+  readOnlyEstoque = false,
+}: VariantFormProps) {
   const [form, setForm] = useState<VariantFormData>(emptyForm);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -147,12 +154,24 @@ export function VariantForm({ initial, attributes, onSubmit, onCancel }: Variant
           value={form.custo}
           onChange={(e) => setForm((current) => ({ ...current, custo: e.target.value }))}
         />
-        <Input
-          label="Estoque"
-          type="number"
-          value={form.estoque}
-          onChange={(e) => setForm((current) => ({ ...current, estoque: e.target.value }))}
-        />
+        {readOnlyEstoque ? (
+          <div>
+            <p className="mb-1.5 text-sm font-medium text-brand-black">Estoque</p>
+            <p className="border border-neutral-200 bg-neutral-50 px-4 py-2.5 text-sm">
+              {form.estoque} (somente leitura)
+            </p>
+            <p className="mt-1 text-xs text-brand-gray">
+              Use Entradas de Estoque para alterar o saldo.
+            </p>
+          </div>
+        ) : (
+          <Input
+            label="Estoque inicial"
+            type="number"
+            value={form.estoque}
+            onChange={(e) => setForm((current) => ({ ...current, estoque: e.target.value }))}
+          />
+        )}
         <Input
           label="Estoque mínimo"
           type="number"

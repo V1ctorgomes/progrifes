@@ -6,8 +6,8 @@ const modules = [
   { title: "Produtos", href: "/admin/produtos", ready: true },
   { title: "Atributos", href: "/admin/atributos", ready: true },
   { title: "Pedidos", href: "/admin/pedidos", ready: true },
-  { title: "Clientes", href: "/admin/clientes", ready: false },
-  { title: "Estoque", href: "/admin/estoque", ready: false },
+  { title: "Clientes", href: "/admin/clientes", ready: true },
+  { title: "Estoque", href: "/admin/estoque", ready: true },
   { title: "Financeiro", href: "/admin/financeiro", ready: false },
 ];
 

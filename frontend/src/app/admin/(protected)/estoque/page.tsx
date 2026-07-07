@@ -1,1 +1,1 @@
-export { EstoquePage as default } from "@/features/admin/admin-modules";
+export { StockAdminPage as default } from "@/features/admin/stock/StockAdminPage";
