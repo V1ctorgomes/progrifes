@@ -10,9 +10,10 @@ import { ChevronRightIcon } from "@/components/ui/Icons";
 interface CategoryMenuProps {
   categories: Category[];
   className?: string;
+  triggerClassName?: string;
 }
 
-export function CategoryMenu({ categories, className }: CategoryMenuProps) {
+export function CategoryMenu({ categories, className, triggerClassName }: CategoryMenuProps) {
   const [isOpen, setIsOpen] = useState(false);
   const [activeParent, setActiveParent] = useState<string | null>(null);
   const rootCategories = getRootCategories(categories);
@@ -28,7 +29,10 @@ export function CategoryMenu({ categories, className }: CategoryMenuProps) {
     >
       <Link
         href="/categorias"
-        className="text-xs font-medium uppercase tracking-widest text-brand-black transition-colors hover:text-brand-gray"
+        className={
+          triggerClassName ??
+          "text-xs font-medium uppercase tracking-widest text-brand-black transition-colors hover:text-brand-gray"
+        }
       >
         Categorias
       </Link>

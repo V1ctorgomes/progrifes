@@ -4,13 +4,21 @@ import { cn } from "@/utils/cn";
 interface InputProps extends InputHTMLAttributes<HTMLInputElement> {
   label?: string;
   error?: string;
+  wrapperClassName?: string;
 }
 
-export function Input({ label, error, className, id, ...props }: InputProps) {
+export function Input({
+  label,
+  error,
+  className,
+  wrapperClassName,
+  id,
+  ...props
+}: InputProps) {
   const inputId = id ?? label?.toLowerCase().replace(/\s/g, "-");
 
   return (
-    <div className="w-full">
+    <div className={cn("w-full", wrapperClassName)}>
       {label && (
         <label htmlFor={inputId} className="mb-1.5 block text-sm font-medium text-brand-black">
           {label}

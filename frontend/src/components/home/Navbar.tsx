@@ -16,6 +16,9 @@ interface NavbarProps {
   categories: Category[];
 }
 
+const navLinkClassName =
+  "inline-flex h-10 items-center text-xs font-medium uppercase tracking-widest text-brand-black transition-colors hover:text-brand-gray";
+
 export function Navbar({ categories }: NavbarProps) {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const { totals, openCart, isHydrated } = useCart();
@@ -28,12 +31,12 @@ export function Navbar({ categories }: NavbarProps) {
         Frete grátis em compras acima de R$ 199,90
       </div>
 
-      <Container className="py-4">
-        <div className="flex items-center justify-between gap-4">
-          <div className="flex items-center gap-4">
+      <Container className="py-3">
+        <div className="flex min-h-14 items-center gap-4 lg:gap-6">
+          <div className="flex shrink-0 items-center gap-3">
             <button
               type="button"
-              className="rounded p-2 hover:bg-brand-light lg:hidden"
+              className="inline-flex h-10 w-10 items-center justify-center rounded hover:bg-brand-light lg:hidden"
               onClick={() => setIsMenuOpen(true)}
               aria-label="Abrir menu"
               aria-expanded={isMenuOpen}
@@ -44,67 +47,69 @@ export function Navbar({ categories }: NavbarProps) {
 
             <Link
               href="/"
-              className="font-display text-xl font-bold uppercase tracking-[0.3em] text-brand-black sm:text-2xl"
+              className="inline-flex h-10 items-center font-display text-xl font-bold uppercase leading-none tracking-[0.3em] text-brand-black sm:text-2xl"
               aria-label={`${storeInfo.name} - Página inicial`}
             >
               {storeInfo.name}
             </Link>
           </div>
 
-          <nav className="hidden items-center gap-8 lg:flex" aria-label="Navegação principal">
+          <nav
+            className="hidden shrink-0 items-center gap-6 xl:gap-8 lg:flex"
+            aria-label="Navegação principal"
+          >
             {navItems
               .filter((item) => item.label !== "Categorias")
               .map((item) => (
-                <Link
-                  key={item.href}
-                  href={item.href}
-                  className="text-xs font-medium uppercase tracking-widest text-brand-black transition-colors hover:text-brand-gray"
-                >
+                <Link key={item.href} href={item.href} className={navLinkClassName}>
                   {item.label}
                 </Link>
               ))}
-            <CategoryMenu categories={categories} />
+            <CategoryMenu categories={categories} triggerClassName={navLinkClassName} />
           </nav>
 
-          <div className="hidden flex-1 justify-center px-8 md:flex lg:max-w-md">
-            <Input
-              type="search"
-              placeholder="Buscar produtos..."
-              aria-label="Buscar produtos"
-              className="text-center"
-            />
-          </div>
+          <div className="flex min-w-0 flex-1 items-center justify-end gap-3 sm:gap-4">
+            <div className="hidden w-full max-w-[220px] items-center md:flex lg:max-w-xs xl:max-w-sm">
+              <Input
+                type="search"
+                placeholder="Buscar produtos..."
+                aria-label="Buscar produtos"
+                wrapperClassName="flex items-center"
+                className="h-10 py-2 normal-case"
+              />
+            </div>
 
-          <div className="flex items-center gap-1 sm:gap-2">
-            <button
-              type="button"
-              className="rounded p-2 hover:bg-brand-light md:hidden"
-              aria-label="Buscar"
-            >
-              <SearchIcon className="h-5 w-5" />
-            </button>
+            <div className="flex shrink-0 items-center gap-1">
+              <button
+                type="button"
+                className="inline-flex h-10 w-10 items-center justify-center rounded hover:bg-brand-light md:hidden"
+                aria-label="Buscar"
+              >
+                <SearchIcon className="h-5 w-5" />
+              </button>
 
-            <button
-              type="button"
-              className="rounded p-2 hover:bg-brand-light"
-              aria-label="Favoritos"
-            >
-              <HeartIcon className="h-5 w-5" />
-            </button>
+              <button
+                type="button"
+                className="inline-flex h-10 w-10 items-center justify-center rounded hover:bg-brand-light"
+                aria-label="Favoritos"
+              >
+                <HeartIcon className="h-5 w-5" />
+              </button>
 
-            <button
-              type="button"
-              className="relative rounded p-2 hover:bg-brand-light"
-              aria-label={`Carrinho com ${cartCount} itens`}
-              onClick={openCart}
-            >
-              <CartIcon className="h-5 w-5" />
-              {cartCount > 0 && (
-                <span className="absolute -right-0.5 -top-0.5 flex h-4 w-4 items-center justify-center rounded-full bg-brand-black text-[10px] font-bold text-brand-white">
-                  {cartCount > 99 ? "99+" : cartCount}
-                </span>
-              )}
-            </button>
+              <button
+                type="button"
+                className="relative inline-flex h-10 w-10 items-center justify-center rounded hover:bg-brand-light"
+                aria-label={`Carrinho com ${cartCount} itens`}
+                onClick={openCart}
+              >
+                <CartIcon className="h-5 w-5" />
+                {cartCount > 0 && (
+                  <span className="absolute right-0.5 top-0.5 flex h-4 w-4 items-center justify-center rounded-full bg-brand-black text-[10px] font-bold text-brand-white">
+                    {cartCount > 99 ? "99+" : cartCount}
+                  </span>
+                )}
+              </button>
+            </div>
           </div>
         </div>
       </Container>
