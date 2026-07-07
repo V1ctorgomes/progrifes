@@ -22,6 +22,12 @@ enum BannerType {
 
 enum OrderStatus {
   AGUARDANDO_CONFIRMACAO
+  CONFIRMADO
+  SEPARANDO
+  PRONTO_PARA_ENTREGA
+  SAIU_PARA_ENTREGA
+  ENTREGUE
+  CANCELADO
 }
 
 enum PaymentMethod {
@@ -41,6 +47,7 @@ model User {
   createdAt     DateTime       @default(now()) @map("created_at")
   updatedAt     DateTime       @updatedAt @map("updated_at")
   refreshTokens RefreshToken[]
+  orderHistory  OrderHistory[]
 
   @@map("users")
 }
@@ -224,10 +231,18 @@ model Order {
   subtotal        Decimal       @db.Decimal(10, 2)
   taxaEntrega     Decimal       @default(0) @map("taxa_entrega") @db.Decimal(10, 2)
   total           Decimal       @db.Decimal(10, 2)
-  status          OrderStatus   @default(AGUARDANDO_CONFIRMACAO)
-  createdAt       DateTime      @default(now()) @map("created_at")
-  updatedAt       DateTime      @updatedAt @map("updated_at")
-  itens           OrderItem[]
+  status              OrderStatus    @default(AGUARDANDO_CONFIRMACAO)
+  motivoCancelamento  String?        @map("motivo_cancelamento")
+  confirmadoEm        DateTime?      @map("confirmado_em")
+  separadoEm          DateTime?      @map("separado_em")
+  prontoEntregaEm     DateTime?      @map("pronto_entrega_em")
+  saiuEntregaEm       DateTime?      @map("saiu_entrega_em")
+  entregueEm          DateTime?      @map("entregue_em")
+  canceladoEm         DateTime?      @map("cancelado_em")
+  createdAt           DateTime       @default(now()) @map("created_at")
+  updatedAt           DateTime       @updatedAt @map("updated_at")
+  itens               OrderItem[]
+  historico           OrderHistory[]
 
   @@map("orders")
 }
@@ -249,4 +264,17 @@ model OrderItem {
   subtotal      Decimal        @db.Decimal(10, 2)
 
   @@map("order_items")
+}
+
+model OrderHistory {
+  id        String      @id @default(uuid())
+  orderId   String      @map("order_id")
+  order     Order       @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  usuarioId String?     @map("usuario_id")
+  usuario   User?       @relation(fields: [usuarioId], references: [id], onDelete: SetNull)
+  status    OrderStatus
+  descricao String
+  createdAt DateTime    @default(now()) @map("created_at")
+
+  @@map("order_history")
 }

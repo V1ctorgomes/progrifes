@@ -1,10 +1,17 @@
 import { Injectable } from "@nestjs/common";
-import { Prisma } from "@prisma/client";
+import { OrderStatus, PaymentMethod, Prisma } from "@prisma/client";
 import { PrismaService } from "../../database/prisma.service";
 
 const orderInclude = {
   itens: {
     orderBy: { produtoNome: "asc" as const },
+    include: {
+      variant: {
+        include: {
+          imagens: { orderBy: { ordem: "asc" as const }, take: 1 },
+        },
+      },
+    },
   },
 };
 
@@ -12,11 +19,16 @@ const orderInclude = {
 export class OrdersRepository {
   constructor(private readonly prisma: PrismaService) {}
 
-  findMany(where?: Prisma.OrderWhereInput, skip?: number, take?: number) {
+  findMany(
+    where?: Prisma.OrderWhereInput,
+    skip?: number,
+    take?: number,
+    orderBy?: Prisma.OrderOrderByWithRelationInput | Prisma.OrderOrderByWithRelationInput[],
+  ) {
     return this.prisma.order.findMany({
       where,
       include: orderInclude,
-      orderBy: { createdAt: "desc" },
+      orderBy: orderBy ?? { createdAt: "desc" },
       skip,
       take,
     });
@@ -49,11 +61,24 @@ export class OrdersRepository {
       .then((last) => (last?.numero ?? 0) + 1);
   }
 
-  create(data: Prisma.OrderCreateInput, tx?: Prisma.TransactionClient) {
+  update(id: string, data: Prisma.OrderUpdateInput, tx?: Prisma.TransactionClient) {
     const client = tx ?? this.prisma;
-    return client.order.create({
+    return client.order.update({
+      where: { id },
       data,
       include: orderInclude,
+    });
+  }
+
+  countByStatus(status: OrderStatus, where?: Prisma.OrderWhereInput) {
+    return this.prisma.order.count({ where: { ...where, status } });
+  }
+
+  countToday() {
+    const start = new Date();
+    start.setHours(0, 0, 0, 0);
+    return this.prisma.order.count({
+      where: { createdAt: { gte: start } },
     });
   }
 }

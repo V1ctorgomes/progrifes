@@ -3,7 +3,13 @@ import type { Banner, BannerType } from "@/types/banner";
 import type { Attribute, AttributeInput } from "@/types/attribute";
 import type { Category } from "@/types/category";
 import type { Product, ProductInput, ProductsListResponse } from "@/types/product";
-import type { Order } from "@/types/order";
+import type {
+  Order,
+  OrderHistoryEntry,
+  OrdersDashboard,
+  OrdersListResponse,
+  OrderStatus,
+} from "@/types/order";
 import type {
   BulkUpdateVariantsInput,
   GenerateVariantsInput,
@@ -135,7 +141,27 @@ export const attributesAdminApi = {
 };
 
 export const ordersAdminApi = {
-  list: async () => (await api.get<Order[]>("/orders")).data,
+  list: async (params?: {
+    page?: number;
+    limit?: number;
+    search?: string;
+    status?: OrderStatus;
+    formaPagamento?: string;
+    bairro?: string;
+    dataInicio?: string;
+    dataFim?: string;
+    valorMin?: number;
+    valorMax?: number;
+    sort?: string;
+  }) => (await api.get<OrdersListResponse>("/orders", { params })).data,
+  dashboard: async () => (await api.get<OrdersDashboard>("/orders/dashboard")).data,
+  getById: async (id: string) => (await api.get<Order>(`/orders/${id}`)).data,
+  getHistory: async (id: string) =>
+    (await api.get<OrderHistoryEntry[]>(`/orders/${id}/history`)).data,
+  updateStatus: async (id: string, status: OrderStatus) =>
+    (await api.patch<Order>(`/orders/${id}/status`, { status })).data,
+  cancel: async (id: string, motivo: string) =>
+    (await api.patch<Order>(`/orders/${id}/cancel`, { motivo })).data,
 };
 
 export { getErrorMessage };

@@ -2,8 +2,10 @@ import { Type } from "class-transformer";
 import {
   ArrayMinSize,
   IsArray,
+  IsDateString,
   IsEmail,
   IsEnum,
+  IsIn,
   IsInt,
   IsNotEmpty,
   IsNumber,
@@ -13,7 +15,7 @@ import {
   Min,
   ValidateNested,
 } from "class-validator";
-import { PaymentMethod } from "@prisma/client";
+import { OrderStatus, PaymentMethod } from "@prisma/client";
 
 export class CreateOrderItemDto {
   @IsUUID()
@@ -86,4 +88,69 @@ export class CreateOrderDto {
   @ValidateNested({ each: true })
   @Type(() => CreateOrderItemDto)
   itens!: CreateOrderItemDto[];
+}
+
+export class ListOrdersQueryDto {
+  @IsOptional()
+  @Type(() => Number)
+  @IsInt()
+  @Min(1)
+  page?: number;
+
+  @IsOptional()
+  @Type(() => Number)
+  @IsInt()
+  @Min(1)
+  limit?: number;
+
+  @IsOptional()
+  @IsString()
+  search?: string;
+
+  @IsOptional()
+  @IsEnum(OrderStatus)
+  status?: OrderStatus;
+
+  @IsOptional()
+  @IsEnum(PaymentMethod)
+  formaPagamento?: PaymentMethod;
+
+  @IsOptional()
+  @IsString()
+  bairro?: string;
+
+  @IsOptional()
+  @IsDateString()
+  dataInicio?: string;
+
+  @IsOptional()
+  @IsDateString()
+  dataFim?: string;
+
+  @IsOptional()
+  @Type(() => Number)
+  @IsNumber()
+  @Min(0)
+  valorMin?: number;
+
+  @IsOptional()
+  @Type(() => Number)
+  @IsNumber()
+  @Min(0)
+  valorMax?: number;
+
+  @IsOptional()
+  @IsIn(["recent", "oldest", "total_desc", "total_asc", "status"])
+  sort?: "recent" | "oldest" | "total_desc" | "total_asc" | "status";
+}
+
+export class UpdateOrderStatusDto {
+  @IsEnum(OrderStatus)
+  status!: OrderStatus;
+}
+
+export class CancelOrderDto {
+  @IsString()
+  @IsNotEmpty()
+  motivo!: string;
 }
