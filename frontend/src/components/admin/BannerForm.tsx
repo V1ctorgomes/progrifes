@@ -20,6 +20,7 @@ const bannerTypes = (Object.keys(BANNER_TYPE_LABELS) as BannerType[]).map((value
 interface BannerFormProps {
   initial?: Banner | null;
   existingBanners?: Banner[];
+  defaultType?: BannerType;
   onSubmit: (data: BannerInput) => Promise<void>;
   onCancel: () => void;
 }
@@ -42,6 +43,7 @@ const emptyForm: BannerInput = {
 export function BannerForm({
   initial,
   existingBanners = [],
+  defaultType = "hero",
   onSubmit,
   onCancel,
 }: BannerFormProps) {
@@ -66,9 +68,9 @@ export function BannerForm({
         ativo: initial.ativo,
       });
     } else {
-      setForm(emptyForm);
+      setForm({ ...emptyForm, tipo: defaultType });
     }
-  }, [initial]);
+  }, [initial, defaultType]);
 
   const availableTypes = useMemo(
     () =>

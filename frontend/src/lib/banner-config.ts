@@ -14,6 +14,13 @@ export const BANNER_LIMITS: Partial<Record<BannerType, number>> = {
   institucional: 1,
 };
 
+export const BANNER_TYPE_ORDER: BannerType[] = [
+  "hero",
+  "horizontal",
+  "promocional",
+  "institucional",
+];
+
 export function getBannerTypeLabel(tipo: BannerType): string {
   return BANNER_TYPE_LABELS[tipo];
 }
