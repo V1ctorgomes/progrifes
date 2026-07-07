@@ -17,6 +17,10 @@ export default async function Page({ params }: PageProps) {
       getPublicCategories(),
     ]);
 
+    if (!product) {
+      notFound();
+    }
+
     return <ProductDetailPage product={product} categories={categories} />;
   } catch {
     notFound();

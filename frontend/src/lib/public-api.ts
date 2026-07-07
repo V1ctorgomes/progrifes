@@ -3,28 +3,46 @@ import type { Category } from "@/types/category";
 import type { Product as ApiProduct, ProductsListResponse } from "@/types/product";
 import { getBackendUrl } from "@/lib/auth-config";
 
-async function fetchPublic<T>(path: string): Promise<T> {
-  const response = await fetch(`${getBackendUrl()}${path}`, {
-    cache: "no-store",
-  });
+const EMPTY_PRODUCTS_RESPONSE: ProductsListResponse = {
+  data: [],
+  meta: {
+    page: 1,
+    limit: 20,
+    total: 0,
+    totalPages: 0,
+  },
+};
 
-  if (!response.ok) {
-    throw new Error(`Falha ao carregar ${path}`);
+async function fetchPublic<T>(path: string, fallback: T): Promise<T> {
+  const backendUrl = getBackendUrl().replace(/\/$/, "");
+
+  try {
+    const response = await fetch(`${backendUrl}${path}`, {
+      cache: "no-store",
+    });
+
+    if (!response.ok) {
+      console.error(`[public-api] ${path} respondeu ${response.status} (${backendUrl})`);
+      return fallback;
+    }
+
+    return (await response.json()) as T;
+  } catch (error) {
+    console.error(`[public-api] falha ao carregar ${path} (${backendUrl})`, error);
+    return fallback;
   }
-
-  return response.json() as Promise<T>;
 }
 
 export function getPublicBanners(): Promise<Banner[]> {
-  return fetchPublic<Banner[]>("/api/banners");
+  return fetchPublic<Banner[]>("/api/banners", []);
 }
 
 export function getPublicCategories(): Promise<Category[]> {
-  return fetchPublic<Category[]>("/api/categories");
+  return fetchPublic<Category[]>("/api/categories", []);
 }
 
-export function getPublicCategoryBySlug(slug: string): Promise<Category> {
-  return fetchPublic<Category>(`/api/categories/slug/${slug}`);
+export function getPublicCategoryBySlug(slug: string): Promise<Category | null> {
+  return fetchPublic<Category | null>(`/api/categories/slug/${slug}`, null);
 }
 
 export function getPublicProducts(params?: {
@@ -46,9 +64,9 @@ export function getPublicProducts(params?: {
   if (params?.novo !== undefined) query.set("novo", String(params.novo));
 
   const suffix = query.toString() ? `?${query.toString()}` : "";
-  return fetchPublic<ProductsListResponse>(`/api/products${suffix}`);
+  return fetchPublic<ProductsListResponse>(`/api/products${suffix}`, EMPTY_PRODUCTS_RESPONSE);
 }
 
-export function getPublicProductBySlug(slug: string): Promise<ApiProduct> {
-  return fetchPublic<ApiProduct>(`/api/products/slug/${slug}`);
+export function getPublicProductBySlug(slug: string): Promise<ApiProduct | null> {
+  return fetchPublic<ApiProduct | null>(`/api/products/slug/${slug}`, null);
 }
