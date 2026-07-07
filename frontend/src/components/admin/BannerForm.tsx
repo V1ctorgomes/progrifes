@@ -82,7 +82,7 @@ export function BannerForm({
 
   const selectedTypeLimitMessage = getBannerLimitMessage(form.tipo);
 
-  const update = (field: keyof BannerInput, value: string | boolean) => {
+  const update = <K extends keyof BannerInput>(field: K, value: BannerInput[K]) => {
     setForm((prev) => ({ ...prev, [field]: value }));
   };
 
@@ -116,7 +116,7 @@ export function BannerForm({
           <select
             className="w-full border border-neutral-300 bg-brand-white px-4 py-2.5 text-sm"
             value={form.tipo}
-            onChange={(e) => update("tipo", e.target.value)}
+            onChange={(e) => update("tipo", e.target.value as BannerType)}
           >
             {bannerTypes.map((type) => {
               const atLimit = isBannerTypeAtLimit(existingBanners, type.value, initial?.id);

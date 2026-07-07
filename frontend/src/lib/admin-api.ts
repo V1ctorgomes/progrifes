@@ -168,7 +168,7 @@ export type BannerInput = {
   descricao?: string;
   imagemDesktop: string;
   imagemMobile?: string;
-  tipo: BannerType | string;
+  tipo: BannerType;
   link?: string;
   textoBotaoPrimario?: string;
   textoBotaoSecundario?: string;
