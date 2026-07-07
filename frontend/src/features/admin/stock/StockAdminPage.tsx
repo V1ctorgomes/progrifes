@@ -89,9 +89,20 @@ export function StockAdminPage() {
             Controle centralizado de saldo, reservas e disponibilidade por variante
           </p>
         </div>
-        <Link href="/admin/estoque/entradas">
-          <Button variant="outline">Entradas de estoque</Button>
-        </Link>
+        <div className="flex flex-wrap gap-2">
+          <Link href="/admin/estoque/entradas">
+            <Button variant="outline">Entradas</Button>
+          </Link>
+          <Link href="/admin/estoque/saidas">
+            <Button variant="outline">Saídas</Button>
+          </Link>
+          <Link href="/admin/estoque/movimentacoes">
+            <Button variant="outline">Movimentações</Button>
+          </Link>
+          <Link href="/admin/estoque/inventarios">
+            <Button variant="outline">Inventários</Button>
+          </Link>
+        </div>
       </div>
 
       {alerts && (

@@ -182,11 +182,16 @@ export function StockEntriesAdminPage() {
             Registre movimentações que aumentam o saldo com rastreabilidade completa
           </p>
         </div>
-        {canCreate && (
-          <Button className="hidden md:inline-flex" onClick={() => setModalOpen(true)}>
-            Nova entrada
-          </Button>
-        )}
+        <div className="flex flex-wrap gap-2">
+          {canCreate && (
+            <Button className="hidden md:inline-flex" onClick={() => setModalOpen(true)}>
+              Nova entrada
+            </Button>
+          )}
+          <Link href="/admin/estoque/movimentacoes">
+            <Button variant="outline">Movimentações</Button>
+          </Link>
+        </div>
       </div>
 
       <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">

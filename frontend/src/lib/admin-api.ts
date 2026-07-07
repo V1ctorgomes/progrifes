@@ -23,12 +23,44 @@ import type {
   CustomerTag,
   CustomerTimelineEntry,
 } from "@/types/customer";
+import type {
+  Supplier,
+  SupplierInput,
+  SuppliersListResponse,
+} from "@/types/supplier";
+import type {
+  PurchaseOrder,
+  PurchaseOrderHistoryEntry,
+  PurchaseOrderInput,
+  PurchaseOrdersDashboard,
+  PurchaseOrdersListResponse,
+  PurchaseOrderStatus,
+} from "@/types/purchase-order";
+import type {
+  CreateGoodsReceiptInput,
+  GoodsReceipt,
+  GoodsReceiptsListResponse,
+  OrderReceiptSummary,
+  PayableGenerationMode,
+} from "@/types/goods-receipt";
 import type { InventoryAlerts, InventoryListItem, InventoryListResponse } from "@/types/inventory";
 import type {
   CreateInventoryEntryInput,
   InventoryEntriesListResponse,
   InventoryEntryDetail,
 } from "@/types/inventory-entry";
+import type {
+  CreateInventoryAuditInput,
+  InventoryAuditDetail,
+  InventoryAuditsListResponse,
+} from "@/types/inventory-audit";
+import type {
+  CreateInventoryOutputInput,
+  InventoryMovementDetail,
+  InventoryMovementsListResponse,
+  InventoryOutputDetail,
+  InventoryOutputsListResponse,
+} from "@/types/inventory-output";
 import type {
   BulkUpdateVariantsInput,
   GenerateVariantsInput,
@@ -180,6 +212,88 @@ export const customersAdminApi = {
     (await api.delete(`/customers/${id}/tags/${tagId}`)).data,
 };
 
+export const suppliersAdminApi = {
+  list: async (params?: {
+    page?: number;
+    limit?: number;
+    search?: string;
+    cidade?: string;
+    estado?: string;
+    ativo?: boolean;
+  }) => (await api.get<SuppliersListResponse>("/suppliers", { params })).data,
+  getById: async (id: string) => (await api.get<Supplier>(`/suppliers/${id}`)).data,
+  create: async (data: SupplierInput) => (await api.post<Supplier>("/suppliers", data)).data,
+  update: async (id: string, data: Partial<SupplierInput>) =>
+    (await api.put<Supplier>(`/suppliers/${id}`, data)).data,
+  remove: async (id: string) => (await api.delete(`/suppliers/${id}`)).data,
+  activate: async (id: string) =>
+    (await api.patch<Supplier>(`/suppliers/${id}/activate`)).data,
+  deactivate: async (id: string) =>
+    (await api.patch<Supplier>(`/suppliers/${id}/deactivate`)).data,
+};
+
+export const purchaseOrdersAdminApi = {
+  list: async (params?: {
+    page?: number;
+    limit?: number;
+    search?: string;
+    status?: PurchaseOrderStatus;
+    supplierId?: string;
+    usuarioId?: string;
+    dataInicio?: string;
+    dataFim?: string;
+  }) => (await api.get<PurchaseOrdersListResponse>("/purchase-orders", { params })).data,
+  dashboard: async () =>
+    (await api.get<PurchaseOrdersDashboard>("/purchase-orders/dashboard")).data,
+  getById: async (id: string) =>
+    (await api.get<PurchaseOrder>(`/purchase-orders/${id}`)).data,
+  getHistory: async (id: string) =>
+    (await api.get<PurchaseOrderHistoryEntry[]>(`/purchase-orders/${id}/history`)).data,
+  create: async (data: PurchaseOrderInput) =>
+    (await api.post<PurchaseOrder>("/purchase-orders", data)).data,
+  update: async (id: string, data: Partial<PurchaseOrderInput>) =>
+    (await api.put<PurchaseOrder>(`/purchase-orders/${id}`, data)).data,
+  updateStatus: async (id: string, status: PurchaseOrderStatus) =>
+    (await api.patch<PurchaseOrder>(`/purchase-orders/${id}/status`, { status })).data,
+  cancel: async (id: string, motivo: string) =>
+    (await api.patch<PurchaseOrder>(`/purchase-orders/${id}/cancel`, { motivo })).data,
+  duplicate: async (id: string) =>
+    (await api.post<PurchaseOrder>(`/purchase-orders/${id}/duplicate`)).data,
+  remove: async (id: string) => (await api.delete(`/purchase-orders/${id}`)).data,
+  getReceiptSummary: async (id: string) =>
+    (await api.get<OrderReceiptSummary>(`/purchase-orders/${id}/receipt-summary`)).data,
+  getReceipts: async (id: string) =>
+    (await api.get<GoodsReceipt[]>(`/purchase-orders/${id}/receipts`)).data,
+};
+
+export const goodsReceiptsAdminApi = {
+  list: async (params?: {
+    page?: number;
+    limit?: number;
+    search?: string;
+    situacao?: "PENDENTE" | "PARCIAL" | "RECEBIDO";
+    supplierId?: string;
+    purchaseOrderId?: string;
+    dataInicio?: string;
+    dataFim?: string;
+  }) => (await api.get<GoodsReceiptsListResponse>("/goods-receipts", { params })).data,
+  getById: async (id: string) =>
+    (await api.get<GoodsReceipt>(`/goods-receipts/${id}`)).data,
+  create: async (data: CreateGoodsReceiptInput) =>
+    (await api.post<GoodsReceipt>("/goods-receipts", data)).data,
+  getPayableMode: async () =>
+    (await api.get<{ payableGenerationMode: PayableGenerationMode }>(
+      "/goods-receipts/settings/payable-mode",
+    )).data,
+  updatePayableMode: async (mode: PayableGenerationMode) =>
+    (
+      await api.put<{ payableGenerationMode: PayableGenerationMode }>(
+        "/goods-receipts/settings/payable-mode",
+        { mode },
+      )
+    ).data,
+};
+
 export const inventoryAdminApi = {
   list: async (params?: {
     page?: number;
@@ -213,6 +327,63 @@ export const inventoryAdminApi = {
     (await api.get<InventoryEntryDetail>(`/inventory/entries/${id}`)).data,
   createEntry: async (data: CreateInventoryEntryInput) =>
     (await api.post<InventoryEntryDetail>("/inventory/entries", data)).data,
+  listOutputs: async (params?: {
+    page?: number;
+    limit?: number;
+    search?: string;
+    tipo?: string;
+    produtoId?: string;
+    categoriaId?: string;
+    usuarioId?: string;
+    dataInicio?: string;
+    dataFim?: string;
+  }) => (await api.get<InventoryOutputsListResponse>("/inventory/outputs", { params })).data,
+  getOutputById: async (id: string) =>
+    (await api.get<InventoryOutputDetail>(`/inventory/outputs/${id}`)).data,
+  createOutput: async (data: CreateInventoryOutputInput) =>
+    (await api.post<InventoryOutputDetail>("/inventory/outputs", data)).data,
+  listMovements: async (params?: {
+    page?: number;
+    limit?: number;
+    search?: string;
+    tipo?: string;
+    origem?: string;
+    categoriaOrigem?: string;
+    produtoId?: string;
+    categoriaId?: string;
+    usuarioId?: string;
+    dataInicio?: string;
+    dataFim?: string;
+  }) => (await api.get<InventoryMovementsListResponse>("/inventory/movements", { params })).data,
+  getMovementById: async (id: string) =>
+    (await api.get<InventoryMovementDetail>(`/inventory/movements/${id}`)).data,
+  listAudits: async (params?: {
+    page?: number;
+    limit?: number;
+    search?: string;
+    status?: string;
+    tipo?: string;
+    categoriaId?: string;
+    usuarioId?: string;
+    dataInicio?: string;
+    dataFim?: string;
+  }) => (await api.get<InventoryAuditsListResponse>("/inventory/audits", { params })).data,
+  getAuditById: async (id: string) =>
+    (await api.get<InventoryAuditDetail>(`/inventory/audits/${id}`)).data,
+  createAudit: async (data: CreateInventoryAuditInput) =>
+    (await api.post<InventoryAuditDetail>("/inventory/audits", data)).data,
+  startAudit: async (id: string) =>
+    (await api.patch<InventoryAuditDetail>(`/inventory/audits/${id}/start`)).data,
+  pauseAudit: async (id: string) =>
+    (await api.patch<InventoryAuditDetail>(`/inventory/audits/${id}/pause`)).data,
+  finishAudit: async (id: string) =>
+    (await api.patch<InventoryAuditDetail>(`/inventory/audits/${id}/finish`)).data,
+  updateAuditCounts: async (
+    id: string,
+    items: Array<{ itemId: string; quantidadeFisica: number }>,
+  ) => (await api.patch(`/inventory/audits/${id}/counts`, { items })).data,
+  recountAudit: async (id: string, itemIds?: string[]) =>
+    (await api.post(`/inventory/audits/${id}/recount`, { itemIds })).data,
 };
 
 export const variantsAdminApi = {

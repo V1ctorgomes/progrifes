@@ -15,6 +15,9 @@ import { VariantsModule } from "./modules/variants/variants.module";
 import { InventoryModule } from "./modules/inventory/inventory.module";
 import { CustomersModule } from "./modules/customers/customers.module";
 import { OrdersModule } from "./modules/orders/orders.module";
+import { SuppliersModule } from "./modules/suppliers/suppliers.module";
+import { PurchaseOrdersModule } from "./modules/purchase-orders/purchase-orders.module";
+import { GoodsReceiptsModule } from "./modules/goods-receipts/goods-receipts.module";
 
 @Module({
   imports: [
@@ -35,6 +38,9 @@ import { OrdersModule } from "./modules/orders/orders.module";
     CustomersModule,
     InventoryModule,
     OrdersModule,
+    SuppliersModule,
+    PurchaseOrdersModule,
+    GoodsReceiptsModule,
   ],
   controllers: [AppController],
   providers: [

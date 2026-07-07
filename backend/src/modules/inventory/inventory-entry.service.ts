@@ -59,116 +59,126 @@ export class InventoryEntryService {
   }
 
   async create(dto: CreateInventoryEntryDto, usuarioId: string) {
-    return this.prisma.$transaction(async (tx) => {
-      const variant = await tx.productVariant.findFirst({
-        where: { id: dto.variantId, deletedAt: null },
-        include: { inventory: true },
-      });
+    return this.prisma.$transaction(async (tx) =>
+      this.createWithinTransaction(dto, usuarioId, tx),
+    );
+  }
 
-      if (!variant) {
-        throw new NotFoundException("Variante não encontrada");
-      }
+  async createWithinTransaction(
+    dto: CreateInventoryEntryDto,
+    usuarioId: string,
+    tx: Prisma.TransactionClient,
+    options?: { goodsReceiptId?: string; documento?: string; observacoes?: string },
+  ) {
+    const variant = await tx.productVariant.findFirst({
+      where: { id: dto.variantId, deletedAt: null },
+      include: { inventory: true },
+    });
 
-      if (!variant.ativo) {
-        throw new BadRequestException("Não é possível registrar entrada para variante inativa");
-      }
+    if (!variant) {
+      throw new NotFoundException("Variante não encontrada");
+    }
 
-      let inventory = variant.inventory;
-      if (!inventory) {
-        inventory = await tx.inventory.create({
-          data: {
-            variant: { connect: { id: variant.id } },
-            quantidadeTotal: 0,
-            quantidadeReservada: 0,
-            quantidadeDisponivel: 0,
-            estoqueMinimo: variant.estoqueMinimo,
-            status: computeInventoryStatus(0, variant.estoqueMinimo),
-          },
-        });
-      }
+    if (!variant.ativo) {
+      throw new BadRequestException("Não é possível registrar entrada para variante inativa");
+    }
 
-      const saldoAnterior = inventory.quantidadeTotal;
-      const saldoAtual = saldoAnterior + dto.quantidade;
-      const quantidadeDisponivel = computeDisponivel(
-        saldoAtual,
-        inventory.quantidadeReservada,
-      );
-      const status = computeInventoryStatus(quantidadeDisponivel, inventory.estoqueMinimo);
-
-      await tx.inventory.update({
-        where: { variantId: variant.id },
-        data: { quantidadeTotal: saldoAtual, quantidadeDisponivel, status },
-      });
-
-      await tx.productVariant.update({
-        where: { id: variant.id },
-        data: { estoque: saldoAtual },
-      });
-
-      const numero = await this.repository.getNextNumero(tx);
-      const dataEntrada = dto.dataEntrada ? new Date(dto.dataEntrada) : new Date();
-
-      const entry = await this.repository.create(
-        {
-          numero,
+    let inventory = variant.inventory;
+    if (!inventory) {
+      inventory = await tx.inventory.create({
+        data: {
           variant: { connect: { id: variant.id } },
-          tipo: dto.tipo,
-          quantidade: dto.quantidade,
-          valorUnitario: dto.valorUnitario,
-          documento: dto.documento?.trim() || null,
-          notaFiscal: dto.notaFiscal?.trim() || null,
-          fornecedor: dto.fornecedor?.trim() || null,
-          observacoes: dto.observacoes?.trim() || null,
-          usuario: { connect: { id: usuarioId } },
-          dataEntrada,
+          quantidadeTotal: 0,
+          quantidadeReservada: 0,
+          quantidadeDisponivel: 0,
+          estoqueMinimo: variant.estoqueMinimo,
+          status: computeInventoryStatus(0, variant.estoqueMinimo),
         },
-        tx,
-      );
+      });
+    }
 
-      await this.movementService.record(
-        {
-          variantId: variant.id,
-          tipo: InventoryMovementType.ENTRADA,
-          origem: dto.tipo,
-          quantidade: dto.quantidade,
-          saldoAnterior,
-          saldoAtual,
-          referenciaId: entry.id,
-          entryId: entry.id,
-          usuarioId,
-          descricao: this.buildMovementDescription(dto),
-        },
-        tx,
-      );
+    const saldoAnterior = inventory.quantidadeTotal;
+    const saldoAtual = saldoAnterior + dto.quantidade;
+    const quantidadeDisponivel = computeDisponivel(saldoAtual, inventory.quantidadeReservada);
+    const status = computeInventoryStatus(quantidadeDisponivel, inventory.estoqueMinimo);
 
-      const refreshed = await tx.inventoryEntry.findUnique({
-        where: { id: entry.id },
-        include: {
-          variant: {
-            include: {
-              produto: { include: { categoria: true } },
-              atributos: {
-                include: { attributeValue: { include: { attribute: true } } },
-              },
+    await tx.inventory.update({
+      where: { variantId: variant.id },
+      data: { quantidadeTotal: saldoAtual, quantidadeDisponivel, status },
+    });
+
+    await tx.productVariant.update({
+      where: { id: variant.id },
+      data: { estoque: saldoAtual },
+    });
+
+    const numero = await this.repository.getNextNumero(tx);
+    const dataEntrada = dto.dataEntrada ? new Date(dto.dataEntrada) : new Date();
+
+    const entry = await this.repository.create(
+      {
+        numero,
+        variant: { connect: { id: variant.id } },
+        tipo: dto.tipo,
+        quantidade: dto.quantidade,
+        valorUnitario: dto.valorUnitario,
+        documento: options?.documento ?? (dto.documento?.trim() || null),
+        notaFiscal: dto.notaFiscal?.trim() || null,
+        fornecedor: dto.fornecedor?.trim() || null,
+        observacoes: options?.observacoes ?? (dto.observacoes?.trim() || null),
+        usuario: { connect: { id: usuarioId } },
+        dataEntrada,
+        ...(options?.goodsReceiptId
+          ? { goodsReceipt: { connect: { id: options.goodsReceiptId } } }
+          : {}),
+      },
+      tx,
+    );
+
+    await this.movementService.record(
+      {
+        variantId: variant.id,
+        tipo: InventoryMovementType.ENTRADA,
+        origem: dto.tipo,
+        quantidade: dto.quantidade,
+        saldoAnterior,
+        saldoAtual,
+        referenciaId: entry.id,
+        entryId: entry.id,
+        usuarioId,
+        descricao: this.buildMovementDescription(dto, options?.observacoes),
+      },
+      tx,
+    );
+
+    const refreshed = await tx.inventoryEntry.findUnique({
+      where: { id: entry.id },
+      include: {
+        variant: {
+          include: {
+            produto: { include: { categoria: true } },
+            atributos: {
+              include: { attributeValue: { include: { attribute: true } } },
             },
           },
-          usuario: { select: { id: true, nome: true, email: true } },
-          movimento: true,
         },
-      });
-
-      return this.toDetailResponse(refreshed!);
+        usuario: { select: { id: true, nome: true, email: true } },
+        movimento: true,
+      },
     });
+
+    return this.toDetailResponse(refreshed!);
   }
 
   getEntryTypeLabels() {
     return ENTRY_TYPE_LABELS;
   }
 
-  private buildMovementDescription(dto: CreateInventoryEntryDto) {
+  private buildMovementDescription(dto: CreateInventoryEntryDto, extraObservacao?: string) {
     const parts = [`Entrada de estoque — ${ENTRY_TYPE_LABELS[dto.tipo]}`];
     if (dto.documento) parts.push(`Doc: ${dto.documento}`);
-    if (dto.observacoes) parts.push(dto.observacoes);
+    const observacoes = extraObservacao ?? dto.observacoes;
+    if (observacoes) parts.push(observacoes);
     return parts.join(" | ").slice(0, 500);
   }
 

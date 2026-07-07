@@ -36,6 +36,27 @@ enum PaymentMethod {
   CARTAO_ENTREGA
 }
 
+enum PurchaseOrderStatus {
+  RASCUNHO
+  AGUARDANDO_APROVACAO
+  APROVADA
+  ENVIADA
+  RECEBIMENTO_PARCIAL
+  RECEBIDA
+  CANCELADA
+}
+
+enum PayableStatus {
+  PENDENTE
+  PAGO
+  CANCELADO
+}
+
+enum PayableGenerationMode {
+  PER_RECEIPT
+  AT_COMPLETION
+}
+
 model User {
   id            String         @id @default(uuid())
   nome          String
@@ -52,6 +73,11 @@ model User {
   clientesResponsavel Customer[] @relation("CustomerResponsavel")
   entradasEstoque InventoryEntry[]
   movimentosEstoque InventoryMovement[]
+  inventariosEstoque InventoryAudit[]
+  ordensCompra PurchaseOrder[]
+  historicoOrdensCompra PurchaseOrderHistory[]
+  recebimentos GoodsReceipt[]
+  contasPagar AccountPayable[]
 
   @@map("users")
 }
@@ -100,6 +126,7 @@ model Category {
   categoriaPai    Category?  @relation("CategoryHierarchy", fields: [categoriaPaiId], references: [id], onDelete: SetNull)
   subcategorias   Category[] @relation("CategoryHierarchy")
   produtos        Product[]
+  inventariosEstoque InventoryAudit[]
   ordem           Int        @default(0)
   ativo           Boolean    @default(true)
   createdAt       DateTime   @default(now()) @map("created_at")
@@ -131,7 +158,9 @@ model Product {
   updatedAt               DateTime       @updatedAt @map("updated_at")
   imagens                 ProductImage[]
   variantes               ProductVariant[]
+  inventariosEstoque      InventoryAudit[]
   orderItems              OrderItem[]
+  itensOrdemCompra        PurchaseOrderItem[]
 
   @@map("products")
 }
@@ -147,6 +176,7 @@ enum InventoryEntryType {
 
 enum InventoryMovementType {
   ENTRADA
+  SAIDA
   RESERVA
   LIBERACAO
   BAIXA
@@ -156,6 +186,28 @@ enum InventoryStatus {
   EM_ESTOQUE
   ESTOQUE_BAIXO
   SEM_ESTOQUE
+}
+
+enum InventoryAuditType {
+  GERAL
+  PARCIAL
+  CATEGORIA
+  PRODUTO
+  VARIANTE
+}
+
+enum InventoryAuditStatus {
+  RASCUNHO
+  EM_ANDAMENTO
+  PAUSADO
+  FINALIZADO
+  CANCELADO
+}
+
+enum InventoryAdjustmentType {
+  ENTRADA
+  SAIDA
+  NENHUM
 }
 
 model Inventory {
@@ -188,6 +240,8 @@ model InventoryEntry {
   usuarioId     String?            @map("usuario_id")
   usuario       User?              @relation(fields: [usuarioId], references: [id], onDelete: SetNull)
   dataEntrada   DateTime           @default(now()) @map("data_entrada")
+  goodsReceiptId String?           @map("goods_receipt_id")
+  goodsReceipt   GoodsReceipt?      @relation(fields: [goodsReceiptId], references: [id], onDelete: SetNull)
   createdAt     DateTime           @default(now()) @map("created_at")
   movimento     InventoryMovement?
 
@@ -199,12 +253,15 @@ model InventoryEntry {
 
 model InventoryMovement {
   id            String                 @id @default(uuid())
+  numero        Int?                   @unique
   variantId     String                 @map("variant_id")
   variant       ProductVariant         @relation(fields: [variantId], references: [id], onDelete: Cascade)
   orderId       String?                @map("order_id")
   order         Order?                 @relation(fields: [orderId], references: [id], onDelete: SetNull)
   entryId       String?                @unique @map("entry_id")
   entry         InventoryEntry?        @relation(fields: [entryId], references: [id], onDelete: SetNull)
+  auditId       String?                @map("audit_id")
+  audit         InventoryAudit?        @relation(fields: [auditId], references: [id], onDelete: SetNull)
   usuarioId     String?                @map("usuario_id")
   usuario       User?                  @relation(fields: [usuarioId], references: [id], onDelete: SetNull)
   tipo          InventoryMovementType
@@ -213,13 +270,65 @@ model InventoryMovement {
   saldoAnterior Int?                   @map("saldo_anterior")
   saldoAtual    Int?                   @map("saldo_atual")
   referenciaId  String?                @map("referencia_id")
+  motivo        String?
+  documento     String?
   descricao     String
   createdAt     DateTime               @default(now()) @map("created_at")
 
   @@index([variantId])
   @@index([orderId])
   @@index([tipo])
+  @@index([origem])
+  @@index([createdAt])
+  @@index([auditId])
   @@map("inventory_movements")
+}
+
+model InventoryAudit {
+  id              String               @id @default(uuid())
+  numero          Int                  @unique
+  nome            String
+  tipo            InventoryAuditType
+  status          InventoryAuditStatus @default(RASCUNHO)
+  categoriaId     String?              @map("categoria_id")
+  categoria       Category?            @relation(fields: [categoriaId], references: [id], onDelete: SetNull)
+  produtoId       String?              @map("produto_id")
+  produto         Product?             @relation(fields: [produtoId], references: [id], onDelete: SetNull)
+  variantId       String?              @map("variant_id")
+  variant         ProductVariant?      @relation("InventoryAuditVariant", fields: [variantId], references: [id], onDelete: SetNull)
+  usuarioId       String               @map("usuario_id")
+  usuario         User                 @relation(fields: [usuarioId], references: [id], onDelete: Restrict)
+  observacoes     String?
+  dataInventario  DateTime             @default(now()) @map("data_inventario")
+  createdAt       DateTime             @default(now()) @map("created_at")
+  finishedAt      DateTime?            @map("finished_at")
+  itens           InventoryAuditItem[]
+  movimentos      InventoryMovement[]
+
+  @@index([status])
+  @@index([tipo])
+  @@index([dataInventario])
+  @@index([usuarioId])
+  @@map("inventory_audits")
+}
+
+model InventoryAuditItem {
+  id                 String                  @id @default(uuid())
+  auditId            String                  @map("audit_id")
+  audit              InventoryAudit          @relation(fields: [auditId], references: [id], onDelete: Cascade)
+  variantId          String                  @map("variant_id")
+  variant            ProductVariant          @relation(fields: [variantId], references: [id], onDelete: Restrict)
+  quantidadeSistema  Int                     @map("quantidade_sistema")
+  quantidadeFisica   Int?                    @map("quantidade_fisica")
+  diferenca          Int?
+  tipoAjuste         InventoryAdjustmentType? @map("tipo_ajuste")
+  contado            Boolean                 @default(false)
+  createdAt          DateTime                @default(now()) @map("created_at")
+  updatedAt          DateTime                @updatedAt @map("updated_at")
+
+  @@unique([auditId, variantId])
+  @@index([variantId])
+  @@map("inventory_audit_items")
 }
 
 model ProductVariant {
@@ -243,6 +352,10 @@ model ProductVariant {
   inventory        Inventory?
   entradasEstoque  InventoryEntry[]
   movimentosEstoque InventoryMovement[]
+  itensInventario  InventoryAuditItem[]
+  inventariosAlvo  InventoryAudit[] @relation("InventoryAuditVariant")
+  itensOrdemCompra PurchaseOrderItem[]
+  itensRecebimento GoodsReceiptItem[]
 
   @@map("product_variants")
 }
@@ -385,6 +498,203 @@ model CustomerAddress {
   @@index([cidade])
   @@index([bairro])
   @@map("customer_addresses")
+}
+
+model Supplier {
+  id                String            @id @default(uuid())
+  razaoSocial       String            @map("razao_social")
+  nomeFantasia      String            @map("nome_fantasia")
+  cnpj              String            @unique
+  inscricaoEstadual String?           @map("inscricao_estadual")
+  telefone          String
+  email             String?
+  website           String?
+  contatoPrincipal  String?           @map("contato_principal")
+  observacoes       String?
+  ativo             Boolean           @default(true)
+  deletedAt         DateTime?         @map("deleted_at")
+  createdAt         DateTime          @default(now()) @map("created_at")
+  updatedAt         DateTime          @updatedAt @map("updated_at")
+  endereco          SupplierAddress?
+  contatos          SupplierContact[]
+  ordensCompra      PurchaseOrder[]
+  contasPagar       AccountPayable[]
+
+  @@index([nomeFantasia])
+  @@index([razaoSocial])
+  @@map("suppliers")
+}
+
+model SupplierAddress {
+  id          String   @id @default(uuid())
+  supplierId  String   @unique @map("supplier_id")
+  supplier    Supplier @relation(fields: [supplierId], references: [id], onDelete: Cascade)
+  cep         String
+  rua         String
+  numero      String
+  complemento String?
+  bairro      String
+  cidade      String
+  estado      String
+  createdAt   DateTime @default(now()) @map("created_at")
+  updatedAt   DateTime @updatedAt @map("updated_at")
+
+  @@index([cidade])
+  @@index([estado])
+  @@map("supplier_addresses")
+}
+
+model SupplierContact {
+  id         String   @id @default(uuid())
+  supplierId String   @map("supplier_id")
+  supplier   Supplier @relation(fields: [supplierId], references: [id], onDelete: Cascade)
+  nome       String
+  cargo      String?
+  telefone   String?
+  whatsapp   String?
+  email      String?
+  createdAt  DateTime @default(now()) @map("created_at")
+  updatedAt  DateTime @updatedAt @map("updated_at")
+
+  @@index([supplierId])
+  @@map("supplier_contacts")
+}
+
+model PurchaseOrder {
+  id                 String              @id @default(uuid())
+  numero             Int                 @unique
+  supplierId         String              @map("supplier_id")
+  supplier           Supplier            @relation(fields: [supplierId], references: [id], onDelete: Restrict)
+  status             PurchaseOrderStatus @default(RASCUNHO)
+  data               DateTime            @default(now())
+  previsaoEntrega    DateTime            @map("previsao_entrega")
+  frete              Decimal             @default(0) @db.Decimal(10, 2)
+  desconto           Decimal             @default(0) @db.Decimal(10, 2)
+  subtotal           Decimal             @db.Decimal(10, 2)
+  total              Decimal             @db.Decimal(10, 2)
+  pedidoFornecedor   String?             @map("pedido_fornecedor")
+  observacoes        String?
+  motivoCancelamento String?             @map("motivo_cancelamento")
+  usuarioId          String?             @map("usuario_id")
+  usuario            User?               @relation(fields: [usuarioId], references: [id], onDelete: SetNull)
+  aprovadaEm         DateTime?           @map("aprovada_em")
+  enviadaEm          DateTime?           @map("enviada_em")
+  recebidaEm         DateTime?           @map("recebida_em")
+  canceladaEm        DateTime?           @map("cancelada_em")
+  deletedAt          DateTime?           @map("deleted_at")
+  createdAt          DateTime            @default(now()) @map("created_at")
+  updatedAt          DateTime            @updatedAt @map("updated_at")
+  itens              PurchaseOrderItem[]
+  historico          PurchaseOrderHistory[]
+  recebimentos       GoodsReceipt[]
+  contasPagar        AccountPayable[]
+
+  @@index([supplierId])
+  @@index([numero])
+  @@index([status])
+  @@index([usuarioId])
+  @@map("purchase_orders")
+}
+
+model PurchaseOrderItem {
+  id              String         @id @default(uuid())
+  purchaseOrderId String         @map("purchase_order_id")
+  purchaseOrder   PurchaseOrder  @relation(fields: [purchaseOrderId], references: [id], onDelete: Cascade)
+  productId       String         @map("product_id")
+  product         Product        @relation(fields: [productId], references: [id])
+  variantId       String         @map("variant_id")
+  variant         ProductVariant @relation(fields: [variantId], references: [id])
+  produtoNome     String         @map("produto_nome")
+  sku             String
+  quantidade      Int
+  valorUnitario   Decimal        @map("valor_unitario") @db.Decimal(10, 2)
+  desconto        Decimal        @default(0) @db.Decimal(10, 2)
+  subtotal        Decimal        @db.Decimal(10, 2)
+  itensRecebimento GoodsReceiptItem[]
+
+  @@index([purchaseOrderId])
+  @@index([variantId])
+  @@map("purchase_order_items")
+}
+
+model PurchaseOrderHistory {
+  id              String              @id @default(uuid())
+  purchaseOrderId String              @map("purchase_order_id")
+  purchaseOrder   PurchaseOrder       @relation(fields: [purchaseOrderId], references: [id], onDelete: Cascade)
+  status          PurchaseOrderStatus
+  descricao       String
+  usuarioId       String?             @map("usuario_id")
+  usuario         User?               @relation(fields: [usuarioId], references: [id], onDelete: SetNull)
+  createdAt       DateTime            @default(now()) @map("created_at")
+
+  @@index([purchaseOrderId])
+  @@map("purchase_order_history")
+}
+
+model ErpSetting {
+  key       String   @id
+  value     String
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  @@map("erp_settings")
+}
+
+model GoodsReceipt {
+  id              String             @id @default(uuid())
+  numero          Int                @unique
+  purchaseOrderId String             @map("purchase_order_id")
+  purchaseOrder   PurchaseOrder      @relation(fields: [purchaseOrderId], references: [id], onDelete: Restrict)
+  usuarioId       String?            @map("usuario_id")
+  usuario         User?              @relation(fields: [usuarioId], references: [id], onDelete: SetNull)
+  observacoes     String?
+  valorTotal      Decimal            @default(0) @map("valor_total") @db.Decimal(10, 2)
+  createdAt       DateTime           @default(now()) @map("created_at")
+  itens           GoodsReceiptItem[]
+  entradasEstoque InventoryEntry[]
+  contaPagar      AccountPayable?
+
+  @@index([purchaseOrderId])
+  @@index([createdAt])
+  @@map("goods_receipts")
+}
+
+model GoodsReceiptItem {
+  id                  String            @id @default(uuid())
+  goodsReceiptId      String            @map("goods_receipt_id")
+  goodsReceipt        GoodsReceipt      @relation(fields: [goodsReceiptId], references: [id], onDelete: Cascade)
+  purchaseOrderItemId String            @map("purchase_order_item_id")
+  purchaseOrderItem   PurchaseOrderItem @relation(fields: [purchaseOrderItemId], references: [id], onDelete: Restrict)
+  variantId           String            @map("variant_id")
+  variant             ProductVariant    @relation(fields: [variantId], references: [id], onDelete: Restrict)
+  quantidadeRecebida  Int               @map("quantidade_recebida")
+
+  @@index([goodsReceiptId])
+  @@index([purchaseOrderItemId])
+  @@map("goods_receipt_items")
+}
+
+model AccountPayable {
+  id              String        @id @default(uuid())
+  numero          Int           @unique
+  supplierId      String        @map("supplier_id")
+  supplier        Supplier      @relation(fields: [supplierId], references: [id], onDelete: Restrict)
+  purchaseOrderId String        @map("purchase_order_id")
+  purchaseOrder   PurchaseOrder @relation(fields: [purchaseOrderId], references: [id], onDelete: Restrict)
+  goodsReceiptId  String?       @unique @map("goods_receipt_id")
+  goodsReceipt    GoodsReceipt? @relation(fields: [goodsReceiptId], references: [id], onDelete: SetNull)
+  descricao       String
+  valor           Decimal       @db.Decimal(10, 2)
+  status          PayableStatus @default(PENDENTE)
+  vencimento      DateTime?
+  usuarioId       String?       @map("usuario_id")
+  usuario         User?         @relation(fields: [usuarioId], references: [id], onDelete: SetNull)
+  createdAt       DateTime      @default(now()) @map("created_at")
+  updatedAt       DateTime      @updatedAt @map("updated_at")
+
+  @@index([supplierId])
+  @@index([purchaseOrderId])
+  @@index([status])
+  @@map("accounts_payable")
 }
 
 model Order {
