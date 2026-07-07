@@ -10,6 +10,7 @@ export const BANNER_TYPE_LABELS: Record<BannerType, string> = {
 export const BANNER_LIMITS: Partial<Record<BannerType, number>> = {
   hero: 3,
   horizontal: 2,
+  promocional: 2,
   institucional: 1,
 };
 
@@ -38,6 +39,7 @@ export function isBannerTypeAtLimit(
 const BANNER_TYPE_LIMIT_LABELS: Partial<Record<BannerType, { one: string; many: string }>> = {
   hero: { one: "principal", many: "principais" },
   horizontal: { one: "secundário", many: "secundários" },
+  promocional: { one: "promocional", many: "promocionais" },
   institucional: { one: "institucional", many: "institucionais" },
 };
 

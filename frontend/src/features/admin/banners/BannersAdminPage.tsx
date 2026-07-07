@@ -86,7 +86,7 @@ export function BannersAdminPage() {
             Banners
           </h1>
           <p className="text-sm text-brand-gray">
-            Principal: até 3 · Secundário: até 2 · Institucional: até 1 · Promocional: ilimitado
+            Principal: até 3 · Secundário: até 2 · Promocional: até 2 · Institucional: até 1
           </p>
         </div>
         <Button onClick={openCreate}>Novo banner</Button>

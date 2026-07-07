@@ -4,6 +4,7 @@ import { BannerType } from "@prisma/client";
 export const BANNER_LIMITS: Partial<Record<BannerType, number>> = {
   [BannerType.HERO]: 3,
   [BannerType.HORIZONTAL]: 2,
+  [BannerType.PROMOCIONAL]: 2,
   [BannerType.INSTITUCIONAL]: 1,
 };
 
