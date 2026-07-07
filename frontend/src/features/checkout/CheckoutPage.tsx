@@ -3,7 +3,7 @@
 import Image from "next/image";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { CartSummary } from "@/features/cart/components/CartSummary";
 import { useCart } from "@/features/cart/hooks/useCart";
@@ -69,6 +69,7 @@ export function CheckoutPage({ categories }: CheckoutPageProps) {
 function CheckoutContent() {
   const router = useRouter();
   const { items, totals, clearCart, isHydrated } = useCart();
+  const orderCompletedRef = useRef(false);
   const [form, setForm] = useState<CheckoutForm>(emptyForm);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -132,7 +133,7 @@ function CheckoutContent() {
               : undefined;
 
   useEffect(() => {
-    if (isHydrated && items.length === 0) {
+    if (isHydrated && items.length === 0 && !orderCompletedRef.current) {
       router.replace("/carrinho");
     }
   }, [isHydrated, items.length, router]);
@@ -211,9 +212,10 @@ function CheckoutContent() {
         })),
       });
 
-      clearCart();
+      orderCompletedRef.current = true;
       sessionStorage.setItem(`checkout-whatsapp-${order.numero}`, order.whatsappUrl);
-      router.push(`/checkout/sucesso?pedido=${order.numero}`);
+      router.replace(`/checkout/sucesso?pedido=${order.numero}`);
+      clearCart();
     } catch (submitError) {
       setError(getOrderErrorMessage(submitError));
     } finally {
@@ -221,7 +223,7 @@ function CheckoutContent() {
     }
   };
 
-  if (!isHydrated || items.length === 0 || deliveryLoading) {
+  if (!isHydrated || (items.length === 0 && !orderCompletedRef.current) || deliveryLoading) {
     return (
       <Container className="py-12">
         <p className="text-sm text-brand-gray">Carregando checkout...</p>
