@@ -139,7 +139,10 @@ export function CategoriesAdminPage() {
               const children = getChildCategoriesAll(categories, category.id);
 
               return (
-                <div key={category.id} className="border-b border-neutral-200 last:border-b-0">
+                <article
+                  key={category.id}
+                  className="overflow-hidden border border-neutral-200 bg-brand-white shadow-sm"
+                >
                   <CategoryRow
                     category={category}
                     badge="Principal"
@@ -159,8 +162,8 @@ export function CategoriesAdminPage() {
                   />
 
                   {children.length > 0 ? (
-                    <div className="border-t border-neutral-100 bg-neutral-50/60">
-                      <div className="flex flex-wrap items-center justify-between gap-3 border-b border-neutral-100 px-4 py-2">
+                    <div className="border-t border-neutral-200 bg-neutral-50/70 px-4 py-4 sm:px-6 sm:py-5">
+                      <div className="flex flex-wrap items-center justify-between gap-3">
                         <p className="text-xs font-medium uppercase tracking-wide text-brand-gray">
                           Subcategorias de {category.nome}
                         </p>
@@ -168,9 +171,12 @@ export function CategoriesAdminPage() {
                           Adicionar subcategoria
                         </Button>
                       </div>
-                      <ul>
+                      <ul className="mt-4 space-y-3">
                         {children.map((child, childIndex) => (
-                          <li key={child.id} className="border-t border-neutral-100 first:border-t-0">
+                          <li
+                            key={child.id}
+                            className="overflow-hidden border border-neutral-200 bg-brand-white"
+                          >
                             <CategoryRow
                               category={child}
                               badge="Subcategoria"
@@ -194,13 +200,13 @@ export function CategoriesAdminPage() {
                       </ul>
                     </div>
                   ) : (
-                    <div className="border-t border-neutral-100 bg-neutral-50/40 px-4 py-3">
+                    <div className="border-t border-neutral-200 bg-neutral-50/50 px-4 py-4 sm:px-6">
                       <Button size="sm" variant="ghost" onClick={() => openCreate(category.id)}>
                         Adicionar subcategoria
                       </Button>
                     </div>
                   )}
-                </div>
+                </article>
               );
             })}
           </CategorySection>
@@ -215,24 +221,28 @@ export function CategoriesAdminPage() {
               isReordering={reorderMutation.isPending}
             >
               {orphanCategories.map((category, index) => (
-                <CategoryRow
+                <article
                   key={category.id}
-                  category={category}
-                  badge="Órfã"
-                  isFirst={index === 0}
-                  isLast={index === orphanCategories.length - 1}
-                  isReordering={reorderMutation.isPending}
-                  onMove={(direction) => moveCategory(orphanCategories, category.id, direction)}
-                  onEdit={() => openEdit(category)}
-                  onToggle={() =>
-                    toggleMutation.mutate({ id: category.id, ativo: category.ativo })
-                  }
-                  onDelete={() => {
-                    if (confirm("Excluir esta categoria?")) {
-                      deleteMutation.mutate(category.id);
+                  className="overflow-hidden border border-neutral-200 bg-brand-white shadow-sm"
+                >
+                  <CategoryRow
+                    category={category}
+                    badge="Órfã"
+                    isFirst={index === 0}
+                    isLast={index === orphanCategories.length - 1}
+                    isReordering={reorderMutation.isPending}
+                    onMove={(direction) => moveCategory(orphanCategories, category.id, direction)}
+                    onEdit={() => openEdit(category)}
+                    onToggle={() =>
+                      toggleMutation.mutate({ id: category.id, ativo: category.ativo })
                     }
-                  }}
-                />
+                    onDelete={() => {
+                      if (confirm("Excluir esta categoria?")) {
+                        deleteMutation.mutate(category.id);
+                      }
+                    }}
+                  />
+                </article>
               ))}
             </CategorySection>
           ) : null}
@@ -331,7 +341,7 @@ function CategorySection({
           </Button>
         </div>
       ) : (
-        <div>{children}</div>
+        <div className="space-y-6 p-4 sm:p-6">{children}</div>
       )}
     </section>
   );
@@ -363,9 +373,9 @@ function CategoryRow({
   return (
     <div
       className={cn(
-        "flex flex-col gap-4 px-4 py-4 sm:flex-row sm:items-center",
+        "flex flex-col gap-4 sm:flex-row sm:items-center",
+        nested ? "px-4 py-4 sm:px-5 sm:py-5" : "px-4 py-5 sm:px-6 sm:py-6",
         !category.ativo && "bg-neutral-50",
-        nested && "pl-8 sm:pl-10",
       )}
     >
       <div className="flex min-w-0 flex-1 items-center gap-4">
