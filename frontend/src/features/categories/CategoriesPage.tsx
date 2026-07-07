@@ -1,6 +1,7 @@
 import Link from "next/link";
-import { Breadcrumb, CategoryList } from "@/components/category";
+import { Breadcrumb, CategoryList, EmptyState } from "@/components/category";
 import { StoreLayout } from "@/layouts/StoreLayout";
+import { Button } from "@/components/ui/Button";
 import { Container } from "@/components/ui/Container";
 import { SectionTitle } from "@/components/ui/SectionTitle";
 import { getRootCategories } from "@/lib/categories";
@@ -26,15 +27,27 @@ export function CategoriesPage({ categories }: CategoriesPageProps) {
           />
           <SectionTitle
             title="Categorias"
-            subtitle="Explore nossas categorias e encontre o que você procura"
+            subtitle={
+              rootCategories.length > 0
+                ? `${rootCategories.length} categoria${rootCategories.length > 1 ? "s" : ""} disponíve${rootCategories.length > 1 ? "is" : "l"}`
+                : "Explore nossas categorias e encontre o que você procura"
+            }
             align="left"
           />
-          <CategoryList categories={rootCategories} />
-          <p className="mt-8 text-center text-sm text-brand-gray">
-            <Link href="/" className="underline hover:text-brand-black">
-              Voltar para a Home
-            </Link>
-          </p>
+
+          {rootCategories.length > 0 ? (
+            <CategoryList categories={rootCategories} />
+          ) : (
+            <EmptyState
+              title="Nenhuma categoria disponível"
+              description="Novas categorias serão exibidas aqui assim que forem publicadas."
+              action={
+                <Link href="/">
+                  <Button variant="outline">Voltar para a Home</Button>
+                </Link>
+              }
+            />
+          )}
         </Container>
       </main>
     </StoreLayout>

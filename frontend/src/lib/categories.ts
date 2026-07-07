@@ -1,12 +1,25 @@
 import type { BreadcrumbItem, Category } from "@/types/category";
 import type { Product } from "@/types/home";
 
+export const HOME_CATEGORIES_LIMIT = 4;
+
 export function getActiveCategories(categories: Category[]): Category[] {
   return categories.filter((c) => c.ativo).sort((a, b) => a.ordem - b.ordem);
 }
 
 export function getRootCategories(categories: Category[]): Category[] {
   return getActiveCategories(categories).filter((c) => c.categoriaPai === null);
+}
+
+export function getHomeCategories(categories: Category[], limit = HOME_CATEGORIES_LIMIT): Category[] {
+  return getRootCategories(categories).slice(0, limit);
+}
+
+export function hasMoreHomeCategories(
+  categories: Category[],
+  limit = HOME_CATEGORIES_LIMIT,
+): boolean {
+  return getRootCategories(categories).length > limit;
 }
 
 export function getSubcategories(categories: Category[], parentId: string): Category[] {
