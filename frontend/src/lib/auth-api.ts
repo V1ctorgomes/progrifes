@@ -1,5 +1,5 @@
 import axios, { isAxiosError } from "axios";
-import type { AuthSession, LoginCredentials } from "@/types/auth";
+import type { AuthSession, AuthUser, LoginCredentials } from "@/types/auth";
 
 const api = axios.create({
   baseURL: "/api/auth",
@@ -16,8 +16,8 @@ function getErrorMessage(error: unknown): string {
     if (typeof message === "string") {
       return message;
     }
-    if (error.response?.status === 503) {
-      return "API indisponível. Verifique se o backend está online.";
+    if (error.response?.status === 503 || error.response?.status === 502) {
+      return "API indisponível. Verifique se o backend está online e se BACKEND_URL está configurado no frontend.";
     }
   }
 
@@ -44,13 +44,10 @@ export async function refreshSession(): Promise<AuthSession> {
 
 export async function getSession(): Promise<AuthSession | null> {
   try {
-    const { data } = await api.get<AuthSession>("/me");
-    return data;
+    const { data } = await api.get<{ user: AuthUser | null; permissions: string[] }>("/me");
+    if (!data.user) return null;
+    return { user: data.user, permissions: data.permissions };
   } catch {
-    try {
-      return await refreshSession();
-    } catch {
-      return null;
-    }
+    return null;
   }
 }

@@ -16,6 +16,11 @@ import { PayableSettlementService } from "./payable-settlement.service";
     PayableSettlementService,
     AccountsPayableService,
   ],
-  exports: [PayableSettlementService, AccountsPayableService],
+  exports: [
+    PayableSettlementService,
+    AccountsPayableService,
+    AccountsPayableRepository,
+    AccountsPayableHistoryService,
+  ],
 })
 export class AccountsPayableModule {}

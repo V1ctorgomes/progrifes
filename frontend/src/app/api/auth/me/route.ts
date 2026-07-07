@@ -15,7 +15,7 @@ export async function GET(req: NextRequest) {
   const hasRefreshToken = Boolean(req.cookies.get(AUTH_COOKIES.refreshToken)?.value);
 
   if (!hasAccessToken && !hasRefreshToken) {
-    return NextResponse.json({ message: "Não autenticado" }, { status: 401 });
+    return NextResponse.json({ user: null, permissions: [] });
   }
 
   if (!hasAccessToken && hasRefreshToken) {
