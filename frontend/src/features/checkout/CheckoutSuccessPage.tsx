@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import { useEffect, useState } from "react";
 import { useSearchParams } from "next/navigation";
 import { StoreLayout } from "@/layouts/StoreLayout";
 import { Button } from "@/components/ui/Button";
@@ -17,37 +18,82 @@ export function CheckoutSuccessPage({ categories }: CheckoutSuccessPageProps) {
   const searchParams = useSearchParams();
   const pedido = searchParams.get("pedido");
   const numeroFormatado = pedido ? `#${String(pedido).padStart(6, "0")}` : null;
-  const whatsappUrl = `https://wa.me/${storeInfo.whatsappLink}`;
+  const [whatsappUrl, setWhatsappUrl] = useState<string | null>(null);
+
+  useEffect(() => {
+    if (!pedido) return;
+
+    const storedUrl = sessionStorage.getItem(`checkout-whatsapp-${pedido}`);
+    if (storedUrl) {
+      setWhatsappUrl(storedUrl);
+      return;
+    }
+
+    setWhatsappUrl(`https://wa.me/${storeInfo.whatsappLink}`);
+  }, [pedido]);
+
+  const handleConfirmWhatsApp = () => {
+    if (!whatsappUrl) return;
+    window.open(whatsappUrl, "_blank", "noopener,noreferrer");
+  };
 
   return (
     <StoreLayout categories={categories}>
       <main className="py-16 sm:py-24">
-        <Container className="max-w-lg text-center">
-          <div className="mx-auto mb-6 flex h-16 w-16 items-center justify-center rounded-full bg-brand-whatsapp text-brand-white">
-            <WhatsAppIcon className="h-8 w-8" />
+        <Container className="max-w-xl text-center">
+          <div className="mx-auto mb-6 flex h-16 w-16 items-center justify-center rounded-full bg-amber-100 text-amber-700">
+            <span className="text-2xl font-bold">!</span>
           </div>
+
           <h1 className="font-display text-3xl font-bold uppercase tracking-wide text-brand-black">
-            Pedido realizado!
+            Quase lá!
           </h1>
-          {numeroFormatado && (
-            <p className="mt-3 text-lg font-semibold text-brand-black">Pedido {numeroFormatado}</p>
-          )}
-          <p className="mt-4 text-brand-gray">
-            Seu pedido foi registrado no sistema. Envie a mensagem no WhatsApp para confirmar o
-            atendimento com nossa equipe.
-          </p>
-          <div className="mt-8 flex flex-col gap-3 sm:flex-row sm:justify-center">
-            <a href={whatsappUrl} target="_blank" rel="noopener noreferrer">
-              <Button variant="whatsapp" fullWidth>
-                Abrir WhatsApp
-              </Button>
-            </a>
+
+          {numeroFormatado ? (
+            <p className="mt-3 text-lg font-semibold text-brand-black">
+              Pedido {numeroFormatado} registrado
+            </p>
+          ) : null}
+
+          <div className="mt-6 space-y-3 text-left border border-neutral-200 bg-brand-light p-5 text-sm text-brand-gray">
+            <p>
+              Seu pedido foi salvo no sistema, mas ainda <strong className="text-brand-black">não está confirmado</strong>.
+            </p>
+            <p>
+              Para finalizar, é necessário enviar a confirmação via <strong className="text-brand-black">WhatsApp</strong>.
+              Nossa equipe só dará andamento após receber sua mensagem.
+            </p>
+            <ol className="list-decimal space-y-2 pl-5">
+              <li>Clique no botão abaixo para abrir o WhatsApp</li>
+              <li>Envie a mensagem do pedido (já vem pronta)</li>
+              <li>Aguarde a confirmação da loja</li>
+            </ol>
+          </div>
+
+          <div className="mt-8 flex flex-col gap-3">
+            <Button
+              type="button"
+              variant="whatsapp"
+              fullWidth
+              disabled={!whatsappUrl}
+              onClick={handleConfirmWhatsApp}
+            >
+              <span className="inline-flex items-center justify-center gap-2">
+                <WhatsAppIcon className="h-5 w-5" />
+                Confirmar pedido no WhatsApp
+              </span>
+            </Button>
+
             <Link href="/">
               <Button variant="outline" fullWidth>
                 Voltar à loja
               </Button>
             </Link>
           </div>
+
+          <p className="mt-6 text-xs text-brand-gray">
+            Sem a confirmação pelo WhatsApp, o pedido pode não ser processado.
+          </p>
         </Container>
       </main>
     </StoreLayout>

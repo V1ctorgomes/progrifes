@@ -212,7 +212,7 @@ function CheckoutContent() {
       });
 
       clearCart();
-      window.open(order.whatsappUrl, "_blank", "noopener,noreferrer");
+      sessionStorage.setItem(`checkout-whatsapp-${order.numero}`, order.whatsappUrl);
       router.push(`/checkout/sucesso?pedido=${order.numero}`);
     } catch (submitError) {
       setError(getOrderErrorMessage(submitError));
