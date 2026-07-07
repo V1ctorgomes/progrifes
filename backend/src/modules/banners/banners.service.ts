@@ -1,6 +1,7 @@
 import { Injectable, NotFoundException } from "@nestjs/common";
 import { Banner } from "@prisma/client";
 import { bannerTypeToClient } from "../../common/utils/mappers";
+import { assertBannerTypeLimit } from "./banner-limits";
 import { BannersRepository } from "./banners.repository";
 import { CreateBannerDto, ReorderDto, UpdateBannerDto } from "./dto/banner.dto";
 
@@ -19,6 +20,9 @@ export class BannersService {
   }
 
   async create(dto: CreateBannerDto) {
+    const currentCount = await this.repository.countByType(dto.tipo);
+    assertBannerTypeLimit(dto.tipo, currentCount);
+
     const maxOrder = await this.repository.getNextOrder(dto.tipo);
     const ordem = dto.ordem ?? (maxOrder._max.ordem ?? 0) + 1;
 
@@ -43,7 +47,12 @@ export class BannersService {
   }
 
   async update(id: string, dto: UpdateBannerDto) {
-    await this.ensureExists(id);
+    const existing = await this.ensureExists(id);
+
+    if (dto.tipo && dto.tipo !== existing.tipo) {
+      const currentCount = await this.repository.countByType(dto.tipo, id);
+      assertBannerTypeLimit(dto.tipo, currentCount);
+    }
 
     const banner = await this.repository.update(id, {
       ...dto,

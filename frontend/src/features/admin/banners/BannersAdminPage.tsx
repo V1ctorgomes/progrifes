@@ -5,6 +5,7 @@ import { useMemo, useState } from "react";
 import { BannerForm } from "@/components/admin/BannerForm";
 import { Modal } from "@/components/admin/Modal";
 import { Button } from "@/components/ui/Button";
+import { getBannerTypeLabel } from "@/lib/banner-config";
 import { bannersAdminApi, getErrorMessage, type BannerInput } from "@/lib/admin-api";
 import type { Banner } from "@/types/banner";
 
@@ -84,7 +85,9 @@ export function BannersAdminPage() {
           <h1 className="font-display text-2xl font-semibold uppercase tracking-wide text-brand-black">
             Banners
           </h1>
-          <p className="text-sm text-brand-gray">Gerencie os banners exibidos na loja</p>
+          <p className="text-sm text-brand-gray">
+            Principal: até 3 · Secundário: até 2 · Institucional: até 1 · Promocional: ilimitado
+          </p>
         </div>
         <Button onClick={openCreate}>Novo banner</Button>
       </div>
@@ -115,7 +118,7 @@ export function BannersAdminPage() {
                     />
                   </td>
                   <td className="px-4 py-3 font-medium">{banner.titulo}</td>
-                  <td className="px-4 py-3 uppercase">{banner.tipo}</td>
+                  <td className="px-4 py-3">{getBannerTypeLabel(banner.tipo)}</td>
                   <td className="px-4 py-3">{banner.ordem}</td>
                   <td className="px-4 py-3">
                     <span
@@ -176,6 +179,7 @@ export function BannersAdminPage() {
       >
         <BannerForm
           initial={editing}
+          existingBanners={banners}
           onCancel={() => {
             setModalOpen(false);
             setEditing(null);

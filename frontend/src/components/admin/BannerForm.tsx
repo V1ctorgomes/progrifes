@@ -1,20 +1,25 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { Button } from "@/components/ui/Button";
 import { Input } from "@/components/ui/Input";
+import {
+  BANNER_TYPE_LABELS,
+  getBannerLimitError,
+  getBannerLimitMessage,
+  isBannerTypeAtLimit,
+} from "@/lib/banner-config";
 import type { BannerInput } from "@/lib/admin-api";
 import type { Banner, BannerType } from "@/types/banner";
 
-const bannerTypes: { value: BannerType; label: string }[] = [
-  { value: "hero", label: "Hero" },
-  { value: "horizontal", label: "Horizontal" },
-  { value: "promocional", label: "Promocional" },
-  { value: "institucional", label: "Institucional" },
-];
+const bannerTypes = (Object.keys(BANNER_TYPE_LABELS) as BannerType[]).map((value) => ({
+  value,
+  label: BANNER_TYPE_LABELS[value],
+}));
 
 interface BannerFormProps {
   initial?: Banner | null;
+  existingBanners?: Banner[];
   onSubmit: (data: BannerInput) => Promise<void>;
   onCancel: () => void;
 }
@@ -34,7 +39,12 @@ const emptyForm: BannerInput = {
   ativo: true,
 };
 
-export function BannerForm({ initial, onSubmit, onCancel }: BannerFormProps) {
+export function BannerForm({
+  initial,
+  existingBanners = [],
+  onSubmit,
+  onCancel,
+}: BannerFormProps) {
   const [form, setForm] = useState<BannerInput>(emptyForm);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -60,6 +70,16 @@ export function BannerForm({ initial, onSubmit, onCancel }: BannerFormProps) {
     }
   }, [initial]);
 
+  const availableTypes = useMemo(
+    () =>
+      bannerTypes.filter(
+        (type) => !isBannerTypeAtLimit(existingBanners, type.value, initial?.id),
+      ),
+    [existingBanners, initial?.id],
+  );
+
+  const selectedTypeLimitMessage = getBannerLimitMessage(form.tipo);
+
   const update = (field: keyof BannerInput, value: string | boolean) => {
     setForm((prev) => ({ ...prev, [field]: value }));
   };
@@ -68,6 +88,13 @@ export function BannerForm({ initial, onSubmit, onCancel }: BannerFormProps) {
     event.preventDefault();
     setLoading(true);
     setError(null);
+
+    const limitError = getBannerLimitError(existingBanners, form.tipo, initial?.id);
+    if (limitError) {
+      setError(limitError);
+      setLoading(false);
+      return;
+    }
 
     try {
       await onSubmit(form);
@@ -89,12 +116,26 @@ export function BannerForm({ initial, onSubmit, onCancel }: BannerFormProps) {
             value={form.tipo}
             onChange={(e) => update("tipo", e.target.value)}
           >
-            {bannerTypes.map((type) => (
-              <option key={type.value} value={type.value}>
-                {type.label}
-              </option>
-            ))}
+            {bannerTypes.map((type) => {
+              const atLimit = isBannerTypeAtLimit(existingBanners, type.value, initial?.id);
+              const isCurrentType = initial?.tipo === type.value;
+
+              return (
+                <option key={type.value} value={type.value} disabled={atLimit && !isCurrentType}>
+                  {type.label}
+                  {atLimit && !isCurrentType ? " (limite atingido)" : ""}
+                </option>
+              );
+            })}
           </select>
+          {selectedTypeLimitMessage ? (
+            <p className="mt-1.5 text-xs text-brand-gray">{selectedTypeLimitMessage}</p>
+          ) : null}
+          {!initial && availableTypes.length === 0 ? (
+            <p className="mt-1.5 text-xs text-red-600">
+              Todos os tipos com limite já foram utilizados.
+            </p>
+          ) : null}
         </div>
       </div>
 
@@ -163,7 +204,7 @@ export function BannerForm({ initial, onSubmit, onCancel }: BannerFormProps) {
         <Button type="button" variant="outline" onClick={onCancel}>
           Cancelar
         </Button>
-        <Button type="submit" disabled={loading}>
+        <Button type="submit" disabled={loading || (!initial && availableTypes.length === 0)}>
           {loading ? "Salvando..." : "Salvar"}
         </Button>
       </div>

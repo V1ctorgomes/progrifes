@@ -39,6 +39,15 @@ export class BannersRepository {
       _max: { ordem: true },
     });
   }
+
+  countByType(tipo: BannerType, excludeId?: string) {
+    return this.prisma.banner.count({
+      where: {
+        tipo,
+        ...(excludeId ? { id: { not: excludeId } } : {}),
+      },
+    });
+  }
 }
 
 export { Banner };
