@@ -162,21 +162,18 @@ export function CategoriesAdminPage() {
                   />
 
                   {children.length > 0 ? (
-                    <div className="border-t border-neutral-200 bg-neutral-50/70 px-4 py-4 sm:px-6 sm:py-5">
-                      <div className="flex flex-wrap items-center justify-between gap-3">
+                    <div className="border-t border-neutral-200 bg-neutral-50/50">
+                      <div className="flex flex-wrap items-center justify-between gap-3 px-4 py-3 sm:px-6">
                         <p className="text-xs font-medium uppercase tracking-wide text-brand-gray">
-                          Subcategorias de {category.nome}
+                          Subcategorias
                         </p>
                         <Button size="sm" variant="ghost" onClick={() => openCreate(category.id)}>
                           Adicionar subcategoria
                         </Button>
                       </div>
-                      <ul className="mt-4 space-y-3">
+                      <ul className="divide-y divide-neutral-200 border-t border-neutral-200">
                         {children.map((child, childIndex) => (
-                          <li
-                            key={child.id}
-                            className="overflow-hidden border border-neutral-200 bg-brand-white"
-                          >
+                          <li key={child.id}>
                             <CategoryRow
                               category={child}
                               badge="Subcategoria"
@@ -200,7 +197,7 @@ export function CategoriesAdminPage() {
                       </ul>
                     </div>
                   ) : (
-                    <div className="border-t border-neutral-200 bg-neutral-50/50 px-4 py-4 sm:px-6">
+                    <div className="border-t border-neutral-200 bg-neutral-50/40 px-4 py-4 sm:px-6">
                       <Button size="sm" variant="ghost" onClick={() => openCreate(category.id)}>
                         Adicionar subcategoria
                       </Button>
@@ -341,7 +338,7 @@ function CategorySection({
           </Button>
         </div>
       ) : (
-        <div className="space-y-6 p-4 sm:p-6">{children}</div>
+        <div className="space-y-8 p-4 sm:p-6">{children}</div>
       )}
     </section>
   );
@@ -374,7 +371,9 @@ function CategoryRow({
     <div
       className={cn(
         "flex flex-col gap-4 sm:flex-row sm:items-center",
-        nested ? "px-4 py-4 sm:px-5 sm:py-5" : "px-4 py-5 sm:px-6 sm:py-6",
+        nested
+          ? "ml-4 border-l-4 border-neutral-300 bg-brand-white px-4 py-4 sm:ml-6 sm:px-6 sm:py-4"
+          : "px-4 py-5 sm:px-6 sm:py-5",
         !category.ativo && "bg-neutral-50",
       )}
     >
