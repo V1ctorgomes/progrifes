@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { useMemo, useState, type ReactNode } from "react";
+import { useState } from "react";
 import { Modal } from "@/components/admin/Modal";
 import { ProductForm } from "@/components/admin/ProductForm";
 import { Button } from "@/components/ui/Button";
@@ -17,12 +17,6 @@ import type { Product, ProductInput } from "@/types/product";
 import { cn, formatCurrency } from "@/utils/cn";
 
 type StatusFilter = "all" | "active" | "inactive";
-
-interface ProductGroup {
-  categoryId: string;
-  categoryName: string;
-  products: Product[];
-}
 
 function getProductImage(product: Product) {
   return product.imagens.find((item) => item.principal) ?? product.imagens[0];
@@ -92,50 +86,7 @@ export function ProductsAdminPage() {
     onSuccess: invalidate,
   });
 
-  const shouldGroupByCategory = !search && !categoryFilter && statusFilter === "all";
-
-  const groupedProducts = useMemo<ProductGroup[]>(() => {
-    if (!shouldGroupByCategory) {
-      return [
-        {
-          categoryId: "results",
-          categoryName: "Resultados",
-          products: sortProducts(products),
-        },
-      ];
-    }
-
-    const groups = new Map<string, ProductGroup>();
-
-    for (const product of products) {
-      const existing = groups.get(product.categoriaId);
-      if (existing) {
-        existing.products.push(product);
-        continue;
-      }
-
-      groups.set(product.categoriaId, {
-        categoryId: product.categoriaId,
-        categoryName: product.categoria.nome,
-        products: [product],
-      });
-    }
-
-    const categoryOrder = new Map(
-      sortCategories(categories).map((category, index) => [category.id, index]),
-    );
-
-    return Array.from(groups.values())
-      .map((group) => ({
-        ...group,
-        products: sortProducts(group.products),
-      }))
-      .sort((a, b) => {
-        const orderA = categoryOrder.get(a.categoryId) ?? Number.MAX_SAFE_INTEGER;
-        const orderB = categoryOrder.get(b.categoryId) ?? Number.MAX_SAFE_INTEGER;
-        return orderA - orderB || a.categoryName.localeCompare(b.categoryName);
-      });
-  }, [categories, products, shouldGroupByCategory]);
+  const sortedProducts = sortProducts(products);
 
   const activeCount = products.filter((product) => product.ativo).length;
   const inactiveCount = products.length - activeCount;
@@ -160,7 +111,7 @@ export function ProductsAdminPage() {
             Produtos
           </h1>
           <p className="mt-1 text-sm text-brand-gray">
-            Gerencie o catálogo da loja, variantes e destaques por categoria.
+            Gerencie o catálogo da loja, variantes e destaques.
           </p>
         </div>
         <Button onClick={openCreate}>Novo produto</Button>
@@ -232,38 +183,36 @@ export function ProductsAdminPage() {
           </Button>
         </section>
       ) : (
-        <div className="space-y-8">
-          {groupedProducts.map((group) => (
-            <ProductGroupSection
-              key={group.categoryId}
-              title={shouldGroupByCategory ? group.categoryName : "Resultados da busca"}
-              description={
-                shouldGroupByCategory
-                  ? `${group.products.length} produto${group.products.length === 1 ? "" : "s"} nesta categoria`
-                  : `${group.products.length} produto${group.products.length === 1 ? "" : "s"} encontrado${group.products.length === 1 ? "" : "s"}`
-              }
-            >
-              <ul className="divide-y divide-neutral-200">
-                {group.products.map((product) => (
-                  <li key={product.id}>
-                    <ProductRow
-                      product={product}
-                      onEdit={() => openEdit(product)}
-                      onDuplicate={() => duplicateMutation.mutate(product.id)}
-                      onToggle={() =>
-                        toggleMutation.mutate({ id: product.id, ativo: product.ativo })
+        <div className="space-y-4">
+          <section className="overflow-hidden border border-neutral-200 bg-brand-white shadow-sm">
+            <div className="border-b border-neutral-200 bg-brand-light px-4 py-3 sm:px-6">
+              <h2 className="font-display text-sm font-semibold uppercase tracking-wide text-brand-black">
+                Catálogo
+              </h2>
+              <p className="text-xs text-brand-gray">
+                {sortedProducts.length} produto{sortedProducts.length === 1 ? "" : "s"} nesta lista
+              </p>
+            </div>
+            <ul className="divide-y divide-neutral-200">
+              {sortedProducts.map((product) => (
+                <li key={product.id}>
+                  <ProductRow
+                    product={product}
+                    onEdit={() => openEdit(product)}
+                    onDuplicate={() => duplicateMutation.mutate(product.id)}
+                    onToggle={() =>
+                      toggleMutation.mutate({ id: product.id, ativo: product.ativo })
+                    }
+                    onDelete={() => {
+                      if (confirm("Excluir este produto?")) {
+                        deleteMutation.mutate(product.id);
                       }
-                      onDelete={() => {
-                        if (confirm("Excluir este produto?")) {
-                          deleteMutation.mutate(product.id);
-                        }
-                      }}
-                    />
-                  </li>
-                ))}
-              </ul>
-            </ProductGroupSection>
-          ))}
+                    }}
+                  />
+                </li>
+              ))}
+            </ul>
+          </section>
 
           {hasMorePages ? (
             <p className="text-center text-xs text-brand-gray">
@@ -317,28 +266,6 @@ function SummaryCard({
       <p className="mt-2 font-display text-2xl font-semibold text-brand-black">{value}</p>
       <p className="mt-1 text-xs text-brand-gray">{hint}</p>
     </div>
-  );
-}
-
-function ProductGroupSection({
-  title,
-  description,
-  children,
-}: {
-  title: string;
-  description: string;
-  children: ReactNode;
-}) {
-  return (
-    <section className="overflow-hidden border border-neutral-200 bg-brand-white shadow-sm">
-      <div className="border-b border-neutral-200 bg-brand-light px-4 py-3 sm:px-6">
-        <h2 className="font-display text-sm font-semibold uppercase tracking-wide text-brand-black">
-          {title}
-        </h2>
-        <p className="text-xs text-brand-gray">{description}</p>
-      </div>
-      <div>{children}</div>
-    </section>
   );
 }
 
@@ -408,7 +335,8 @@ function ProductRow({
           </div>
 
           <p className="mt-1 text-xs text-brand-gray">
-            Criado em {new Date(product.createdAt).toLocaleDateString("pt-BR")}
+            {product.categoria.nome} · Criado em{" "}
+            {new Date(product.createdAt).toLocaleDateString("pt-BR")}
           </p>
         </div>
       </div>
