@@ -22,7 +22,7 @@ function SectionTitle({ children }: { children: React.ReactNode }) {
   );
 }
 
-export function DeliverySettingsAdminPage() {
+export function DeliverySettingsAdminPage({ embedded = false }: { embedded?: boolean }) {
   const queryClient = useQueryClient();
   const [formError, setFormError] = useState<string | null>(null);
   const [success, setSuccess] = useState<string | null>(null);
@@ -116,17 +116,20 @@ export function DeliverySettingsAdminPage() {
 
   return (
     <div className="space-y-8">
-      <div className="space-y-2">
-        <h1 className="font-display text-2xl font-semibold uppercase tracking-wide text-brand-black">
-          Entrega Própria
-        </h1>
-        <p className="text-brand-gray">
-          Configure horários, prazo médio, pedido mínimo e mensagens exibidas no site.
-        </p>
-        <Link href="/admin/entregas?tab=bairros" className="inline-block text-sm underline">
-          Gerenciar bairros e taxas →
-        </Link>
-        <p className="text-xs text-brand-gray">
+      {!embedded ? (
+        <div className="space-y-2">
+          <h1 className="font-display text-2xl font-semibold uppercase tracking-wide text-brand-black">
+            Entrega Própria
+          </h1>
+          <p className="text-brand-gray">
+            Configure horários, prazo médio, pedido mínimo e mensagens exibidas no site.
+          </p>
+          <Link href="/admin/entregas?tab=bairros" className="inline-block text-sm underline">
+            Gerenciar bairros e taxas →
+          </Link>
+        </div>
+      ) : null}
+      <p className="text-xs text-brand-gray">
           Status atual:{" "}
           <span className="font-medium text-brand-black">
             {data.availability.canAcceptOrders
@@ -138,8 +141,7 @@ export function DeliverySettingsAdminPage() {
           {data.availability.todayHours
             ? ` · Hoje: ${data.availability.todayHours.isOpen ? `${data.availability.todayHours.startTime}–${data.availability.todayHours.endTime}` : "Fechado"}`
             : null}
-        </p>
-      </div>
+      </p>
 
       <form onSubmit={handleSubmit} className="space-y-8">
         <section className="space-y-4 border border-neutral-200 bg-brand-white p-4">

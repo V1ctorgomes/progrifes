@@ -1,10 +1,10 @@
 "use client";
 
-import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useCallback } from "react";
 import { DeliveriesAdminPage } from "@/features/admin/delivery/DeliveriesAdminPage";
 import { DeliveryPersonsAdminPage } from "@/features/admin/delivery/DeliveryPersonsAdminPage";
+import { DeliverySettingsAdminPage } from "@/features/admin/delivery/DeliverySettingsAdminPage";
 import { NeighborhoodsAdminPage } from "@/features/admin/delivery/NeighborhoodsAdminPage";
 import { cn } from "@/utils/cn";
 
@@ -12,12 +12,13 @@ const TABS = [
   { id: "entregas", label: "Entregas" },
   { id: "entregadores", label: "Entregadores" },
   { id: "bairros", label: "Bairros" },
+  { id: "configuracoes", label: "Configurações" },
 ] as const;
 
 type TabId = (typeof TABS)[number]["id"];
 
 function parseTab(tab: string | null): TabId {
-  if (tab === "entregadores" || tab === "bairros") return tab;
+  if (tab === "entregadores" || tab === "bairros" || tab === "configuracoes") return tab;
   return "entregas";
 }
 
@@ -47,14 +48,8 @@ export function DeliveryHubAdminPage() {
           Operação de Entregas
         </h1>
         <p className="mt-1 text-sm text-brand-gray">
-          Acompanhe entregas, cadastre entregadores e gerencie bairros e taxas em um só lugar.
+          Acompanhe entregas, cadastre entregadores, gerencie bairros e configure a operação em um só lugar.
         </p>
-        <Link
-          href="/admin/configuracoes/entrega"
-          className="mt-2 inline-block text-sm underline"
-        >
-          Configurações de entrega
-        </Link>
       </div>
 
       <div className="flex flex-wrap gap-2 border-b border-neutral-200">
@@ -78,6 +73,7 @@ export function DeliveryHubAdminPage() {
       {activeTab === "entregas" && <DeliveriesAdminPage embedded />}
       {activeTab === "entregadores" && <DeliveryPersonsAdminPage embedded />}
       {activeTab === "bairros" && <NeighborhoodsAdminPage embedded />}
+      {activeTab === "configuracoes" && <DeliverySettingsAdminPage embedded />}
     </div>
   );
 }

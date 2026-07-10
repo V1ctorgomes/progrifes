@@ -1,5 +1,5 @@
-import { DeliverySettingsAdminPage } from "@/features/admin/delivery/DeliverySettingsAdminPage";
+import { redirect } from "next/navigation";
 
 export default function Page() {
-  return <DeliverySettingsAdminPage />;
+  redirect("/admin/entregas?tab=configuracoes");
 }

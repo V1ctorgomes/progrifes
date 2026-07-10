@@ -143,7 +143,7 @@ export function NeighborhoodsAdminPage({ embedded = false }: { embedded?: boolea
               Cadastre bairros atendidos, taxas fixas e prazos de entrega.
             </p>
             <Link
-              href="/admin/configuracoes/entrega"
+              href="/admin/entregas?tab=configuracoes"
               className="mt-2 inline-block text-sm underline"
             >
               ← Configurações de entrega

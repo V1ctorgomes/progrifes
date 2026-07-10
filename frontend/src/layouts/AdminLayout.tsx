@@ -19,7 +19,6 @@ const navItems: Array<{ href: string; label: string; disabled?: boolean }> = [
   { href: "/admin/compras", label: "Compras" },
   { href: "/admin/estoque", label: "Estoque" },
   { href: "/admin/financeiro", label: "Financeiro" },
-  { href: "/admin/configuracoes/entrega", label: "Entrega" },
   { href: "/admin/entregas", label: "Entregas" },
 ];
 

@@ -166,7 +166,7 @@ export function DeliveryPersonsAdminPage({ embedded = false }: { embedded?: bool
               Cadastre entregadores, controle disponibilidade e acompanhe desempenho.
             </p>
             <Link
-              href="/admin/configuracoes/entrega"
+              href="/admin/entregas?tab=configuracoes"
               className="mt-2 inline-block text-sm underline"
             >
               ← Configurações de entrega
