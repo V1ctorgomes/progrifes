@@ -9,7 +9,6 @@ import { Input } from "@/components/ui/Input";
 import { getErrorMessage, neighborhoodsAdminApi } from "@/lib/admin-api";
 import { formatCurrency } from "@/utils/cn";
 import {
-  NEIGHBORHOOD_SORT_OPTIONS,
   NEIGHBORHOOD_TIME_PRESETS,
   type CreateNeighborhoodInput,
   type DeliveryNeighborhood,
@@ -30,12 +29,7 @@ export function NeighborhoodsAdminPage() {
   const [search, setSearch] = useState("");
   const [debouncedSearch, setDebouncedSearch] = useState("");
   const [city, setCity] = useState("");
-  const [state, setState] = useState("");
   const [statusFilter, setStatusFilter] = useState<"all" | "active" | "inactive">("all");
-  const [feeMin, setFeeMin] = useState("");
-  const [feeMax, setFeeMax] = useState("");
-  const [averageDeliveryTime, setAverageDeliveryTime] = useState("");
-  const [sort, setSort] = useState<(typeof NEIGHBORHOOD_SORT_OPTIONS)[number]["value"]>("name");
   const [page, setPage] = useState(1);
   const [modalOpen, setModalOpen] = useState(false);
   const [editing, setEditing] = useState<DeliveryNeighborhood | null>(null);
@@ -49,7 +43,7 @@ export function NeighborhoodsAdminPage() {
 
   useEffect(() => {
     setPage(1);
-  }, [debouncedSearch, city, state, statusFilter, feeMin, feeMax, averageDeliveryTime, sort]);
+  }, [debouncedSearch, city, statusFilter]);
 
   const { data, isLoading } = useQuery({
     queryKey: [
@@ -58,12 +52,7 @@ export function NeighborhoodsAdminPage() {
       page,
       debouncedSearch,
       city,
-      state,
       statusFilter,
-      feeMin,
-      feeMax,
-      averageDeliveryTime,
-      sort,
     ],
     queryFn: () =>
       neighborhoodsAdminApi.list({
@@ -71,13 +60,9 @@ export function NeighborhoodsAdminPage() {
         limit: 20,
         search: debouncedSearch || undefined,
         city: city || undefined,
-        state: state || undefined,
         isActive:
           statusFilter === "all" ? undefined : statusFilter === "active",
-        feeMin: feeMin ? Number(feeMin) : undefined,
-        feeMax: feeMax ? Number(feeMax) : undefined,
-        averageDeliveryTime: averageDeliveryTime ? Number(averageDeliveryTime) : undefined,
-        sort,
+        sort: "name",
       }),
   });
 
@@ -162,7 +147,7 @@ export function NeighborhoodsAdminPage() {
         </Button>
       </div>
 
-      <div className="grid gap-3 border border-neutral-200 bg-brand-white p-4 md:grid-cols-2 xl:grid-cols-4">
+      <div className="grid gap-3 border border-neutral-200 bg-brand-white p-4 sm:grid-cols-2 lg:grid-cols-4">
         <Input
           label="Pesquisar"
           value={search}
@@ -170,11 +155,10 @@ export function NeighborhoodsAdminPage() {
           placeholder="Nome, cidade, observações..."
         />
         <Input label="Cidade" value={city} onChange={(event) => setCity(event.target.value)} />
-        <Input label="Estado" value={state} onChange={(event) => setState(event.target.value)} />
         <div>
-          <label className="mb-1 block text-xs text-brand-gray">Status</label>
+          <label className="mb-1.5 block text-sm font-medium text-brand-black">Status</label>
           <select
-            className="w-full border border-neutral-200 bg-white px-3 py-2 text-sm"
+            className="w-full border border-neutral-200 bg-white px-4 py-2.5 text-sm"
             value={statusFilter}
             onChange={(event) =>
               setStatusFilter(event.target.value as "all" | "active" | "inactive")
@@ -183,45 +167,6 @@ export function NeighborhoodsAdminPage() {
             <option value="all">Todos</option>
             <option value="active">Ativos</option>
             <option value="inactive">Inativos</option>
-          </select>
-        </div>
-        <Input
-          label="Taxa mínima"
-          type="number"
-          min={0}
-          step="0.01"
-          value={feeMin}
-          onChange={(event) => setFeeMin(event.target.value)}
-        />
-        <Input
-          label="Taxa máxima"
-          type="number"
-          min={0}
-          step="0.01"
-          value={feeMax}
-          onChange={(event) => setFeeMax(event.target.value)}
-        />
-        <Input
-          label="Prazo (min)"
-          type="number"
-          min={1}
-          value={averageDeliveryTime}
-          onChange={(event) => setAverageDeliveryTime(event.target.value)}
-        />
-        <div>
-          <label className="mb-1 block text-xs text-brand-gray">Ordenar por</label>
-          <select
-            className="w-full border border-neutral-200 bg-white px-3 py-2 text-sm"
-            value={sort}
-            onChange={(event) =>
-              setSort(event.target.value as (typeof NEIGHBORHOOD_SORT_OPTIONS)[number]["value"])
-            }
-          >
-            {NEIGHBORHOOD_SORT_OPTIONS.map((option) => (
-              <option key={option.value} value={option.value}>
-                {option.label}
-              </option>
-            ))}
           </select>
         </div>
       </div>

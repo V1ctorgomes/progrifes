@@ -50,7 +50,6 @@ export function PurchaseOrdersAdminPage() {
   const [status, setStatus] = useState<PurchaseOrderStatus | "">("");
   const [supplierId, setSupplierId] = useState("");
   const [dataInicio, setDataInicio] = useState("");
-  const [dataFim, setDataFim] = useState("");
   const [page, setPage] = useState(1);
   const [modalOpen, setModalOpen] = useState(false);
   const [formError, setFormError] = useState("");
@@ -62,7 +61,7 @@ export function PurchaseOrdersAdminPage() {
 
   useEffect(() => {
     setPage(1);
-  }, [debouncedSearch, status, supplierId, dataInicio, dataFim]);
+  }, [debouncedSearch, status, supplierId, dataInicio]);
 
   const { data: dashboard } = useQuery({
     queryKey: ["admin", "purchase-orders", "dashboard"],
@@ -85,7 +84,6 @@ export function PurchaseOrdersAdminPage() {
       status,
       supplierId,
       dataInicio,
-      dataFim,
     ],
     queryFn: () =>
       purchaseOrdersAdminApi.list({
@@ -95,7 +93,6 @@ export function PurchaseOrdersAdminPage() {
         status: status || undefined,
         supplierId: supplierId || undefined,
         dataInicio: dataInicio || undefined,
-        dataFim: dataFim || undefined,
       }),
   });
 
@@ -185,16 +182,10 @@ export function PurchaseOrdersAdminPage() {
           </select>
         </div>
         <Input
-          label="Data início"
+          label="A partir de"
           type="date"
           value={dataInicio}
           onChange={(e) => setDataInicio(e.target.value)}
-        />
-        <Input
-          label="Data fim"
-          type="date"
-          value={dataFim}
-          onChange={(e) => setDataFim(e.target.value)}
         />
       </div>
 

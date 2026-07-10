@@ -7,7 +7,6 @@ import { Modal } from "@/components/admin/Modal";
 import { Button } from "@/components/ui/Button";
 import { Input } from "@/components/ui/Input";
 import {
-  categoriesAdminApi,
   getErrorMessage,
   inventoryAdminApi,
   productsAdminApi,
@@ -48,11 +47,8 @@ export function StockEntriesAdminPage() {
   const [search, setSearch] = useState("");
   const [debouncedSearch, setDebouncedSearch] = useState("");
   const [tipo, setTipo] = useState("");
-  const [categoriaId, setCategoriaId] = useState("");
   const [produtoId, setProdutoId] = useState("");
-  const [fornecedor, setFornecedor] = useState("");
   const [dataInicio, setDataInicio] = useState("");
-  const [dataFim, setDataFim] = useState("");
   const [page, setPage] = useState(1);
   const [modalOpen, setModalOpen] = useState(false);
   const [form, setForm] = useState(emptyForm);
@@ -65,12 +61,7 @@ export function StockEntriesAdminPage() {
 
   useEffect(() => {
     setPage(1);
-  }, [debouncedSearch, tipo, categoriaId, produtoId, fornecedor, dataInicio, dataFim]);
-
-  const { data: categories = [] } = useQuery({
-    queryKey: ["admin", "categories"],
-    queryFn: categoriesAdminApi.list,
-  });
+  }, [debouncedSearch, tipo, produtoId, dataInicio]);
 
   const { data: productsData } = useQuery({
     queryKey: ["admin", "products", "entries-filter"],
@@ -80,29 +71,15 @@ export function StockEntriesAdminPage() {
   const products = productsData?.data ?? [];
 
   const { data, isLoading } = useQuery({
-    queryKey: [
-      "admin",
-      "inventory-entries",
-      page,
-      debouncedSearch,
-      tipo,
-      categoriaId,
-      produtoId,
-      fornecedor,
-      dataInicio,
-      dataFim,
-    ],
+    queryKey: ["admin", "inventory-entries", page, debouncedSearch, tipo, produtoId, dataInicio],
     queryFn: () =>
       inventoryAdminApi.listEntries({
         page,
         limit: 20,
         search: debouncedSearch || undefined,
         tipo: tipo || undefined,
-        categoriaId: categoriaId || undefined,
         produtoId: produtoId || undefined,
-        fornecedor: fornecedor || undefined,
         dataInicio: dataInicio || undefined,
-        dataFim: dataFim || undefined,
       }),
   });
 
@@ -217,21 +194,6 @@ export function StockEntriesAdminPage() {
           </select>
         </div>
         <div>
-          <label className="mb-1.5 block text-sm font-medium text-brand-black">Categoria</label>
-          <select
-            className="w-full border border-neutral-300 bg-brand-white px-4 py-2.5 text-sm"
-            value={categoriaId}
-            onChange={(e) => setCategoriaId(e.target.value)}
-          >
-            <option value="">Todas</option>
-            {categories.map((category) => (
-              <option key={category.id} value={category.id}>
-                {category.nome}
-              </option>
-            ))}
-          </select>
-        </div>
-        <div>
           <label className="mb-1.5 block text-sm font-medium text-brand-black">Produto</label>
           <select
             className="w-full border border-neutral-300 bg-brand-white px-4 py-2.5 text-sm"
@@ -247,22 +209,10 @@ export function StockEntriesAdminPage() {
           </select>
         </div>
         <Input
-          label="Fornecedor"
-          value={fornecedor}
-          onChange={(e) => setFornecedor(e.target.value)}
-          placeholder="Filtrar por fornecedor"
-        />
-        <Input
-          label="Data inicial"
+          label="Data"
           type="date"
           value={dataInicio}
           onChange={(e) => setDataInicio(e.target.value)}
-        />
-        <Input
-          label="Data final"
-          type="date"
-          value={dataFim}
-          onChange={(e) => setDataFim(e.target.value)}
         />
       </div>
 

@@ -44,9 +44,7 @@ export function ExpensesAdminPage() {
   const [debouncedSearch, setDebouncedSearch] = useState("");
   const [status, setStatus] = useState<ExpenseStatus | "">("");
   const [supplierId, setSupplierId] = useState("");
-  const [categoryId, setCategoryId] = useState("");
   const [dataInicio, setDataInicio] = useState("");
-  const [dataFim, setDataFim] = useState("");
   const [page, setPage] = useState(1);
   const [modalOpen, setModalOpen] = useState(false);
   const [formError, setFormError] = useState("");
@@ -71,7 +69,7 @@ export function ExpensesAdminPage() {
 
   useEffect(() => {
     setPage(1);
-  }, [debouncedSearch, status, supplierId, categoryId, dataInicio, dataFim]);
+  }, [debouncedSearch, status, supplierId, dataInicio]);
 
   const { data: suppliersData } = useQuery({
     queryKey: ["admin", "suppliers", "expenses-filter"],
@@ -101,9 +99,7 @@ export function ExpensesAdminPage() {
       debouncedSearch,
       status,
       supplierId,
-      categoryId,
       dataInicio,
-      dataFim,
     ],
     queryFn: () =>
       expensesAdminApi.list({
@@ -112,9 +108,7 @@ export function ExpensesAdminPage() {
         search: debouncedSearch || undefined,
         status: status || undefined,
         supplierId: supplierId || undefined,
-        categoryId: categoryId || undefined,
         dataInicio: dataInicio || undefined,
-        dataFim: dataFim || undefined,
       }),
   });
 
@@ -197,49 +191,48 @@ export function ExpensesAdminPage() {
         </div>
       )}
 
-      <div className="grid gap-3 md:grid-cols-2 xl:grid-cols-5">
+      <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
         <Input
+          label="Pesquisar"
           placeholder="Buscar descrição, documento..."
           value={search}
           onChange={(event) => setSearch(event.target.value)}
         />
-        <select
-          className="border border-neutral-300 bg-brand-white px-3 py-2 text-sm"
-          value={status}
-          onChange={(event) => setStatus(event.target.value as ExpenseStatus | "")}
-        >
-          {EXPENSE_STATUS_OPTIONS.map((option) => (
-            <option key={option.value || "all"} value={option.value}>
-              {option.label}
-            </option>
-          ))}
-        </select>
-        <select
-          className="border border-neutral-300 bg-brand-white px-3 py-2 text-sm"
-          value={supplierId}
-          onChange={(event) => setSupplierId(event.target.value)}
-        >
-          <option value="">Todos os fornecedores</option>
-          {suppliers.map((supplier) => (
-            <option key={supplier.id} value={supplier.id}>
-              {supplier.nomeFantasia}
-            </option>
-          ))}
-        </select>
-        <select
-          className="border border-neutral-300 bg-brand-white px-3 py-2 text-sm"
-          value={categoryId}
-          onChange={(event) => setCategoryId(event.target.value)}
-        >
-          <option value="">Todas as categorias</option>
-          {categories?.map((category) => (
-            <option key={category.id} value={category.id}>
-              {category.nome}
-            </option>
-          ))}
-        </select>
-        <Input type="date" value={dataInicio} onChange={(e) => setDataInicio(e.target.value)} />
-        <Input type="date" value={dataFim} onChange={(e) => setDataFim(e.target.value)} />
+        <div>
+          <label className="mb-1.5 block text-sm font-medium text-brand-black">Status</label>
+          <select
+            className="w-full border border-neutral-300 bg-brand-white px-4 py-2.5 text-sm"
+            value={status}
+            onChange={(event) => setStatus(event.target.value as ExpenseStatus | "")}
+          >
+            {EXPENSE_STATUS_OPTIONS.map((option) => (
+              <option key={option.value || "all"} value={option.value}>
+                {option.label}
+              </option>
+            ))}
+          </select>
+        </div>
+        <div>
+          <label className="mb-1.5 block text-sm font-medium text-brand-black">Fornecedor</label>
+          <select
+            className="w-full border border-neutral-300 bg-brand-white px-4 py-2.5 text-sm"
+            value={supplierId}
+            onChange={(event) => setSupplierId(event.target.value)}
+          >
+            <option value="">Todos os fornecedores</option>
+            {suppliers.map((supplier) => (
+              <option key={supplier.id} value={supplier.id}>
+                {supplier.nomeFantasia}
+              </option>
+            ))}
+          </select>
+        </div>
+        <Input
+          label="A partir de"
+          type="date"
+          value={dataInicio}
+          onChange={(e) => setDataInicio(e.target.value)}
+        />
       </div>
 
       <div className="overflow-x-auto border border-neutral-200 bg-brand-white">

@@ -9,7 +9,6 @@ import { ordersAdminApi } from "@/lib/admin-api";
 import { formatCurrency } from "@/utils/cn";
 import { PAYMENT_METHOD_LABELS, type OrderStatus } from "@/types/order";
 import {
-  ORDER_SORT_OPTIONS,
   ORDER_STATUS_OPTIONS,
   OrderStatusBadge,
 } from "./OrderStatusBadge";
@@ -37,13 +36,8 @@ export function OrdersAdminPage() {
   const [search, setSearch] = useState("");
   const [debouncedSearch, setDebouncedSearch] = useState("");
   const [status, setStatus] = useState<OrderStatus | "">("");
-  const [formaPagamento, setFormaPagamento] = useState("");
-  const [bairro, setBairro] = useState("");
   const [dataInicio, setDataInicio] = useState("");
   const [dataFim, setDataFim] = useState("");
-  const [valorMin, setValorMin] = useState("");
-  const [valorMax, setValorMax] = useState("");
-  const [sort, setSort] = useState<(typeof ORDER_SORT_OPTIONS)[number]["value"]>("recent");
   const [page, setPage] = useState(1);
 
   useEffect(() => {
@@ -53,7 +47,7 @@ export function OrdersAdminPage() {
 
   useEffect(() => {
     setPage(1);
-  }, [debouncedSearch, status, formaPagamento, bairro, dataInicio, dataFim, valorMin, valorMax, sort]);
+  }, [debouncedSearch, status, dataInicio, dataFim]);
 
   const { data: dashboard } = useQuery({
     queryKey: ["admin", "orders", "dashboard"],
@@ -61,33 +55,16 @@ export function OrdersAdminPage() {
   });
 
   const { data, isLoading } = useQuery({
-    queryKey: [
-      "admin",
-      "orders",
-      page,
-      debouncedSearch,
-      status,
-      formaPagamento,
-      bairro,
-      dataInicio,
-      dataFim,
-      valorMin,
-      valorMax,
-      sort,
-    ],
+    queryKey: ["admin", "orders", page, debouncedSearch, status, dataInicio, dataFim],
     queryFn: () =>
       ordersAdminApi.list({
         page,
         limit: 20,
         search: debouncedSearch || undefined,
         status: status || undefined,
-        formaPagamento: formaPagamento || undefined,
-        bairro: bairro || undefined,
         dataInicio: dataInicio || undefined,
         dataFim: dataFim || undefined,
-        valorMin: valorMin ? Number(valorMin) : undefined,
-        valorMax: valorMax ? Number(valorMax) : undefined,
-        sort,
+        sort: "recent",
       }),
   });
 
@@ -139,43 +116,6 @@ export function OrdersAdminPage() {
             ))}
           </select>
         </div>
-        <div>
-          <label className="mb-1.5 block text-sm font-medium text-brand-black">
-            Forma de pagamento
-          </label>
-          <select
-            className="w-full border border-neutral-300 bg-brand-white px-4 py-2.5 text-sm"
-            value={formaPagamento}
-            onChange={(e) => setFormaPagamento(e.target.value)}
-          >
-            <option value="">Todas</option>
-            <option value="PIX">PIX</option>
-            <option value="DINHEIRO">Dinheiro</option>
-            <option value="CARTAO_ENTREGA">Cartão na Entrega</option>
-          </select>
-        </div>
-        <div>
-          <label className="mb-1.5 block text-sm font-medium text-brand-black">Ordenar por</label>
-          <select
-            className="w-full border border-neutral-300 bg-brand-white px-4 py-2.5 text-sm"
-            value={sort}
-            onChange={(e) =>
-              setSort(e.target.value as (typeof ORDER_SORT_OPTIONS)[number]["value"])
-            }
-          >
-            {ORDER_SORT_OPTIONS.map((option) => (
-              <option key={option.value} value={option.value}>
-                {option.label}
-              </option>
-            ))}
-          </select>
-        </div>
-        <Input
-          label="Bairro"
-          value={bairro}
-          onChange={(e) => setBairro(e.target.value)}
-          placeholder="Filtrar por bairro"
-        />
         <Input
           label="Data início"
           type="date"
@@ -188,31 +128,6 @@ export function OrdersAdminPage() {
           value={dataFim}
           onChange={(e) => setDataFim(e.target.value)}
         />
-        <Input
-          label="Valor mínimo"
-          type="number"
-          min="0"
-          step="0.01"
-          value={valorMin}
-          onChange={(e) => setValorMin(e.target.value)}
-        />
-        <Input
-          label="Valor máximo"
-          type="number"
-          min="0"
-          step="0.01"
-          value={valorMax}
-          onChange={(e) => setValorMax(e.target.value)}
-        />
-        <div>
-          <label className="mb-1.5 block text-sm font-medium text-brand-black">Entregador</label>
-          <select
-            disabled
-            className="w-full cursor-not-allowed border border-neutral-200 bg-neutral-50 px-4 py-2.5 text-sm text-brand-gray"
-          >
-            <option>Em breve</option>
-          </select>
-        </div>
       </div>
 
       {isLoading ? (

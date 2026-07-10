@@ -8,7 +8,6 @@ import { Input } from "@/components/ui/Input";
 import { categoriesAdminApi, inventoryAdminApi } from "@/lib/admin-api";
 import {
   formatVariantLabel,
-  INVENTORY_SORT_OPTIONS,
   STOCK_STATUS_FILTER_OPTIONS,
 } from "@/types/inventory";
 
@@ -37,8 +36,6 @@ export function StockAdminPage() {
   const [status, setStatus] = useState("");
   const [categoriaId, setCategoriaId] = useState("");
   const [produtoAtivo, setProdutoAtivo] = useState<"all" | "active" | "inactive">("all");
-  const [sort, setSort] =
-    useState<(typeof INVENTORY_SORT_OPTIONS)[number]["value"]>("disponivel_asc");
   const [page, setPage] = useState(1);
 
   useEffect(() => {
@@ -48,7 +45,7 @@ export function StockAdminPage() {
 
   useEffect(() => {
     setPage(1);
-  }, [debouncedSearch, status, categoriaId, produtoAtivo, sort]);
+  }, [debouncedSearch, status, categoriaId, produtoAtivo]);
 
   const { data: categories = [] } = useQuery({
     queryKey: ["admin", "categories"],
@@ -61,7 +58,7 @@ export function StockAdminPage() {
   });
 
   const { data, isLoading } = useQuery({
-    queryKey: ["admin", "inventory", page, debouncedSearch, status, categoriaId, produtoAtivo, sort],
+    queryKey: ["admin", "inventory", page, debouncedSearch, status, categoriaId, produtoAtivo],
     queryFn: () =>
       inventoryAdminApi.list({
         page,
@@ -71,7 +68,7 @@ export function StockAdminPage() {
         categoriaId: categoriaId || undefined,
         produtoAtivo:
           produtoAtivo === "all" ? undefined : produtoAtivo === "active",
-        sort,
+        sort: "disponivel_asc",
       }),
   });
 
@@ -159,22 +156,6 @@ export function StockAdminPage() {
             <option value="all">Todos</option>
             <option value="active">Ativos</option>
             <option value="inactive">Inativos</option>
-          </select>
-        </div>
-        <div className="sm:col-span-2 lg:col-span-4">
-          <label className="mb-1.5 block text-sm font-medium text-brand-black">Ordenar por</label>
-          <select
-            className="w-full max-w-md border border-neutral-300 bg-brand-white px-4 py-2.5 text-sm"
-            value={sort}
-            onChange={(e) =>
-              setSort(e.target.value as (typeof INVENTORY_SORT_OPTIONS)[number]["value"])
-            }
-          >
-            {INVENTORY_SORT_OPTIONS.map((option) => (
-              <option key={option.value} value={option.value}>
-                {option.label}
-              </option>
-            ))}
           </select>
         </div>
       </div>

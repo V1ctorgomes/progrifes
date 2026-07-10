@@ -12,7 +12,6 @@ import {
   getErrorMessage,
 } from "@/lib/admin-api";
 import { formatCurrency } from "@/utils/cn";
-import { PAYMENT_METHOD_LABELS } from "@/types/order";
 import {
   DELIVERY_STATUS_COLORS,
   DELIVERY_STATUS_OPTIONS,
@@ -47,10 +46,7 @@ export function DeliveriesAdminPage() {
   const [debouncedSearch, setDebouncedSearch] = useState("");
   const [status, setStatus] = useState<DeliveryStatus | "">("");
   const [deliveryPersonId, setDeliveryPersonId] = useState("");
-  const [bairro, setBairro] = useState("");
   const [dataInicio, setDataInicio] = useState("");
-  const [dataFim, setDataFim] = useState("");
-  const [formaPagamento, setFormaPagamento] = useState("");
   const [page, setPage] = useState(1);
   const [detailId, setDetailId] = useState<string | null>(null);
   const [statusNotes, setStatusNotes] = useState("");
@@ -64,7 +60,7 @@ export function DeliveriesAdminPage() {
 
   useEffect(() => {
     setPage(1);
-  }, [debouncedSearch, status, deliveryPersonId, bairro, dataInicio, dataFim, formaPagamento]);
+  }, [debouncedSearch, status, deliveryPersonId, dataInicio]);
 
   const { data: dashboard } = useQuery({
     queryKey: ["admin", "deliveries", "dashboard"],
@@ -79,10 +75,7 @@ export function DeliveriesAdminPage() {
       debouncedSearch,
       status,
       deliveryPersonId,
-      bairro,
       dataInicio,
-      dataFim,
-      formaPagamento,
     ],
     queryFn: () =>
       deliveriesAdminApi.list({
@@ -91,10 +84,7 @@ export function DeliveriesAdminPage() {
         search: debouncedSearch || undefined,
         status: status || undefined,
         deliveryPersonId: deliveryPersonId || undefined,
-        bairro: bairro || undefined,
         dataInicio: dataInicio || undefined,
-        dataFim: dataFim || undefined,
-        formaPagamento: formaPagamento || undefined,
       }),
   });
 
@@ -236,34 +226,12 @@ export function DeliveriesAdminPage() {
             ))}
           </select>
         </div>
-        <Input label="Bairro" value={bairro} onChange={(event) => setBairro(event.target.value)} />
         <Input
-          label="Data início"
+          label="A partir de"
           type="date"
           value={dataInicio}
           onChange={(event) => setDataInicio(event.target.value)}
         />
-        <Input
-          label="Data fim"
-          type="date"
-          value={dataFim}
-          onChange={(event) => setDataFim(event.target.value)}
-        />
-        <div>
-          <label className="mb-1 block text-xs text-brand-gray">Pagamento</label>
-          <select
-            className="w-full border border-neutral-200 bg-white px-3 py-2 text-sm"
-            value={formaPagamento}
-            onChange={(event) => setFormaPagamento(event.target.value)}
-          >
-            <option value="">Todos</option>
-            {Object.entries(PAYMENT_METHOD_LABELS).map(([value, label]) => (
-              <option key={value} value={value}>
-                {label}
-              </option>
-            ))}
-          </select>
-        </div>
       </div>
 
       <div className="overflow-x-auto border border-neutral-200 bg-brand-white">

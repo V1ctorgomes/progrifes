@@ -64,9 +64,7 @@ export function CashFlowAdminPage() {
   const [debouncedSearch, setDebouncedSearch] = useState("");
   const [tipo, setTipo] = useState<CashFlowType | "">("");
   const [financialAccountId, setFinancialAccountId] = useState("");
-  const [cashboxId, setCashboxId] = useState("");
   const [dataInicio, setDataInicio] = useState("");
-  const [dataFim, setDataFim] = useState("");
   const [page, setPage] = useState(1);
 
   const [transferModalOpen, setTransferModalOpen] = useState(false);
@@ -111,7 +109,7 @@ export function CashFlowAdminPage() {
 
   useEffect(() => {
     setPage(1);
-  }, [debouncedSearch, tipo, financialAccountId, cashboxId, dataInicio, dataFim]);
+  }, [debouncedSearch, tipo, financialAccountId, dataInicio]);
 
   const { data: dashboard, isLoading: dashboardLoading } = useQuery({
     queryKey: ["admin", "cash-flow", "dashboard"],
@@ -142,9 +140,7 @@ export function CashFlowAdminPage() {
       debouncedSearch,
       tipo,
       financialAccountId,
-      cashboxId,
       dataInicio,
-      dataFim,
     ],
     queryFn: () =>
       cashFlowAdminApi.statement({
@@ -153,9 +149,7 @@ export function CashFlowAdminPage() {
         search: debouncedSearch || undefined,
         tipo: tipo || undefined,
         financialAccountId: financialAccountId || undefined,
-        cashboxId: cashboxId || undefined,
         dataInicio: dataInicio || undefined,
-        dataFim: dataFim || undefined,
       }),
   });
 
@@ -341,56 +335,47 @@ export function CashFlowAdminPage() {
           Extrato
         </h2>
 
-        <div className="grid gap-3 md:grid-cols-2 xl:grid-cols-4">
+        <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
           <Input
+            label="Pesquisar"
             placeholder="Buscar descrição, categoria ou usuário"
             value={search}
             onChange={(event) => setSearch(event.target.value)}
           />
-          <select
-            className="border border-neutral-300 bg-brand-white px-3 py-2 text-sm"
-            value={tipo}
-            onChange={(event) => setTipo(event.target.value as CashFlowType | "")}
-          >
-            {CASH_FLOW_TYPE_OPTIONS.map((option) => (
-              <option key={option.value || "all"} value={option.value}>
-                {option.label}
-              </option>
-            ))}
-          </select>
-          <select
-            className="border border-neutral-300 bg-brand-white px-3 py-2 text-sm"
-            value={financialAccountId}
-            onChange={(event) => setFinancialAccountId(event.target.value)}
-          >
-            <option value="">Todas as contas</option>
-            {accounts?.map((account) => (
-              <option key={account.id} value={account.id}>
-                {account.nome}
-              </option>
-            ))}
-          </select>
-          <select
-            className="border border-neutral-300 bg-brand-white px-3 py-2 text-sm"
-            value={cashboxId}
-            onChange={(event) => setCashboxId(event.target.value)}
-          >
-            <option value="">Todos os caixas</option>
-            {cashboxes?.map((cashbox) => (
-              <option key={cashbox.id} value={cashbox.id}>
-                {cashbox.nome}
-              </option>
-            ))}
-          </select>
+          <div>
+            <label className="mb-1.5 block text-sm font-medium text-brand-black">Tipo</label>
+            <select
+              className="w-full border border-neutral-300 bg-brand-white px-4 py-2.5 text-sm"
+              value={tipo}
+              onChange={(event) => setTipo(event.target.value as CashFlowType | "")}
+            >
+              {CASH_FLOW_TYPE_OPTIONS.map((option) => (
+                <option key={option.value || "all"} value={option.value}>
+                  {option.label}
+                </option>
+              ))}
+            </select>
+          </div>
+          <div>
+            <label className="mb-1.5 block text-sm font-medium text-brand-black">Conta</label>
+            <select
+              className="w-full border border-neutral-300 bg-brand-white px-4 py-2.5 text-sm"
+              value={financialAccountId}
+              onChange={(event) => setFinancialAccountId(event.target.value)}
+            >
+              <option value="">Todas as contas</option>
+              {accounts?.map((account) => (
+                <option key={account.id} value={account.id}>
+                  {account.nome}
+                </option>
+              ))}
+            </select>
+          </div>
           <Input
+            label="A partir de"
             type="date"
             value={dataInicio}
             onChange={(event) => setDataInicio(event.target.value)}
-          />
-          <Input
-            type="date"
-            value={dataFim}
-            onChange={(event) => setDataFim(event.target.value)}
           />
         </div>
 

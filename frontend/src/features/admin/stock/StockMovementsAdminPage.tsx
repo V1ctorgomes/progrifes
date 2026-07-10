@@ -6,13 +6,11 @@ import { useQuery } from "@tanstack/react-query";
 import { Button } from "@/components/ui/Button";
 import { Input } from "@/components/ui/Input";
 import {
-  categoriesAdminApi,
   inventoryAdminApi,
   productsAdminApi,
 } from "@/lib/admin-api";
 import {
   formatMovementDate,
-  MOVEMENT_SOURCE_OPTIONS,
   MOVEMENT_TYPE_OPTIONS,
 } from "@/types/inventory-output";
 
@@ -20,11 +18,8 @@ export function StockMovementsAdminPage() {
   const [search, setSearch] = useState("");
   const [debouncedSearch, setDebouncedSearch] = useState("");
   const [tipo, setTipo] = useState("");
-  const [categoriaOrigem, setCategoriaOrigem] = useState("");
-  const [categoriaId, setCategoriaId] = useState("");
   const [produtoId, setProdutoId] = useState("");
   const [dataInicio, setDataInicio] = useState("");
-  const [dataFim, setDataFim] = useState("");
   const [page, setPage] = useState(1);
 
   useEffect(() => {
@@ -34,12 +29,7 @@ export function StockMovementsAdminPage() {
 
   useEffect(() => {
     setPage(1);
-  }, [debouncedSearch, tipo, categoriaOrigem, categoriaId, produtoId, dataInicio, dataFim]);
-
-  const { data: categories = [] } = useQuery({
-    queryKey: ["admin", "categories"],
-    queryFn: categoriesAdminApi.list,
-  });
+  }, [debouncedSearch, tipo, produtoId, dataInicio]);
 
   const { data: productsData } = useQuery({
     queryKey: ["admin", "products", "movements-filter"],
@@ -55,11 +45,8 @@ export function StockMovementsAdminPage() {
       page,
       debouncedSearch,
       tipo,
-      categoriaOrigem,
-      categoriaId,
       produtoId,
       dataInicio,
-      dataFim,
     ],
     queryFn: () =>
       inventoryAdminApi.listMovements({
@@ -67,11 +54,8 @@ export function StockMovementsAdminPage() {
         limit: 20,
         search: debouncedSearch || undefined,
         tipo: tipo || undefined,
-        categoriaOrigem: categoriaOrigem || undefined,
-        categoriaId: categoriaId || undefined,
         produtoId: produtoId || undefined,
         dataInicio: dataInicio || undefined,
-        dataFim: dataFim || undefined,
       }),
   });
 
@@ -128,35 +112,6 @@ export function StockMovementsAdminPage() {
           </select>
         </div>
         <div>
-          <label className="mb-1.5 block text-sm font-medium text-brand-black">Origem</label>
-          <select
-            className="w-full border border-neutral-300 bg-brand-white px-4 py-2.5 text-sm"
-            value={categoriaOrigem}
-            onChange={(e) => setCategoriaOrigem(e.target.value)}
-          >
-            {MOVEMENT_SOURCE_OPTIONS.map((option) => (
-              <option key={option.value || "all"} value={option.value}>
-                {option.label}
-              </option>
-            ))}
-          </select>
-        </div>
-        <div>
-          <label className="mb-1.5 block text-sm font-medium text-brand-black">Categoria</label>
-          <select
-            className="w-full border border-neutral-300 bg-brand-white px-4 py-2.5 text-sm"
-            value={categoriaId}
-            onChange={(e) => setCategoriaId(e.target.value)}
-          >
-            <option value="">Todas</option>
-            {categories.map((category) => (
-              <option key={category.id} value={category.id}>
-                {category.nome}
-              </option>
-            ))}
-          </select>
-        </div>
-        <div>
           <label className="mb-1.5 block text-sm font-medium text-brand-black">Produto</label>
           <select
             className="w-full border border-neutral-300 bg-brand-white px-4 py-2.5 text-sm"
@@ -172,16 +127,10 @@ export function StockMovementsAdminPage() {
           </select>
         </div>
         <Input
-          label="Data inicial"
+          label="A partir de"
           type="date"
           value={dataInicio}
           onChange={(e) => setDataInicio(e.target.value)}
-        />
-        <Input
-          label="Data final"
-          type="date"
-          value={dataFim}
-          onChange={(e) => setDataFim(e.target.value)}
         />
       </div>
 

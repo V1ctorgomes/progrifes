@@ -45,7 +45,6 @@ export function AccountsPayableAdminPage() {
   const [status, setStatus] = useState<PayableStatus | "">("");
   const [supplierId, setSupplierId] = useState("");
   const [dataInicio, setDataInicio] = useState("");
-  const [dataFim, setDataFim] = useState("");
   const [page, setPage] = useState(1);
   const [modalOpen, setModalOpen] = useState(false);
   const [formError, setFormError] = useState("");
@@ -68,7 +67,7 @@ export function AccountsPayableAdminPage() {
 
   useEffect(() => {
     setPage(1);
-  }, [debouncedSearch, status, supplierId, dataInicio, dataFim]);
+  }, [debouncedSearch, status, supplierId, dataInicio]);
 
   const { data: suppliersData } = useQuery({
     queryKey: ["admin", "suppliers", "payables-filter"],
@@ -94,7 +93,6 @@ export function AccountsPayableAdminPage() {
       status,
       supplierId,
       dataInicio,
-      dataFim,
     ],
     queryFn: () =>
       accountsPayableAdminApi.list({
@@ -104,7 +102,6 @@ export function AccountsPayableAdminPage() {
         status: status || undefined,
         supplierId: supplierId || undefined,
         dataInicio: dataInicio || undefined,
-        dataFim: dataFim || undefined,
       }),
   });
 
@@ -189,38 +186,49 @@ export function AccountsPayableAdminPage() {
         </div>
       )}
 
-      <div className="grid gap-3 md:grid-cols-2 xl:grid-cols-5">
+      <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
         <Input
+          label="Pesquisar"
           placeholder="Buscar fornecedor, documento, nota..."
           value={search}
           onChange={(event) => setSearch(event.target.value)}
         />
-        <select
-          className="border border-neutral-300 bg-brand-white px-3 py-2 text-sm"
-          value={status}
-          onChange={(event) => setStatus(event.target.value as PayableStatus | "")}
-        >
-          <option value="">Todos os status</option>
-          {PAYABLE_STATUS_OPTIONS.map((option) => (
-            <option key={option.value} value={option.value}>
-              {option.label}
-            </option>
-          ))}
-        </select>
-        <select
-          className="border border-neutral-300 bg-brand-white px-3 py-2 text-sm"
-          value={supplierId}
-          onChange={(event) => setSupplierId(event.target.value)}
-        >
-          <option value="">Todos os fornecedores</option>
-          {suppliers.map((supplier) => (
-            <option key={supplier.id} value={supplier.id}>
-              {supplier.nomeFantasia}
-            </option>
-          ))}
-        </select>
-        <Input type="date" value={dataInicio} onChange={(e) => setDataInicio(e.target.value)} />
-        <Input type="date" value={dataFim} onChange={(e) => setDataFim(e.target.value)} />
+        <div>
+          <label className="mb-1.5 block text-sm font-medium text-brand-black">Status</label>
+          <select
+            className="w-full border border-neutral-300 bg-brand-white px-4 py-2.5 text-sm"
+            value={status}
+            onChange={(event) => setStatus(event.target.value as PayableStatus | "")}
+          >
+            <option value="">Todos os status</option>
+            {PAYABLE_STATUS_OPTIONS.map((option) => (
+              <option key={option.value} value={option.value}>
+                {option.label}
+              </option>
+            ))}
+          </select>
+        </div>
+        <div>
+          <label className="mb-1.5 block text-sm font-medium text-brand-black">Fornecedor</label>
+          <select
+            className="w-full border border-neutral-300 bg-brand-white px-4 py-2.5 text-sm"
+            value={supplierId}
+            onChange={(event) => setSupplierId(event.target.value)}
+          >
+            <option value="">Todos os fornecedores</option>
+            {suppliers.map((supplier) => (
+              <option key={supplier.id} value={supplier.id}>
+                {supplier.nomeFantasia}
+              </option>
+            ))}
+          </select>
+        </div>
+        <Input
+          label="A partir de"
+          type="date"
+          value={dataInicio}
+          onChange={(e) => setDataInicio(e.target.value)}
+        />
       </div>
 
       <div className="overflow-x-auto border border-neutral-200 bg-brand-white">

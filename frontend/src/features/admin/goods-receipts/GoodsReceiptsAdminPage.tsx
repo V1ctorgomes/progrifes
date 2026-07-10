@@ -15,7 +15,6 @@ export function GoodsReceiptsAdminPage() {
   const [situacao, setSituacao] = useState<GoodsReceiptSituacao | "">("");
   const [supplierId, setSupplierId] = useState("");
   const [dataInicio, setDataInicio] = useState("");
-  const [dataFim, setDataFim] = useState("");
   const [page, setPage] = useState(1);
 
   useEffect(() => {
@@ -25,7 +24,7 @@ export function GoodsReceiptsAdminPage() {
 
   useEffect(() => {
     setPage(1);
-  }, [debouncedSearch, situacao, supplierId, dataInicio, dataFim]);
+  }, [debouncedSearch, situacao, supplierId, dataInicio]);
 
   const { data: suppliersData } = useQuery({
     queryKey: ["admin", "suppliers", "receipts-filter"],
@@ -41,7 +40,6 @@ export function GoodsReceiptsAdminPage() {
       situacao,
       supplierId,
       dataInicio,
-      dataFim,
     ],
     queryFn: () =>
       goodsReceiptsAdminApi.list({
@@ -51,7 +49,6 @@ export function GoodsReceiptsAdminPage() {
         situacao: situacao || undefined,
         supplierId: supplierId || undefined,
         dataInicio: dataInicio || undefined,
-        dataFim: dataFim || undefined,
       }),
   });
 
@@ -119,16 +116,10 @@ export function GoodsReceiptsAdminPage() {
           </select>
         </div>
         <Input
-          label="Data início"
+          label="A partir de"
           type="date"
           value={dataInicio}
           onChange={(e) => setDataInicio(e.target.value)}
-        />
-        <Input
-          label="Data fim"
-          type="date"
-          value={dataFim}
-          onChange={(e) => setDataFim(e.target.value)}
         />
       </div>
 

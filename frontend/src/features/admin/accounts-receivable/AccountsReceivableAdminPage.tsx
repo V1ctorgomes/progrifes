@@ -45,7 +45,6 @@ export function AccountsReceivableAdminPage() {
   const [status, setStatus] = useState<ReceivableStatus | "">("");
   const [customerId, setCustomerId] = useState("");
   const [dataInicio, setDataInicio] = useState("");
-  const [dataFim, setDataFim] = useState("");
   const [page, setPage] = useState(1);
   const [modalOpen, setModalOpen] = useState(false);
   const [formError, setFormError] = useState("");
@@ -68,7 +67,7 @@ export function AccountsReceivableAdminPage() {
 
   useEffect(() => {
     setPage(1);
-  }, [debouncedSearch, status, customerId, dataInicio, dataFim]);
+  }, [debouncedSearch, status, customerId, dataInicio]);
 
   const { data: customersData } = useQuery({
     queryKey: ["admin", "customers", "receivables-filter"],
@@ -94,7 +93,6 @@ export function AccountsReceivableAdminPage() {
       status,
       customerId,
       dataInicio,
-      dataFim,
     ],
     queryFn: () =>
       accountsReceivableAdminApi.list({
@@ -104,7 +102,6 @@ export function AccountsReceivableAdminPage() {
         status: status || undefined,
         customerId: customerId || undefined,
         dataInicio: dataInicio || undefined,
-        dataFim: dataFim || undefined,
       }),
   });
 
@@ -189,38 +186,49 @@ export function AccountsReceivableAdminPage() {
         </div>
       )}
 
-      <div className="grid gap-3 md:grid-cols-2 xl:grid-cols-5">
+      <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
         <Input
+          label="Pesquisar"
           placeholder="Buscar cliente, documento, pedido..."
           value={search}
           onChange={(event) => setSearch(event.target.value)}
         />
-        <select
-          className="border border-neutral-300 bg-brand-white px-3 py-2 text-sm"
-          value={status}
-          onChange={(event) => setStatus(event.target.value as ReceivableStatus | "")}
-        >
-          <option value="">Todos os status</option>
-          {RECEIVABLE_STATUS_OPTIONS.map((option) => (
-            <option key={option.value} value={option.value}>
-              {option.label}
-            </option>
-          ))}
-        </select>
-        <select
-          className="border border-neutral-300 bg-brand-white px-3 py-2 text-sm"
-          value={customerId}
-          onChange={(event) => setCustomerId(event.target.value)}
-        >
-          <option value="">Todos os clientes</option>
-          {customers.map((customer) => (
-            <option key={customer.id} value={customer.id}>
-              {customer.nome}
-            </option>
-          ))}
-        </select>
-        <Input type="date" value={dataInicio} onChange={(e) => setDataInicio(e.target.value)} />
-        <Input type="date" value={dataFim} onChange={(e) => setDataFim(e.target.value)} />
+        <div>
+          <label className="mb-1.5 block text-sm font-medium text-brand-black">Status</label>
+          <select
+            className="w-full border border-neutral-300 bg-brand-white px-4 py-2.5 text-sm"
+            value={status}
+            onChange={(event) => setStatus(event.target.value as ReceivableStatus | "")}
+          >
+            <option value="">Todos os status</option>
+            {RECEIVABLE_STATUS_OPTIONS.map((option) => (
+              <option key={option.value} value={option.value}>
+                {option.label}
+              </option>
+            ))}
+          </select>
+        </div>
+        <div>
+          <label className="mb-1.5 block text-sm font-medium text-brand-black">Cliente</label>
+          <select
+            className="w-full border border-neutral-300 bg-brand-white px-4 py-2.5 text-sm"
+            value={customerId}
+            onChange={(event) => setCustomerId(event.target.value)}
+          >
+            <option value="">Todos os clientes</option>
+            {customers.map((customer) => (
+              <option key={customer.id} value={customer.id}>
+                {customer.nome}
+              </option>
+            ))}
+          </select>
+        </div>
+        <Input
+          label="A partir de"
+          type="date"
+          value={dataInicio}
+          onChange={(e) => setDataInicio(e.target.value)}
+        />
       </div>
 
       <div className="overflow-x-auto border border-neutral-200 bg-brand-white">
