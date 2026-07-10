@@ -1,1 +1,5 @@
-export { StockAuditsAdminPage as default } from "@/features/admin/stock/StockAuditsAdminPage";
+import { redirect } from "next/navigation";
+
+export default function Page() {
+  redirect("/admin/estoque?tab=inventarios");
+}

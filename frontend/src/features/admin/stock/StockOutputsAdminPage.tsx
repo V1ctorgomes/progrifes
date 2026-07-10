@@ -37,7 +37,7 @@ function canWriteStock(permissions: string[]) {
   return permissions.includes("*") || permissions.includes("stock:write");
 }
 
-export function StockOutputsAdminPage() {
+export function StockOutputsAdminPage({ embedded = false }: { embedded?: boolean }) {
   const queryClient = useQueryClient();
   const { permissions } = useAuth();
   const canCreate = canWriteStock(permissions);
@@ -149,32 +149,35 @@ export function StockOutputsAdminPage() {
 
   return (
     <div className="space-y-6">
-      <div className="flex flex-wrap items-center justify-between gap-3">
-        <div>
-          <div className="mb-1 flex flex-wrap items-center gap-2 text-sm text-brand-gray">
-            <Link href="/admin/estoque" className="hover:text-brand-black">
-              Estoque
-            </Link>
-            <span>/</span>
-            <span>Saídas</span>
+      <div
+        className={
+          embedded
+            ? "flex flex-wrap items-center justify-end gap-3"
+            : "flex flex-wrap items-center justify-between gap-3"
+        }
+      >
+        {!embedded ? (
+          <div>
+            <div className="mb-1 flex flex-wrap items-center gap-2 text-sm text-brand-gray">
+              <Link href="/admin/estoque" className="hover:text-brand-black">
+                Estoque
+              </Link>
+              <span>/</span>
+              <span>Saídas</span>
+            </div>
+            <h1 className="font-display text-2xl font-semibold uppercase tracking-wide text-brand-black">
+              Saídas de Estoque
+            </h1>
+            <p className="text-sm text-brand-gray">
+              Registre perdas, avarias, consumo interno e demais baixas de estoque
+            </p>
           </div>
-          <h1 className="font-display text-2xl font-semibold uppercase tracking-wide text-brand-black">
-            Saídas de Estoque
-          </h1>
-          <p className="text-sm text-brand-gray">
-            Registre perdas, avarias, consumo interno e demais baixas de estoque
-          </p>
-        </div>
-        <div className="flex flex-wrap gap-2">
-          <Link href="/admin/estoque/movimentacoes">
-            <Button variant="outline">Movimentações</Button>
-          </Link>
-          {canCreate && (
-            <Button className="hidden md:inline-flex" onClick={() => setModalOpen(true)}>
-              Nova saída
-            </Button>
-          )}
-        </div>
+        ) : null}
+        {canCreate ? (
+          <Button className={embedded ? undefined : "hidden md:inline-flex"} onClick={() => setModalOpen(true)}>
+            Nova saída
+          </Button>
+        ) : null}
       </div>
 
       <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">

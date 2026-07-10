@@ -25,7 +25,7 @@ export function StockEntryDetailPage({ entryId }: StockEntryDetailPageProps) {
     return (
       <div className="space-y-4">
         <p className="text-sm text-red-600">Entrada não encontrada.</p>
-        <Link href="/admin/estoque/entradas" className="text-sm underline">
+        <Link href="/admin/estoque?tab=entradas" className="text-sm underline">
           Voltar para entradas
         </Link>
       </div>
@@ -41,7 +41,7 @@ export function StockEntryDetailPage({ entryId }: StockEntryDetailPageProps) {
               Estoque
             </Link>
             <span>/</span>
-            <Link href="/admin/estoque/entradas" className="hover:text-brand-black">
+            <Link href="/admin/estoque?tab=entradas" className="hover:text-brand-black">
               Entradas
             </Link>
             <span>/</span>

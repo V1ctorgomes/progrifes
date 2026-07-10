@@ -116,7 +116,7 @@ export function StockAuditDetailPage({ auditId }: StockAuditDetailPageProps) {
     return (
       <div className="space-y-4">
         <p className="text-sm text-red-600">Inventário não encontrado.</p>
-        <Link href="/admin/estoque/inventarios" className="text-sm underline">
+        <Link href="/admin/estoque?tab=inventarios" className="text-sm underline">
           Voltar
         </Link>
       </div>
@@ -132,7 +132,7 @@ export function StockAuditDetailPage({ auditId }: StockAuditDetailPageProps) {
               Estoque
             </Link>
             <span>/</span>
-            <Link href="/admin/estoque/inventarios" className="hover:text-brand-black">
+            <Link href="/admin/estoque?tab=inventarios" className="hover:text-brand-black">
               Inventários
             </Link>
             <span>/</span>

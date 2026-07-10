@@ -23,7 +23,7 @@ export function StockMovementDetailPage({ movementId }: StockMovementDetailPageP
     return (
       <div className="space-y-4">
         <p className="text-sm text-red-600">Movimentação não encontrada.</p>
-        <Link href="/admin/estoque/movimentacoes" className="text-sm underline">
+        <Link href="/admin/estoque?tab=movimentacoes" className="text-sm underline">
           Voltar para movimentações
         </Link>
       </div>
@@ -38,7 +38,7 @@ export function StockMovementDetailPage({ movementId }: StockMovementDetailPageP
             Estoque
           </Link>
           <span>/</span>
-          <Link href="/admin/estoque/movimentacoes" className="hover:text-brand-black">
+          <Link href="/admin/estoque?tab=movimentacoes" className="hover:text-brand-black">
             Movimentações
           </Link>
           <span>/</span>

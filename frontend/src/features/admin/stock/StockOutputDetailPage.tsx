@@ -25,7 +25,7 @@ export function StockOutputDetailPage({ outputId }: StockOutputDetailPageProps) 
     return (
       <div className="space-y-4">
         <p className="text-sm text-red-600">Saída não encontrada.</p>
-        <Link href="/admin/estoque/saidas" className="text-sm underline">
+        <Link href="/admin/estoque?tab=saidas" className="text-sm underline">
           Voltar para saídas
         </Link>
       </div>
@@ -41,7 +41,7 @@ export function StockOutputDetailPage({ outputId }: StockOutputDetailPageProps) 
               Estoque
             </Link>
             <span>/</span>
-            <Link href="/admin/estoque/saidas" className="hover:text-brand-black">
+            <Link href="/admin/estoque?tab=saidas" className="hover:text-brand-black">
               Saídas
             </Link>
             <span>/</span>

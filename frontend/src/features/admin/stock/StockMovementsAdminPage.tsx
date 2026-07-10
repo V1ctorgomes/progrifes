@@ -14,7 +14,7 @@ import {
   MOVEMENT_TYPE_OPTIONS,
 } from "@/types/inventory-output";
 
-export function StockMovementsAdminPage() {
+export function StockMovementsAdminPage({ embedded = false }: { embedded?: boolean }) {
   const [search, setSearch] = useState("");
   const [debouncedSearch, setDebouncedSearch] = useState("");
   const [tipo, setTipo] = useState("");
@@ -64,31 +64,25 @@ export function StockMovementsAdminPage() {
 
   return (
     <div className="space-y-6">
-      <div className="flex flex-wrap items-center justify-between gap-3">
-        <div>
-          <div className="mb-1 flex flex-wrap items-center gap-2 text-sm text-brand-gray">
-            <Link href="/admin/estoque" className="hover:text-brand-black">
-              Estoque
-            </Link>
-            <span>/</span>
-            <span>Movimentações</span>
+      {!embedded ? (
+        <div className="flex flex-wrap items-center justify-between gap-3">
+          <div>
+            <div className="mb-1 flex flex-wrap items-center gap-2 text-sm text-brand-gray">
+              <Link href="/admin/estoque" className="hover:text-brand-black">
+                Estoque
+              </Link>
+              <span>/</span>
+              <span>Movimentações</span>
+            </div>
+            <h1 className="font-display text-2xl font-semibold uppercase tracking-wide text-brand-black">
+              Central de Movimentações
+            </h1>
+            <p className="text-sm text-brand-gray">
+              Histórico unificado de entradas, saídas e movimentações de pedidos
+            </p>
           </div>
-          <h1 className="font-display text-2xl font-semibold uppercase tracking-wide text-brand-black">
-            Central de Movimentações
-          </h1>
-          <p className="text-sm text-brand-gray">
-            Histórico unificado de entradas, saídas e movimentações de pedidos
-          </p>
         </div>
-        <div className="flex flex-wrap gap-2">
-          <Link href="/admin/estoque/entradas">
-            <Button variant="outline">Entradas</Button>
-          </Link>
-          <Link href="/admin/estoque/saidas">
-            <Button variant="outline">Saídas</Button>
-          </Link>
-        </div>
-      </div>
+      ) : null}
 
       <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
         <Input

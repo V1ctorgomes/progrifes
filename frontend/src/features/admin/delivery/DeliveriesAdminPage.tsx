@@ -191,9 +191,9 @@ export function DeliveriesAdminPage({ embedded = false }: { embedded?: boolean }
           placeholder="Pedido, cliente, telefone, entregador..."
         />
         <div>
-          <label className="mb-1 block text-xs text-brand-gray">Status</label>
+          <label className="mb-1.5 block text-sm font-medium text-brand-black">Status</label>
           <select
-            className="w-full border border-neutral-200 bg-white px-3 py-2 text-sm"
+            className="w-full border border-neutral-300 bg-brand-white px-4 py-2.5 text-sm text-brand-black focus:border-brand-black focus:outline-none"
             value={status}
             onChange={(event) => setStatus(event.target.value as DeliveryStatus | "")}
           >
@@ -206,9 +206,9 @@ export function DeliveriesAdminPage({ embedded = false }: { embedded?: boolean }
           </select>
         </div>
         <div>
-          <label className="mb-1 block text-xs text-brand-gray">Entregador</label>
+          <label className="mb-1.5 block text-sm font-medium text-brand-black">Entregador</label>
           <select
-            className="w-full border border-neutral-200 bg-white px-3 py-2 text-sm"
+            className="w-full border border-neutral-300 bg-brand-white px-4 py-2.5 text-sm text-brand-black focus:border-brand-black focus:outline-none"
             value={deliveryPersonId}
             onChange={(event) => setDeliveryPersonId(event.target.value)}
           >

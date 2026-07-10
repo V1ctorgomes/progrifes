@@ -30,7 +30,7 @@ function AlertCard({
   );
 }
 
-export function StockAdminPage() {
+export function StockAdminPage({ embedded = false }: { embedded?: boolean }) {
   const [search, setSearch] = useState("");
   const [debouncedSearch, setDebouncedSearch] = useState("");
   const [status, setStatus] = useState("");
@@ -77,30 +77,32 @@ export function StockAdminPage() {
 
   return (
     <div className="space-y-6">
-      <div className="flex flex-wrap items-center justify-between gap-3">
-        <div>
-          <h1 className="font-display text-2xl font-semibold uppercase tracking-wide text-brand-black">
-            Estoque
-          </h1>
-          <p className="text-sm text-brand-gray">
-            Controle centralizado de saldo, reservas e disponibilidade por variante
-          </p>
+      {!embedded ? (
+        <div className="flex flex-wrap items-center justify-between gap-3">
+          <div>
+            <h1 className="font-display text-2xl font-semibold uppercase tracking-wide text-brand-black">
+              Estoque
+            </h1>
+            <p className="text-sm text-brand-gray">
+              Controle centralizado de saldo, reservas e disponibilidade por variante
+            </p>
+          </div>
+          <div className="flex flex-wrap gap-2">
+            <Link href="/admin/estoque?tab=entradas">
+              <Button variant="outline">Entradas</Button>
+            </Link>
+            <Link href="/admin/estoque?tab=saidas">
+              <Button variant="outline">Saídas</Button>
+            </Link>
+            <Link href="/admin/estoque?tab=movimentacoes">
+              <Button variant="outline">Movimentações</Button>
+            </Link>
+            <Link href="/admin/estoque?tab=inventarios">
+              <Button variant="outline">Inventários</Button>
+            </Link>
+          </div>
         </div>
-        <div className="flex flex-wrap gap-2">
-          <Link href="/admin/estoque/entradas">
-            <Button variant="outline">Entradas</Button>
-          </Link>
-          <Link href="/admin/estoque/saidas">
-            <Button variant="outline">Saídas</Button>
-          </Link>
-          <Link href="/admin/estoque/movimentacoes">
-            <Button variant="outline">Movimentações</Button>
-          </Link>
-          <Link href="/admin/estoque/inventarios">
-            <Button variant="outline">Inventários</Button>
-          </Link>
-        </div>
-      </div>
+      ) : null}
 
       {alerts && (
         <div className="grid gap-3 sm:grid-cols-3">

@@ -111,21 +111,13 @@ export function AdminShell({ children }: { children: React.ReactNode }) {
       <div className="border-t border-neutral-800 px-4 py-4">
         <p className="truncate text-sm font-medium text-brand-white">{user?.nome}</p>
         <p className="truncate text-xs text-neutral-400">{user?.cargo}</p>
-        <div className="mt-3 flex flex-col gap-2">
-          <Link
-            href="/"
-            className="text-center text-xs text-neutral-400 transition-colors hover:text-brand-white"
-          >
-            Ver loja
-          </Link>
-          <button
-            type="button"
-            onClick={() => logout()}
-            className="rounded border border-neutral-600 px-3 py-2 text-xs font-medium uppercase tracking-wide text-neutral-300 transition-colors hover:border-brand-white hover:text-brand-white"
-          >
-            Sair
-          </button>
-        </div>
+        <button
+          type="button"
+          onClick={() => logout()}
+          className="mt-3 w-full rounded border border-neutral-600 px-3 py-2 text-xs font-medium uppercase tracking-wide text-neutral-300 transition-colors hover:border-brand-white hover:text-brand-white"
+        >
+          Sair
+        </button>
       </div>
     </>
   );
@@ -152,28 +144,19 @@ export function AdminShell({ children }: { children: React.ReactNode }) {
         </aside>
 
         <div className="flex min-h-screen flex-col lg:pl-64">
-          <header className="sticky top-0 z-30 flex items-center justify-between border-b border-neutral-200 bg-brand-white px-4 py-3 lg:px-6">
-            <div className="flex items-center gap-3">
-              <button
-                type="button"
-                aria-label={sidebarOpen ? "Fechar menu" : "Abrir menu"}
-                className="rounded-md p-2 text-brand-black hover:bg-neutral-100 lg:hidden"
-                onClick={() => setSidebarOpen((open) => !open)}
-              >
-                <MenuIcon open={sidebarOpen} />
-              </button>
-              <p className="font-display text-sm font-semibold uppercase tracking-wide text-brand-black lg:hidden">
-                Grifres ERP
-              </p>
-            </div>
-            <div className="hidden items-center gap-4 text-sm text-brand-gray lg:flex">
-              <span>{user?.nome}</span>
-              <span className="text-neutral-300">|</span>
-              <Link href="/" className="hover:text-brand-black">
-                Ver loja
-              </Link>
-            </div>
-          </header>
+          <div className="flex items-center gap-3 px-4 py-3 lg:hidden">
+            <button
+              type="button"
+              aria-label={sidebarOpen ? "Fechar menu" : "Abrir menu"}
+              className="rounded-md p-2 text-brand-black hover:bg-neutral-100"
+              onClick={() => setSidebarOpen((open) => !open)}
+            >
+              <MenuIcon open={sidebarOpen} />
+            </button>
+            <p className="font-display text-sm font-semibold uppercase tracking-wide text-brand-black">
+              Grifres ERP
+            </p>
+          </div>
 
           <main className="flex-1 p-4 sm:p-6 lg:p-8">
             <div className="mx-auto max-w-7xl">{children}</div>
