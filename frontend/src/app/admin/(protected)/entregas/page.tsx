@@ -1,5 +1,10 @@
-import { DeliveriesAdminPage } from "@/features/admin/delivery/DeliveriesAdminPage";
+import { Suspense } from "react";
+import { DeliveryHubAdminPage } from "@/features/admin/delivery/DeliveryHubAdminPage";
 
 export default function Page() {
-  return <DeliveriesAdminPage />;
+  return (
+    <Suspense fallback={<p className="text-sm text-brand-gray">Carregando...</p>}>
+      <DeliveryHubAdminPage />
+    </Suspense>
+  );
 }

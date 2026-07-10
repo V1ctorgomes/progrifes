@@ -21,8 +21,6 @@ const navItems: Array<{ href: string; label: string; disabled?: boolean }> = [
   { href: "/admin/financeiro", label: "Financeiro" },
   { href: "/admin/configuracoes/entrega", label: "Entrega" },
   { href: "/admin/entregas", label: "Entregas" },
-  { href: "/admin/entregas/bairros", label: "Bairros" },
-  { href: "/admin/entregadores", label: "Entregadores" },
 ];
 
 function isNavActive(pathname: string, href: string) {

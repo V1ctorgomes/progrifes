@@ -123,7 +123,7 @@ export function DeliverySettingsAdminPage() {
         <p className="text-brand-gray">
           Configure horários, prazo médio, pedido mínimo e mensagens exibidas no site.
         </p>
-        <Link href="/admin/entregas/bairros" className="inline-block text-sm underline">
+        <Link href="/admin/entregas?tab=bairros" className="inline-block text-sm underline">
           Gerenciar bairros e taxas →
         </Link>
         <p className="text-xs text-brand-gray">

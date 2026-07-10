@@ -40,7 +40,7 @@ function DashboardCard({ label, value, accent }: { label: string; value: string 
   );
 }
 
-export function DeliveriesAdminPage() {
+export function DeliveriesAdminPage({ embedded = false }: { embedded?: boolean }) {
   const queryClient = useQueryClient();
   const [search, setSearch] = useState("");
   const [debouncedSearch, setDebouncedSearch] = useState("");
@@ -148,24 +148,18 @@ export function DeliveriesAdminPage() {
 
   return (
     <div className="space-y-6">
-      <div className="flex flex-wrap items-center justify-between gap-3">
-        <div>
-          <h1 className="font-display text-2xl font-semibold uppercase tracking-wide text-brand-black">
-            Acompanhamento de Entregas
-          </h1>
-          <p className="text-sm text-brand-gray">
-            Painel operacional para acompanhar o fluxo logístico diário.
-          </p>
-          <div className="mt-2 flex flex-wrap gap-3 text-sm">
-            <Link href="/admin/entregadores" className="underline">
-              Entregadores
-            </Link>
-            <Link href="/admin/entregas/bairros" className="underline">
-              Bairros e taxas
-            </Link>
+      {!embedded ? (
+        <div className="flex flex-wrap items-center justify-between gap-3">
+          <div>
+            <h1 className="font-display text-2xl font-semibold uppercase tracking-wide text-brand-black">
+              Acompanhamento de Entregas
+            </h1>
+            <p className="text-sm text-brand-gray">
+              Painel operacional para acompanhar o fluxo logístico diário.
+            </p>
           </div>
         </div>
-      </div>
+      ) : null}
 
       {dashboard ? (
         <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-4 2xl:grid-cols-7">

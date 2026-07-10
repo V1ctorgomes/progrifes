@@ -46,7 +46,7 @@ function formatDateTime(date: string | null) {
   });
 }
 
-export function DeliveryPersonsAdminPage() {
+export function DeliveryPersonsAdminPage({ embedded = false }: { embedded?: boolean }) {
   const queryClient = useQueryClient();
   const [search, setSearch] = useState("");
   const [debouncedSearch, setDebouncedSearch] = useState("");
@@ -150,21 +150,29 @@ export function DeliveryPersonsAdminPage() {
 
   return (
     <div className="space-y-6">
-      <div className="flex flex-wrap items-center justify-between gap-3">
-        <div>
-          <h1 className="font-display text-2xl font-semibold uppercase tracking-wide text-brand-black">
-            Entregadores
-          </h1>
-          <p className="text-sm text-brand-gray">
-            Cadastre entregadores, controle disponibilidade e acompanhe desempenho.
-          </p>
-          <Link
-            href="/admin/configuracoes/entrega"
-            className="mt-2 inline-block text-sm underline"
-          >
-            ← Configurações de entrega
-          </Link>
-        </div>
+      <div
+        className={
+          embedded
+            ? "flex flex-wrap items-center justify-end gap-3"
+            : "flex flex-wrap items-center justify-between gap-3"
+        }
+      >
+        {!embedded ? (
+          <div>
+            <h1 className="font-display text-2xl font-semibold uppercase tracking-wide text-brand-black">
+              Entregadores
+            </h1>
+            <p className="text-sm text-brand-gray">
+              Cadastre entregadores, controle disponibilidade e acompanhe desempenho.
+            </p>
+            <Link
+              href="/admin/configuracoes/entrega"
+              className="mt-2 inline-block text-sm underline"
+            >
+              ← Configurações de entrega
+            </Link>
+          </div>
+        ) : null}
         <Button type="button" onClick={openCreate}>
           Novo entregador
         </Button>

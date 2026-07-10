@@ -1,5 +1,5 @@
-import { DeliveryPersonsAdminPage } from "@/features/admin/delivery/DeliveryPersonsAdminPage";
+import { redirect } from "next/navigation";
 
 export default function Page() {
-  return <DeliveryPersonsAdminPage />;
+  redirect("/admin/entregas?tab=entregadores");
 }

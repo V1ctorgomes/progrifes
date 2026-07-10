@@ -1,5 +1,5 @@
-import { NeighborhoodsAdminPage } from "@/features/admin/delivery/NeighborhoodsAdminPage";
+import { redirect } from "next/navigation";
 
 export default function Page() {
-  return <NeighborhoodsAdminPage />;
+  redirect("/admin/entregas?tab=bairros");
 }
