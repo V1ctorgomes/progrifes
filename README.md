@@ -52,7 +52,7 @@ Cada serviço possui seu próprio `Dockerfile` otimizado para deploy no EasyPane
 #### Checklist de autenticação (EasyPanel)
 
 1. **PostgreSQL** rodando e acessível pelo backend
-2. **Backend** com `DATABASE_URL`, `JWT_*` e `CORS_ORIGIN` (URL do frontend)
+2. **Backend** com `DATABASE_URL`, `JWT_*`, `CORS_ORIGIN` (URL do frontend) e `WHATSAPP_NUMBER=5585998475755`
 3. **Frontend** com `BACKEND_URL` apontando para a URL do backend
 4. Teste: `https://SEU-FRONTEND/api/health` deve retornar `backend: ok`
 5. Teste: `https://SEU-BACKEND/api/health` deve retornar status da API

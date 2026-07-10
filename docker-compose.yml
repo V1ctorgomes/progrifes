@@ -43,6 +43,7 @@ services:
       - COOKIE_SAME_SITE=lax
       - ADMIN_EMAIL=admin@grifres.com
       - ADMIN_PASSWORD=12345678
+      - WHATSAPP_NUMBER=5585998475755
     depends_on:
       - postgres
     restart: unless-stopped

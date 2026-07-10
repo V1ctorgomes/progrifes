@@ -618,7 +618,7 @@ export class OrdersService {
   }
 
   buildWhatsAppUrl(order: { numeroFormatado: string; clienteNome: string; clienteTelefone: string }) {
-    const phone = process.env.WHATSAPP_NUMBER ?? process.env.STORE_WHATSAPP ?? "5585989484821";
+    const phone = process.env.WHATSAPP_NUMBER ?? process.env.STORE_WHATSAPP ?? "5585998475755";
     const message = this.buildWhatsAppMessage(order);
     return `https://wa.me/${phone}?text=${encodeURIComponent(message)}`;
   }

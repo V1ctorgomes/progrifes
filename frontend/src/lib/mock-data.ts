@@ -64,8 +64,8 @@ export const storeInfo = {
   name: "Grifres",
   description:
     "Moda urbana com identidade própria. Peças exclusivas para quem busca estilo e conforto no dia a dia.",
-  whatsapp: "(85) 98948-4821",
-  whatsappLink: "5585989484821",
+  whatsapp: "+55 (85) 99847-5755",
+  whatsappLink: "5585998475755",
   address: "Rua Padre Francisco Pita, 528, Jardim das Oliveiras, Fortaleza - CE",
   hours: "Seg a Sex: 9h às 18h | Sáb: 9h às 13h",
   cartCount: 2,
