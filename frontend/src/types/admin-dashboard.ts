@@ -47,6 +47,19 @@ export type DashboardRecentOrder = {
   href: string;
 };
 
+export type DashboardProductSalesItem = {
+  id: string;
+  produtoNome: string;
+  quantidade: number;
+  valor: number;
+  href: string;
+};
+
+export type DashboardProductSales = {
+  maisVendidos: DashboardProductSalesItem[];
+  menosVendidos: DashboardProductSalesItem[];
+};
+
 export type DashboardStockItem = {
   id: string;
   produtoNome: string;
@@ -132,6 +145,7 @@ export type AdminDashboard = {
   cards: DashboardCard[];
   charts: DashboardCharts | null;
   recentOrders: DashboardRecentOrder[];
+  productSales: DashboardProductSales | null;
   stock: DashboardStock | null;
   financial: DashboardFinancial | null;
   deliveries: DashboardDeliveries | null;

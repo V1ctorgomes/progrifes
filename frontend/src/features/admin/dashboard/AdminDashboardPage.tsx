@@ -4,10 +4,8 @@ import dynamic from "next/dynamic";
 import Link from "next/link";
 import { useMemo, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
-import { Button } from "@/components/ui/Button";
-import { Input } from "@/components/ui/Input";
 import { adminDashboardApi } from "@/lib/admin-api";
-import { formatCurrency } from "@/utils/cn";
+import { cn, formatCurrency } from "@/utils/cn";
 import {
   ADMIN_DASHBOARD_PERIOD_OPTIONS,
   type AdminDashboardPeriodPreset,
@@ -19,17 +17,12 @@ import {
   TrendingUp,
   TrendingDown,
   Calendar,
-  CreditCard,
-  Package,
-  Truck,
   AlertTriangle,
-  ChevronRight,
   LineChart,
   ShoppingCart,
-  PieChart,
-  Boxes
+  Package,
+  ChevronRight,
 } from "lucide-react";
-import { cn } from "@/utils/cn";
 
 const DashboardChartsPanel = dynamic(
   () =>
@@ -60,36 +53,6 @@ function formatDateTime(value: string) {
     hour: "2-digit",
     minute: "2-digit",
   });
-}
-
-function SummaryCard({
-  label,
-  value,
-  icon: Icon,
-  variant = "default"
-}: {
-  label: string;
-  value: string | number;
-  icon?: any;
-  variant?: "default" | "alert" | "success";
-}) {
-  return (
-    <div className="flex items-start justify-between rounded-2xl bg-white p-5 shadow-sm border border-neutral-100 transition-shadow hover:shadow-md">
-      <div>
-        <p className="text-sm font-medium text-neutral-500">{label}</p>
-        <p className="mt-2 font-display text-2xl font-bold text-brand-black">{value}</p>
-      </div>
-      {Icon && (
-        <div className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-xl ${
-          variant === "alert" ? "bg-red-50 text-red-600" :
-          variant === "success" ? "bg-emerald-50 text-emerald-600" :
-          "bg-neutral-50 text-neutral-600"
-        }`}>
-          <Icon className="h-5 w-5" />
-        </div>
-      )}
-    </div>
-  );
 }
 
 export function AdminDashboardPage() {
@@ -143,7 +106,7 @@ export function AdminDashboardPage() {
   return (
     <div className="space-y-8 animate-fade-in pb-10">
       {/* Header Area */}
-      <div className="flex flex-col gap-6 lg:flex-row lg:items-end lg:justify-between">
+      <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
         <div>
           <h1 className="font-display text-3xl font-bold tracking-tight text-brand-black">
             Visão Geral
@@ -151,28 +114,12 @@ export function AdminDashboardPage() {
           <p className="mt-2 text-sm text-neutral-500">
             Acompanhe o desempenho da sua operação, pedidos e indicadores em tempo real.
           </p>
-          <div className="mt-4 flex flex-wrap items-center gap-3">
-            {[
-              { href: "/admin/pedidos", label: "Pedidos", icon: ShoppingCart },
-              { href: "/admin/estoque", label: "Estoque", icon: Boxes },
-              { href: "/admin/financeiro", label: "Financeiro", icon: CreditCard },
-              { href: "/admin/entregas", label: "Entregas", icon: Truck },
-            ].map((link) => {
-              const LinkIcon = link.icon;
-              return (
-                <Link key={link.href} href={link.href} className="group flex items-center gap-1.5 rounded-full bg-white px-3.5 py-1.5 text-xs font-semibold text-neutral-600 shadow-sm border border-neutral-200 transition-colors hover:border-brand-black hover:text-brand-black">
-                  <LinkIcon className="h-3.5 w-3.5 transition-transform group-hover:scale-110" />
-                  {link.label}
-                </Link>
-              );
-            })}
-          </div>
         </div>
-        
-        <button 
-          onClick={() => refetch()} 
+
+        <button
+          onClick={() => refetch()}
           disabled={isFetching}
-          className="flex h-11 items-center justify-center gap-2 rounded-xl bg-white px-5 text-sm font-semibold text-brand-black shadow-sm border border-neutral-200 transition-all hover:bg-neutral-50 hover:border-neutral-300 active:scale-95 disabled:opacity-50"
+          className="flex h-11 w-fit shrink-0 items-center justify-center gap-2 self-start rounded-xl bg-white px-5 text-sm font-semibold text-brand-black shadow-sm border border-neutral-200 transition-all hover:bg-neutral-50 hover:border-neutral-300 active:scale-95 disabled:opacity-50 sm:self-center"
         >
           <RefreshCw className={cn("h-4 w-4 text-neutral-500", isFetching && "animate-spin")} />
           {isFetching ? "Atualizando..." : "Atualizar dados"}
@@ -282,30 +229,42 @@ export function AdminDashboardPage() {
         </section>
       )}
 
-      {/* Grid: Recent Orders and Quick Summaries */}
       <div className="grid gap-6 xl:grid-cols-3">
-        {/* Recent Orders List */}
         <section className="xl:col-span-2 flex flex-col gap-4">
           <div className="flex items-center justify-between px-1">
             <div className="flex items-center gap-2">
               <ShoppingCart className="h-5 w-5 text-brand-black" />
               <h2 className="text-lg font-bold text-brand-black">Pedidos Recentes</h2>
             </div>
-            <Link href="/admin/pedidos" className="group flex items-center gap-1 text-sm font-semibold text-neutral-500 hover:text-brand-black">
-              Ver todos <ChevronRight className="h-4 w-4 transition-transform group-hover:translate-x-1" />
+            <Link
+              href="/admin/pedidos"
+              className="group flex items-center gap-1 text-sm font-semibold text-neutral-500 hover:text-brand-black"
+            >
+              Ver todos{" "}
+              <ChevronRight className="h-4 w-4 transition-transform group-hover:translate-x-1" />
             </Link>
           </div>
-          
+
           <div className="overflow-hidden rounded-2xl bg-white shadow-sm border border-neutral-100">
             <div className="overflow-x-auto">
               <table className="min-w-full text-left text-sm">
                 <thead className="border-b border-neutral-100 bg-neutral-50/80">
                   <tr>
-                    <th className="px-6 py-4 text-xs font-bold uppercase tracking-wider text-neutral-500">Número</th>
-                    <th className="px-6 py-4 text-xs font-bold uppercase tracking-wider text-neutral-500">Cliente</th>
-                    <th className="px-6 py-4 text-xs font-bold uppercase tracking-wider text-neutral-500">Data</th>
-                    <th className="px-6 py-4 text-xs font-bold uppercase tracking-wider text-neutral-500">Status</th>
-                    <th className="px-6 py-4 text-xs font-bold uppercase tracking-wider text-neutral-500 text-right">Valor</th>
+                    <th className="px-6 py-4 text-xs font-bold uppercase tracking-wider text-neutral-500">
+                      Número
+                    </th>
+                    <th className="px-6 py-4 text-xs font-bold uppercase tracking-wider text-neutral-500">
+                      Cliente
+                    </th>
+                    <th className="px-6 py-4 text-xs font-bold uppercase tracking-wider text-neutral-500">
+                      Data
+                    </th>
+                    <th className="px-6 py-4 text-xs font-bold uppercase tracking-wider text-neutral-500">
+                      Status
+                    </th>
+                    <th className="px-6 py-4 text-xs font-bold uppercase tracking-wider text-neutral-500 text-right">
+                      Valor
+                    </th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-neutral-100">
@@ -320,9 +279,15 @@ export function AdminDashboardPage() {
                     </tr>
                   ) : (
                     data.recentOrders.slice(0, 7).map((order) => (
-                      <tr key={order.id} className="transition-colors hover:bg-neutral-50/80 group">
+                      <tr
+                        key={order.id}
+                        className="transition-colors hover:bg-neutral-50/80 group"
+                      >
                         <td className="px-6 py-4">
-                          <Link href={order.href} className="font-semibold text-brand-black underline-offset-4 group-hover:underline">
+                          <Link
+                            href={order.href}
+                            className="font-semibold text-brand-black underline-offset-4 group-hover:underline"
+                          >
                             {order.numeroFormatado}
                           </Link>
                         </td>
@@ -349,75 +314,108 @@ export function AdminDashboardPage() {
           </div>
         </section>
 
-        {/* Quick Summaries Column */}
         <section className="flex flex-col gap-4">
           <div className="flex items-center gap-2 px-1">
-            <PieChart className="h-5 w-5 text-brand-black" />
-            <h2 className="text-lg font-bold text-brand-black">Resumo Operacional</h2>
+            <Package className="h-5 w-5 text-brand-black" />
+            <h2 className="text-lg font-bold text-brand-black">Produtos no Período</h2>
           </div>
-          
-          <div className="space-y-4">
-            {data.financial && (
-              <div className="space-y-4">
-                <SummaryCard
-                  label="Receitas do período"
-                  value={formatCurrency(data.financial.receitasPeriodo)}
-                  icon={TrendingUp}
-                  variant="success"
-                />
-                <SummaryCard
-                  label="Despesas do período"
-                  value={formatCurrency(data.financial.despesasPeriodo)}
-                  icon={TrendingDown}
-                  variant="alert"
-                />
-                <SummaryCard 
-                  label="Saldo do Período" 
-                  value={formatCurrency(data.financial.saldo)} 
-                  icon={CreditCard}
-                />
-              </div>
-            )}
-            
-            <div className="grid grid-cols-2 gap-4">
-              {data.deliveries && (
-                <div className="rounded-2xl bg-brand-black p-5 text-white shadow-md relative overflow-hidden group">
-                  <div className="absolute -right-4 -top-4 opacity-10 transition-transform group-hover:scale-110">
-                    <Truck className="h-24 w-24" />
-                  </div>
-                  <div className="relative z-10">
-                    <div className="flex items-center justify-between mb-3">
-                      <Truck className="h-5 w-5 text-white/80" />
-                    </div>
-                    <p className="font-display text-3xl font-bold">
-                      {data.deliveries.emPreparacao + data.deliveries.prontas + data.deliveries.saiuParaEntrega}
-                    </p>
-                    <p className="text-xs font-semibold uppercase tracking-wider text-white/70 mt-2 leading-tight">
-                      Entregas<br/>Pendentes
-                    </p>
-                  </div>
-                </div>
-              )}
-              {data.stock && (
-                <div className="rounded-2xl bg-amber-500 p-5 text-white shadow-md relative overflow-hidden group">
-                  <div className="absolute -right-4 -top-4 opacity-20 transition-transform group-hover:scale-110">
-                    <AlertTriangle className="h-24 w-24" />
-                  </div>
-                  <div className="relative z-10">
-                    <div className="flex items-center justify-between mb-3">
-                      <AlertTriangle className="h-5 w-5 text-white/90" />
-                    </div>
-                    <p className="font-display text-3xl font-bold">
-                      {(data.stock.totais?.semEstoque ?? data.stock.semEstoque.length) +
-                       (data.stock.totais?.estoqueBaixo ?? data.stock.estoqueBaixo.length)}
-                    </p>
-                    <p className="text-xs font-semibold uppercase tracking-wider text-white/90 mt-2 leading-tight">
-                      Alertas de<br/>Estoque
-                    </p>
-                  </div>
-                </div>
-              )}
+
+          <div className="overflow-hidden rounded-2xl bg-white shadow-sm border border-neutral-100">
+            <div className="border-b border-neutral-100 px-5 py-3">
+              <p className="text-xs font-bold uppercase tracking-wider text-emerald-700">
+                Mais saem
+              </p>
             </div>
+            <table className="min-w-full text-left text-sm">
+              <thead className="border-b border-neutral-100 bg-neutral-50/80">
+                <tr>
+                  <th className="px-5 py-3 text-xs font-bold uppercase tracking-wider text-neutral-500">
+                    Produto
+                  </th>
+                  <th className="px-5 py-3 text-xs font-bold uppercase tracking-wider text-neutral-500 text-right">
+                    Qtd
+                  </th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-neutral-100">
+                {(data.productSales?.maisVendidos.length ?? 0) === 0 ? (
+                  <tr>
+                    <td colSpan={2} className="px-5 py-8 text-center text-sm text-neutral-500">
+                      Sem vendas no período.
+                    </td>
+                  </tr>
+                ) : (
+                  data.productSales?.maisVendidos.map((product, index) => (
+                    <tr key={`mais-${product.id}`} className="hover:bg-neutral-50/80">
+                      <td className="px-5 py-3">
+                        <div className="flex items-center gap-2 min-w-0">
+                          <span className="flex h-6 w-6 shrink-0 items-center justify-center rounded-md bg-emerald-50 text-[11px] font-bold text-emerald-700">
+                            {index + 1}
+                          </span>
+                          <Link
+                            href={product.href}
+                            className="truncate font-medium text-brand-black hover:underline"
+                          >
+                            {product.produtoNome}
+                          </Link>
+                        </div>
+                      </td>
+                      <td className="px-5 py-3 text-right font-bold text-brand-black">
+                        {product.quantidade}
+                      </td>
+                    </tr>
+                  ))
+                )}
+              </tbody>
+            </table>
+
+            <div className="border-y border-neutral-100 bg-neutral-50/50 px-5 py-3">
+              <p className="text-xs font-bold uppercase tracking-wider text-amber-700">
+                Menos saem
+              </p>
+            </div>
+            <table className="min-w-full text-left text-sm">
+              <thead className="border-b border-neutral-100 bg-neutral-50/80">
+                <tr>
+                  <th className="px-5 py-3 text-xs font-bold uppercase tracking-wider text-neutral-500">
+                    Produto
+                  </th>
+                  <th className="px-5 py-3 text-xs font-bold uppercase tracking-wider text-neutral-500 text-right">
+                    Qtd
+                  </th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-neutral-100">
+                {(data.productSales?.menosVendidos.length ?? 0) === 0 ? (
+                  <tr>
+                    <td colSpan={2} className="px-5 py-8 text-center text-sm text-neutral-500">
+                      Sem dados suficientes no período.
+                    </td>
+                  </tr>
+                ) : (
+                  data.productSales?.menosVendidos.map((product, index) => (
+                    <tr key={`menos-${product.id}`} className="hover:bg-neutral-50/80">
+                      <td className="px-5 py-3">
+                        <div className="flex items-center gap-2 min-w-0">
+                          <span className="flex h-6 w-6 shrink-0 items-center justify-center rounded-md bg-amber-50 text-[11px] font-bold text-amber-700">
+                            {index + 1}
+                          </span>
+                          <Link
+                            href={product.href}
+                            className="truncate font-medium text-brand-black hover:underline"
+                          >
+                            {product.produtoNome}
+                          </Link>
+                        </div>
+                      </td>
+                      <td className="px-5 py-3 text-right font-bold text-brand-black">
+                        {product.quantidade}
+                      </td>
+                    </tr>
+                  ))
+                )}
+              </tbody>
+            </table>
           </div>
         </section>
       </div>

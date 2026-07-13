@@ -2,9 +2,7 @@ import { Injectable } from "@nestjs/common";
 import {
   InventoryStatus,
   OrderStatus,
-  PayableStatus,
   PaymentMethod,
-  ReceivableStatus,
   UserRole,
 } from "@prisma/client";
 import { hasPermission } from "../../common/permissions/role-permissions";
@@ -70,20 +68,23 @@ export class DashboardService {
 
   async getFullDashboard(query: DashboardQueryDto, user: AuthUser) {
     const range = resolveDashboardDateRange(query);
-    const [cards, charts, recentOrders, stock, financial, deliveries] = await Promise.all([
-      this.getCards(query, user),
-      this.can(user, "orders:read") ? this.buildCharts(range) : null,
-      this.can(user, "orders:read") ? this.buildRecentOrders() : [],
-      this.can(user, "stock:read") ? this.buildStockSummary() : null,
-      this.can(user, "finance:read") ? this.buildFinancialSummary(range) : null,
-      this.can(user, "orders:read") ? this.buildDeliveriesSummary(range) : null,
-    ]);
+    const [cards, charts, recentOrders, productSales, stock, financial, deliveries] =
+      await Promise.all([
+        this.getCards(query, user),
+        this.can(user, "orders:read") ? this.buildCharts(range) : null,
+        this.can(user, "orders:read") ? this.buildRecentOrders() : [],
+        this.can(user, "orders:read") ? this.buildProductSalesRanking(range) : null,
+        this.can(user, "stock:read") ? this.buildStockSummary() : null,
+        this.can(user, "finance:read") ? this.buildFinancialSummary(range) : null,
+        this.can(user, "orders:read") ? this.buildDeliveriesSummary(range) : null,
+      ]);
 
     return {
       periodo: this.periodPayload(range),
       cards: cards.cards,
       charts,
       recentOrders,
+      productSales,
       stock,
       financial,
       deliveries,
@@ -101,7 +102,6 @@ export class DashboardService {
 
     const canOrders = this.can(user, "orders:read");
     const canStock = this.can(user, "stock:read");
-    const canFinance = this.can(user, "finance:read");
 
     const [
       pedidosHoje,
@@ -110,8 +110,6 @@ export class DashboardService {
       vendasHojeAnterior,
       semEstoque,
       entregasPendentes,
-      contasReceber,
-      contasPagar,
     ] = await Promise.all([
       canOrders
         ? this.prisma.order.count({ where: { createdAt: { gte: todayStart, lte: todayEnd } } })
@@ -173,24 +171,6 @@ export class DashboardService {
             },
           })
         : Promise.resolve(0),
-      canFinance
-        ? this.prisma.accountReceivable.aggregate({
-            where: {
-              deletedAt: null,
-              status: { in: [ReceivableStatus.PENDENTE, ReceivableStatus.PARCIALMENTE_RECEBIDO, ReceivableStatus.VENCIDO] },
-            },
-            _sum: { saldo: true },
-          })
-        : Promise.resolve({ _sum: { saldo: null } }),
-      canFinance
-        ? this.prisma.accountPayable.aggregate({
-            where: {
-              deletedAt: null,
-              status: { in: [PayableStatus.PENDENTE, PayableStatus.PARCIALMENTE_PAGO, PayableStatus.VENCIDO] },
-            },
-            _sum: { saldo: true },
-          })
-        : Promise.resolve({ _sum: { saldo: null } }),
     ]);
 
     const cards = [
@@ -234,26 +214,6 @@ export class DashboardService {
             valor: semEstoque,
             formato: "number" as const,
             href: "/admin/estoque",
-            comparacao: null,
-          }
-        : null,
-      canFinance
-        ? {
-            id: "contas-receber",
-            titulo: "Contas a Receber",
-            valor: decimal(contasReceber._sum.saldo),
-            formato: "currency" as const,
-            href: "/admin/financeiro/contas-receber",
-            comparacao: null,
-          }
-        : null,
-      canFinance
-        ? {
-            id: "contas-pagar",
-            titulo: "Contas a Pagar",
-            valor: decimal(contasPagar._sum.saldo),
-            formato: "currency" as const,
-            href: "/admin/financeiro/contas-pagar",
             comparacao: null,
           }
         : null,
@@ -379,6 +339,52 @@ export class DashboardService {
       createdAt: order.createdAt.toISOString(),
       href: `/admin/pedidos/${order.id}`,
     }));
+  }
+
+  private async buildProductSalesRanking(range: DateRange) {
+    const grouped = await this.prisma.orderItem.groupBy({
+      by: ["produtoId"],
+      where: {
+        order: {
+          createdAt: { gte: range.start, lte: range.end },
+          status: { not: OrderStatus.CANCELADO },
+        },
+      },
+      _sum: { quantidade: true, subtotal: true },
+    });
+
+    if (grouped.length === 0) {
+      return { maisVendidos: [], menosVendidos: [] };
+    }
+
+    const products = await this.prisma.product.findMany({
+      where: { id: { in: grouped.map((item) => item.produtoId) } },
+      select: { id: true, nome: true },
+    });
+    const productNameById = new Map(products.map((product) => [product.id, product.nome]));
+
+    const ranked = grouped
+      .map((item) => ({
+        id: item.produtoId,
+        produtoNome: productNameById.get(item.produtoId) ?? "Produto",
+        quantidade: item._sum.quantidade ?? 0,
+        valor: decimal(item._sum.subtotal),
+        href: `/admin/produtos/${item.produtoId}/variantes`,
+      }))
+      .sort((a, b) => b.quantidade - a.quantidade || b.valor - a.valor);
+
+    const maisVendidos = ranked.slice(0, 5);
+    const menosVendidos =
+      ranked.length > 5
+        ? ranked.slice(-5).reverse()
+        : ranked.length > 1
+          ? [ranked[ranked.length - 1]]
+          : [];
+
+    return {
+      maisVendidos,
+      menosVendidos,
+    };
   }
 
   private async buildStockSummary() {
