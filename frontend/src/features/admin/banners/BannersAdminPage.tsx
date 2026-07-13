@@ -2,9 +2,19 @@
 
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useMemo, useState } from "react";
+import {
+  AlertTriangle,
+  ChevronDown,
+  ChevronUp,
+  Image as ImageIcon,
+  Pencil,
+  Plus,
+  Power,
+  RefreshCw,
+  Trash2,
+} from "lucide-react";
 import { BannerForm } from "@/components/admin/BannerForm";
 import { Modal } from "@/components/admin/Modal";
-import { Button } from "@/components/ui/Button";
 import {
   BANNER_LIMITS,
   BANNER_TYPE_ORDER,
@@ -27,7 +37,7 @@ export function BannersAdminPage() {
   const [editing, setEditing] = useState<Banner | null>(null);
   const [createType, setCreateType] = useState<BannerType>("hero");
 
-  const { data: banners = [], isLoading } = useQuery({
+  const { data: banners = [], isLoading, isFetching, refetch, isError } = useQuery({
     queryKey: ["admin", "banners"],
     queryFn: bannersAdminApi.list,
   });
@@ -103,21 +113,84 @@ export function BannersAdminPage() {
   const totalBanners = banners.length;
   const activeBanners = banners.filter((banner) => banner.ativo).length;
 
+  if (isLoading) {
+    return (
+      <div className="flex h-[60vh] flex-col items-center justify-center gap-4">
+        <RefreshCw className="h-8 w-8 animate-spin text-neutral-300" />
+        <p className="text-sm font-medium text-neutral-500">Carregando banners...</p>
+      </div>
+    );
+  }
+
+  if (isError) {
+    return (
+      <div className="flex h-[60vh] flex-col items-center justify-center gap-3 rounded-2xl border border-neutral-100 bg-white shadow-sm">
+        <AlertTriangle className="h-10 w-10 text-red-400" />
+        <p className="text-sm font-medium text-neutral-500">
+          Não foi possível carregar os banners.
+        </p>
+        <button
+          type="button"
+          onClick={() => refetch()}
+          className="mt-4 rounded-xl bg-brand-black px-5 py-2.5 text-sm font-medium text-white transition-colors hover:bg-neutral-800"
+        >
+          Tentar novamente
+        </button>
+      </div>
+    );
+  }
+
   return (
-    <div className="space-y-8">
-      <div className="flex flex-wrap items-start justify-between gap-4">
+    <div className="animate-fade-in space-y-8 pb-10">
+      <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
         <div>
-          <h1 className="font-display text-2xl font-semibold uppercase tracking-wide text-brand-black">
+          <h1 className="font-display text-3xl font-bold tracking-tight text-brand-black">
             Banners
           </h1>
-          <p className="mt-1 text-sm text-brand-gray">
+          <p className="mt-2 text-sm text-neutral-500">
             Organize os banners exibidos na vitrine da loja por tipo e ordem de exibição.
           </p>
         </div>
-        <Button onClick={() => openCreate("hero")}>Novo banner</Button>
+
+        <div className="flex flex-wrap items-center gap-3">
+          <button
+            type="button"
+            onClick={() => refetch()}
+            disabled={isFetching}
+            className="flex h-11 w-fit shrink-0 items-center justify-center gap-2 rounded-xl border border-neutral-200 bg-white px-5 text-sm font-semibold text-brand-black shadow-sm transition-all hover:border-neutral-300 hover:bg-neutral-50 active:scale-95 disabled:opacity-50"
+          >
+            <RefreshCw className={cn("h-4 w-4 text-neutral-500", isFetching && "animate-spin")} />
+            {isFetching ? "Atualizando..." : "Atualizar"}
+          </button>
+          <button
+            type="button"
+            onClick={() => openCreate("hero")}
+            className="flex h-11 w-fit shrink-0 items-center justify-center gap-2 rounded-xl bg-brand-black px-5 text-sm font-semibold text-white transition-colors hover:bg-neutral-800 active:scale-95"
+          >
+            <Plus className="h-4 w-4" />
+            Novo banner
+          </button>
+        </div>
       </div>
 
-      <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
+      <section className="grid gap-5 sm:grid-cols-2 xl:grid-cols-3">
+        <div className="rounded-2xl border border-neutral-100 bg-white p-6 shadow-sm">
+          <p className="text-sm font-semibold text-neutral-500">Total</p>
+          <p className="mt-4 font-display text-3xl font-bold text-brand-black">{totalBanners}</p>
+        </div>
+        <div className="rounded-2xl border border-neutral-100 bg-white p-6 shadow-sm">
+          <p className="text-sm font-semibold text-neutral-500">Ativos</p>
+          <p className="mt-4 font-display text-3xl font-bold text-brand-black">{activeBanners}</p>
+        </div>
+        <div className="rounded-2xl border border-neutral-100 bg-white p-6 shadow-sm">
+          <p className="text-sm font-semibold text-neutral-500">Inativos</p>
+          <p className="mt-4 font-display text-3xl font-bold text-brand-black">
+            {totalBanners - activeBanners}
+          </p>
+        </div>
+      </section>
+
+      <section className="grid gap-5 sm:grid-cols-2 xl:grid-cols-4">
         {BANNER_TYPE_ORDER.map((tipo) => {
           const count = countBannersByType(banners, tipo);
           const limit = BANNER_LIMITS[tipo] ?? 0;
@@ -126,61 +199,48 @@ export function BannersAdminPage() {
           return (
             <div
               key={tipo}
-              className="border border-neutral-200 bg-brand-white p-4"
+              className="rounded-2xl border border-neutral-100 bg-white p-6 shadow-sm transition-all hover:-translate-y-1 hover:border-brand-black hover:shadow-md"
             >
-              <p className="text-xs font-medium uppercase tracking-widest text-brand-gray">
-                {getBannerTypeLabel(tipo)}
-              </p>
-              <p className="mt-2 font-display text-2xl font-semibold text-brand-black">
+              <div className="flex items-center justify-between gap-3">
+                <p className="text-sm font-semibold text-neutral-500">{getBannerTypeLabel(tipo)}</p>
+                <div className="flex h-8 w-8 items-center justify-center rounded-full bg-neutral-50 text-neutral-400">
+                  <ImageIcon className="h-4 w-4" />
+                </div>
+              </div>
+              <p className="mt-4 font-display text-3xl font-bold text-brand-black">
                 {count}
-                <span className="text-base font-normal text-brand-gray"> / {limit}</span>
+                <span className="text-base font-medium text-neutral-400"> / {limit}</span>
               </p>
-              <p className="mt-1 text-xs text-brand-gray">
+              <p className="mt-2 text-xs font-medium text-neutral-400">
                 {atLimit ? "Limite atingido" : getBannerLimitMessage(tipo)}
               </p>
             </div>
           );
         })}
-      </div>
+      </section>
 
-      <div className="flex flex-wrap gap-4 text-sm text-brand-gray">
-        <span>
-          Total: <strong className="text-brand-black">{totalBanners}</strong>
-        </span>
-        <span>
-          Ativos: <strong className="text-brand-black">{activeBanners}</strong>
-        </span>
-        <span>
-          Inativos: <strong className="text-brand-black">{totalBanners - activeBanners}</strong>
-        </span>
-      </div>
-
-      {isLoading ? (
-        <p className="text-sm text-brand-gray">Carregando banners...</p>
-      ) : (
-        <div className="space-y-8">
-          {BANNER_TYPE_ORDER.map((tipo) => (
-            <BannerTypeSection
-              key={tipo}
-              tipo={tipo}
-              banners={groupedBanners[tipo]}
-              atLimit={isBannerTypeAtLimit(banners, tipo)}
-              isReordering={reorderMutation.isPending}
-              onCreate={() => openCreate(tipo)}
-              onEdit={openEdit}
-              onToggle={(banner) =>
-                toggleMutation.mutate({ id: banner.id, ativo: banner.ativo })
+      <div className="space-y-6">
+        {BANNER_TYPE_ORDER.map((tipo) => (
+          <BannerTypeSection
+            key={tipo}
+            tipo={tipo}
+            banners={groupedBanners[tipo]}
+            atLimit={isBannerTypeAtLimit(banners, tipo)}
+            isReordering={reorderMutation.isPending}
+            onCreate={() => openCreate(tipo)}
+            onEdit={openEdit}
+            onToggle={(banner) =>
+              toggleMutation.mutate({ id: banner.id, ativo: banner.ativo })
+            }
+            onDelete={(id) => {
+              if (confirm("Excluir este banner?")) {
+                deleteMutation.mutate(id);
               }
-              onDelete={(id) => {
-                if (confirm("Excluir este banner?")) {
-                  deleteMutation.mutate(id);
-                }
-              }}
-              onMove={(id, direction) => moveBanner(tipo, id, direction)}
-            />
-          ))}
-        </div>
-      )}
+            }}
+            onMove={(id, direction) => moveBanner(tipo, id, direction)}
+          />
+        ))}
+      </div>
 
       <Modal
         open={modalOpen}
@@ -237,108 +297,141 @@ function BannerTypeSection({
   const limit = BANNER_LIMITS[tipo] ?? 0;
 
   return (
-    <section className="border border-neutral-200">
-      <div className="flex flex-wrap items-center justify-between gap-3 border-b border-neutral-200 bg-brand-light px-4 py-3">
-        <div>
-          <h2 className="font-display text-sm font-semibold uppercase tracking-wide text-brand-black">
-            {getBannerTypeLabel(tipo)}
-          </h2>
-          <p className="text-xs text-brand-gray">
-            {banners.length} de {limit} · {getBannerLimitMessage(tipo)}
-          </p>
+    <section className="overflow-hidden rounded-2xl border border-neutral-100 bg-white shadow-sm">
+      <div className="flex flex-wrap items-center justify-between gap-3 border-b border-neutral-100 px-5 py-4">
+        <div className="flex items-center gap-3">
+          <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-neutral-100 text-neutral-600">
+            <ImageIcon className="h-5 w-5" />
+          </div>
+          <div>
+            <h2 className="text-base font-semibold text-brand-black">
+              {getBannerTypeLabel(tipo)}
+            </h2>
+            <p className="text-xs font-medium text-neutral-400">
+              {banners.length} de {limit} · {getBannerLimitMessage(tipo)}
+            </p>
+          </div>
         </div>
-        <Button size="sm" variant="outline" disabled={atLimit} onClick={onCreate}>
-          Adicionar {getBannerTypeLabel(tipo).toLowerCase()}
-        </Button>
+        <button
+          type="button"
+          disabled={atLimit}
+          onClick={onCreate}
+          className="flex h-10 items-center gap-2 rounded-xl border border-neutral-200 bg-white px-4 text-sm font-semibold text-brand-black shadow-sm transition-all hover:border-neutral-300 hover:bg-neutral-50 disabled:cursor-not-allowed disabled:opacity-50"
+        >
+          <Plus className="h-4 w-4" />
+          Adicionar
+        </button>
       </div>
 
       {banners.length === 0 ? (
-        <div className="px-4 py-10 text-center">
-          <p className="text-sm text-brand-gray">
+        <div className="flex flex-col items-center justify-center gap-3 px-5 py-12 text-center">
+          <ImageIcon className="h-8 w-8 text-neutral-300" />
+          <p className="text-sm text-neutral-500">
             Nenhum banner {getBannerTypeLabel(tipo).toLowerCase()} cadastrado.
           </p>
           {!atLimit ? (
-            <Button size="sm" variant="ghost" className="mt-3" onClick={onCreate}>
+            <button
+              type="button"
+              onClick={onCreate}
+              className="mt-1 rounded-xl bg-brand-black px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-neutral-800"
+            >
               Criar primeiro banner
-            </Button>
+            </button>
           ) : null}
         </div>
       ) : (
-        <ul className="divide-y divide-neutral-200">
+        <ul className="divide-y divide-neutral-100">
           {banners.map((banner, index) => (
             <li
               key={banner.id}
               className={cn(
-                "flex flex-col gap-4 px-4 py-4 sm:flex-row sm:items-center",
-                !banner.ativo && "bg-neutral-50",
+                "flex flex-col gap-4 px-5 py-4 transition-colors hover:bg-neutral-50/80 sm:flex-row sm:items-center",
+                !banner.ativo && "bg-neutral-50/60",
               )}
             >
               <div className="flex min-w-0 flex-1 items-center gap-4">
-                <div className="relative h-20 w-32 shrink-0 overflow-hidden border border-neutral-200 bg-brand-light">
+                <div className="relative h-20 w-32 shrink-0 overflow-hidden rounded-xl border border-neutral-100 bg-neutral-50">
                   <img
                     src={banner.imagemDesktop}
                     alt={banner.titulo}
                     className="h-full w-full object-cover"
                   />
-                  <span className="absolute left-1 top-1 bg-brand-black/75 px-1.5 py-0.5 text-[10px] font-semibold text-brand-white">
+                  <span className="absolute left-1.5 top-1.5 rounded-md bg-brand-black/80 px-1.5 py-0.5 text-[10px] font-bold text-white">
                     #{banner.ordem}
                   </span>
                 </div>
 
                 <div className="min-w-0 flex-1">
                   <div className="flex flex-wrap items-center gap-2">
-                    <p className="font-medium text-brand-black">{banner.titulo}</p>
+                    <p className="font-semibold text-brand-black">{banner.titulo}</p>
                     <span
                       className={cn(
-                        "rounded-full px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wide",
+                        "inline-flex rounded-full px-3 py-1 text-[10px] font-bold uppercase tracking-wider",
                         banner.ativo
-                          ? "bg-emerald-100 text-emerald-800"
-                          : "bg-neutral-200 text-brand-gray",
+                          ? "bg-emerald-50 text-emerald-700"
+                          : "bg-neutral-100 text-neutral-600",
                       )}
                     >
                       {banner.ativo ? "Ativo" : "Inativo"}
                     </span>
                   </div>
                   {banner.nome ? (
-                    <p className="mt-1 truncate text-xs text-brand-gray">{banner.nome}</p>
+                    <p className="mt-1 truncate text-xs font-medium text-neutral-400">
+                      {banner.nome}
+                    </p>
                   ) : null}
                   {banner.subtitulo ? (
-                    <p className="mt-1 line-clamp-2 text-sm text-brand-gray">{banner.subtitulo}</p>
+                    <p className="mt-1 line-clamp-2 text-sm text-neutral-500">{banner.subtitulo}</p>
                   ) : null}
                 </div>
               </div>
 
               <div className="flex flex-wrap items-center gap-2 sm:justify-end">
-                <div className="flex items-center gap-1 border border-neutral-200 bg-brand-white p-1">
-                  <Button
-                    size="sm"
-                    variant="ghost"
+                <div className="flex items-center gap-1 rounded-xl border border-neutral-200 bg-white p-1 shadow-sm">
+                  <button
+                    type="button"
                     disabled={index === 0 || isReordering}
                     onClick={() => onMove(banner.id, "up")}
                     aria-label="Mover para cima"
+                    className="flex h-8 w-8 items-center justify-center rounded-lg text-neutral-500 transition-colors hover:bg-neutral-100 hover:text-brand-black disabled:opacity-40"
                   >
-                    ↑
-                  </Button>
-                  <Button
-                    size="sm"
-                    variant="ghost"
+                    <ChevronUp className="h-4 w-4" />
+                  </button>
+                  <button
+                    type="button"
                     disabled={index === banners.length - 1 || isReordering}
                     onClick={() => onMove(banner.id, "down")}
                     aria-label="Mover para baixo"
+                    className="flex h-8 w-8 items-center justify-center rounded-lg text-neutral-500 transition-colors hover:bg-neutral-100 hover:text-brand-black disabled:opacity-40"
                   >
-                    ↓
-                  </Button>
+                    <ChevronDown className="h-4 w-4" />
+                  </button>
                 </div>
 
-                <Button size="sm" variant="outline" onClick={() => onEdit(banner)}>
+                <button
+                  type="button"
+                  onClick={() => onEdit(banner)}
+                  className="flex h-9 items-center gap-1.5 rounded-xl border border-neutral-200 bg-white px-3 text-xs font-semibold text-brand-black shadow-sm transition-all hover:border-neutral-300 hover:bg-neutral-50"
+                >
+                  <Pencil className="h-3.5 w-3.5" />
                   Editar
-                </Button>
-                <Button size="sm" variant="ghost" onClick={() => onToggle(banner)}>
+                </button>
+                <button
+                  type="button"
+                  onClick={() => onToggle(banner)}
+                  className="flex h-9 items-center gap-1.5 rounded-xl border border-neutral-200 bg-white px-3 text-xs font-semibold text-brand-black shadow-sm transition-all hover:border-neutral-300 hover:bg-neutral-50"
+                >
+                  <Power className="h-3.5 w-3.5" />
                   {banner.ativo ? "Desativar" : "Ativar"}
-                </Button>
-                <Button size="sm" variant="ghost" onClick={() => onDelete(banner.id)}>
+                </button>
+                <button
+                  type="button"
+                  onClick={() => onDelete(banner.id)}
+                  className="flex h-9 items-center gap-1.5 rounded-xl border border-red-100 bg-white px-3 text-xs font-semibold text-red-600 shadow-sm transition-all hover:border-red-200 hover:bg-red-50"
+                >
+                  <Trash2 className="h-3.5 w-3.5" />
                   Excluir
-                </Button>
+                </button>
               </div>
             </li>
           ))}
