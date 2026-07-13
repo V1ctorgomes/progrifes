@@ -69,6 +69,10 @@ export type DashboardStock = {
   semEstoque: DashboardStockItem[];
   estoqueBaixo: DashboardStockItem[];
   movimentacoes: DashboardStockMovement[];
+  totais?: {
+    semEstoque: number;
+    estoqueBaixo: number;
+  };
 };
 
 export type DashboardMoneyCount = {

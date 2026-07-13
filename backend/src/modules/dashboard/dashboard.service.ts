@@ -70,18 +70,14 @@ export class DashboardService {
 
   async getFullDashboard(query: DashboardQueryDto, user: AuthUser) {
     const range = resolveDashboardDateRange(query);
-    const [cards, charts, recentOrders, stock, financial, deliveries, customers, activities, shortcuts] =
-      await Promise.all([
-        this.getCards(query, user),
-        this.can(user, "orders:read") ? this.buildCharts(range) : null,
-        this.can(user, "orders:read") ? this.buildRecentOrders() : [],
-        this.can(user, "stock:read") ? this.buildStockSummary() : null,
-        this.can(user, "finance:read") ? this.buildFinancialSummary(range) : null,
-        this.can(user, "orders:read") ? this.buildDeliveriesSummary(range) : null,
-        this.can(user, "customers:read") ? this.buildCustomersSummary(range) : null,
-        this.buildActivities(user),
-        this.buildShortcuts(user),
-      ]);
+    const [cards, charts, recentOrders, stock, financial, deliveries] = await Promise.all([
+      this.getCards(query, user),
+      this.can(user, "orders:read") ? this.buildCharts(range) : null,
+      this.can(user, "orders:read") ? this.buildRecentOrders() : [],
+      this.can(user, "stock:read") ? this.buildStockSummary() : null,
+      this.can(user, "finance:read") ? this.buildFinancialSummary(range) : null,
+      this.can(user, "orders:read") ? this.buildDeliveriesSummary(range) : null,
+    ]);
 
     return {
       periodo: this.periodPayload(range),
@@ -91,9 +87,9 @@ export class DashboardService {
       stock,
       financial,
       deliveries,
-      customers,
-      activities,
-      shortcuts,
+      customers: null,
+      activities: [],
+      shortcuts: [],
     };
   }
 
@@ -105,17 +101,13 @@ export class DashboardService {
 
     const canOrders = this.can(user, "orders:read");
     const canStock = this.can(user, "stock:read");
-    const canCustomers = this.can(user, "customers:read");
     const canFinance = this.can(user, "finance:read");
-    const canProducts = this.can(user, "products:read");
 
     const [
       pedidosHoje,
       pedidosHojeAnterior,
       vendasHoje,
       vendasHojeAnterior,
-      clientesTotal,
-      produtosTotal,
       semEstoque,
       entregasPendentes,
       contasReceber,
@@ -164,10 +156,6 @@ export class DashboardService {
             _count: true,
           })
         : Promise.resolve({ _sum: { total: null }, _count: 0 }),
-      canCustomers ? this.prisma.customer.count() : Promise.resolve(0),
-      canProducts
-        ? this.prisma.product.count({ where: { deletedAt: null } })
-        : Promise.resolve(0),
       canStock
         ? this.prisma.inventory.count({ where: { status: InventoryStatus.SEM_ESTOQUE } })
         : Promise.resolve(0),
@@ -218,16 +206,6 @@ export class DashboardService {
         : null,
       canOrders
         ? {
-            id: "vendas-hoje",
-            titulo: "Vendas Hoje",
-            valor: vendasHoje._count,
-            formato: "number" as const,
-            href: "/admin/pedidos",
-            comparacao: comparisonResult(vendasHoje._count, vendasHojeAnterior._count),
-          }
-        : null,
-      canOrders
-        ? {
             id: "faturamento-dia",
             titulo: "Faturamento do Dia",
             valor: decimal(vendasHoje._sum.total),
@@ -239,23 +217,13 @@ export class DashboardService {
             ),
           }
         : null,
-      canCustomers
+      canOrders
         ? {
-            id: "clientes",
-            titulo: "Clientes Cadastrados",
-            valor: clientesTotal,
+            id: "entregas-pendentes",
+            titulo: "Entregas Pendentes",
+            valor: entregasPendentes,
             formato: "number" as const,
-            href: "/admin/clientes",
-            comparacao: null,
-          }
-        : null,
-      canProducts
-        ? {
-            id: "produtos",
-            titulo: "Produtos Cadastrados",
-            valor: produtosTotal,
-            formato: "number" as const,
-            href: "/admin/produtos",
+            href: "/admin/entregas",
             comparacao: null,
           }
         : null,
@@ -266,16 +234,6 @@ export class DashboardService {
             valor: semEstoque,
             formato: "number" as const,
             href: "/admin/estoque",
-            comparacao: null,
-          }
-        : null,
-      canOrders
-        ? {
-            id: "entregas-pendentes",
-            titulo: "Entregas Pendentes",
-            valor: entregasPendentes,
-            formato: "number" as const,
-            href: "/admin/entregas",
             comparacao: null,
           }
         : null,
@@ -424,120 +382,39 @@ export class DashboardService {
   }
 
   private async buildStockSummary() {
-    const [semEstoque, estoqueBaixo, movimentos] = await Promise.all([
-      this.prisma.inventory.findMany({
-        where: { status: InventoryStatus.SEM_ESTOQUE },
-        take: 5,
-        orderBy: { updatedAt: "desc" },
-        include: {
-          variant: {
-            select: {
-              sku: true,
-              produto: { select: { nome: true } },
-            },
-          },
-        },
-      }),
-      this.prisma.inventory.findMany({
-        where: { status: InventoryStatus.ESTOQUE_BAIXO },
-        take: 5,
-        orderBy: { quantidadeDisponivel: "asc" },
-        include: {
-          variant: {
-            select: {
-              sku: true,
-              produto: { select: { nome: true } },
-            },
-          },
-        },
-      }),
-      this.prisma.inventoryMovement.findMany({
-        take: 8,
-        orderBy: { createdAt: "desc" },
-        include: {
-          variant: {
-            select: {
-              sku: true,
-              produto: { select: { nome: true } },
-            },
-          },
-        },
-      }),
+    const [semEstoque, estoqueBaixo] = await Promise.all([
+      this.prisma.inventory.count({ where: { status: InventoryStatus.SEM_ESTOQUE } }),
+      this.prisma.inventory.count({ where: { status: InventoryStatus.ESTOQUE_BAIXO } }),
     ]);
 
-    const mapItem = (item: (typeof semEstoque)[number]) => ({
-      id: item.id,
-      produtoNome: item.variant.produto.nome,
-      sku: item.variant.sku,
-      quantidadeDisponivel: item.quantidadeDisponivel,
-      href: "/admin/estoque",
-    });
-
     return {
-      semEstoque: semEstoque.map(mapItem),
-      estoqueBaixo: estoqueBaixo.map(mapItem),
-      movimentacoes: movimentos.map((item) => ({
-        id: item.id,
-        tipo: item.tipo,
-        produtoNome: item.variant.produto.nome,
-        sku: item.variant.sku,
-        quantidade: item.quantidade,
-        createdAt: item.createdAt.toISOString(),
-        href: `/admin/estoque/movimentacoes/${item.id}`,
-      })),
+      semEstoque: [],
+      estoqueBaixo: [],
+      movimentacoes: [],
+      totais: {
+        semEstoque,
+        estoqueBaixo,
+      },
     };
   }
 
   private async buildFinancialSummary(range: DateRange) {
-    const now = new Date();
-    const in7Days = new Date(now);
-    in7Days.setDate(in7Days.getDate() + 7);
-
-    const [receitas, despesas, vencidasReceber, vencidasPagar, aVencerReceber, aVencerPagar] =
-      await Promise.all([
-        this.prisma.accountReceivableReceipt.aggregate({
-          where: {
-            estornado: false,
-            recebidoEm: { gte: range.start, lte: range.end },
-          },
-          _sum: { valor: true },
-        }),
-        this.prisma.accountPayablePayment.aggregate({
-          where: {
-            estornado: false,
-            pagoEm: { gte: range.start, lte: range.end },
-          },
-          _sum: { valor: true },
-        }),
-        this.prisma.accountReceivable.aggregate({
-          where: { deletedAt: null, status: ReceivableStatus.VENCIDO },
-          _sum: { saldo: true },
-          _count: true,
-        }),
-        this.prisma.accountPayable.aggregate({
-          where: { deletedAt: null, status: PayableStatus.VENCIDO },
-          _sum: { saldo: true },
-          _count: true,
-        }),
-        this.prisma.accountReceivable.aggregate({
-          where: {
-            deletedAt: null,
-            status: { in: [ReceivableStatus.PENDENTE, ReceivableStatus.PARCIALMENTE_RECEBIDO] },
-            vencimento: { gte: now, lte: in7Days },
-          },
-          _sum: { saldo: true },
-          _count: true,
-        }),
-        this.prisma.accountPayable.aggregate({
-          where: {
-            deletedAt: null,
-            status: { in: [PayableStatus.PENDENTE, PayableStatus.PARCIALMENTE_PAGO] },
-            vencimento: { gte: now, lte: in7Days },
-          },
-          _sum: { saldo: true },
-          _count: true,
-        }),
-      ]);
+    const [receitas, despesas] = await Promise.all([
+      this.prisma.accountReceivableReceipt.aggregate({
+        where: {
+          estornado: false,
+          recebidoEm: { gte: range.start, lte: range.end },
+        },
+        _sum: { valor: true },
+      }),
+      this.prisma.accountPayablePayment.aggregate({
+        where: {
+          estornado: false,
+          pagoEm: { gte: range.start, lte: range.end },
+        },
+        _sum: { valor: true },
+      }),
+    ]);
 
     const receitasPeriodo = decimal(receitas._sum.valor);
     const despesasPeriodo = decimal(despesas._sum.valor);
@@ -547,24 +424,12 @@ export class DashboardService {
       despesasPeriodo,
       saldo: receitasPeriodo - despesasPeriodo,
       contasVencidas: {
-        receber: {
-          quantidade: vencidasReceber._count,
-          valor: decimal(vencidasReceber._sum.saldo),
-        },
-        pagar: {
-          quantidade: vencidasPagar._count,
-          valor: decimal(vencidasPagar._sum.saldo),
-        },
+        receber: { quantidade: 0, valor: 0 },
+        pagar: { quantidade: 0, valor: 0 },
       },
       contasAVencer: {
-        receber: {
-          quantidade: aVencerReceber._count,
-          valor: decimal(aVencerReceber._sum.saldo),
-        },
-        pagar: {
-          quantidade: aVencerPagar._count,
-          valor: decimal(aVencerPagar._sum.saldo),
-        },
+        receber: { quantidade: 0, valor: 0 },
+        pagar: { quantidade: 0, valor: 0 },
       },
     };
   }
