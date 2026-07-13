@@ -4,13 +4,32 @@ import dynamic from "next/dynamic";
 import Link from "next/link";
 import { useMemo, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
+import { Button } from "@/components/ui/Button";
+import { Input } from "@/components/ui/Input";
 import { adminDashboardApi } from "@/lib/admin-api";
-import { cn, formatCurrency } from "@/utils/cn";
+import { formatCurrency } from "@/utils/cn";
 import {
   ADMIN_DASHBOARD_PERIOD_OPTIONS,
   type AdminDashboardPeriodPreset,
   type DashboardCard,
 } from "@/types/admin-dashboard";
+import {
+  ArrowRight,
+  RefreshCw,
+  TrendingUp,
+  TrendingDown,
+  Calendar,
+  CreditCard,
+  Package,
+  Truck,
+  AlertTriangle,
+  ChevronRight,
+  LineChart,
+  ShoppingCart,
+  PieChart,
+  Boxes
+} from "lucide-react";
+import { cn } from "@/utils/cn";
 
 const DashboardChartsPanel = dynamic(
   () =>
@@ -20,19 +39,17 @@ const DashboardChartsPanel = dynamic(
   {
     ssr: false,
     loading: () => (
-      <div className="flex h-72 items-center justify-center text-sm text-brand-gray">
-        Montando gráficos...
+      <div className="flex h-[320px] items-center justify-center rounded-2xl bg-white shadow-sm border border-neutral-100 w-full">
+        <div className="flex items-center gap-3 text-neutral-400">
+          <RefreshCw className="h-5 w-5 animate-spin" />
+          <p className="text-sm font-medium">Renderizando gráficos...</p>
+        </div>
       </div>
     ),
   },
 );
 
-function findCard(cards: DashboardCard[], id: string) {
-  return cards.find((card) => card.id === id);
-}
-
-function formatValue(card: DashboardCard | undefined, fallback = "—") {
-  if (!card) return fallback;
+function formatCardValue(card: DashboardCard) {
   return card.formato === "currency" ? formatCurrency(card.valor) : String(card.valor);
 }
 
@@ -45,29 +62,33 @@ function formatDateTime(value: string) {
   });
 }
 
-function Trend({
+function SummaryCard({
+  label,
   value,
-  className,
+  icon: Icon,
+  variant = "default"
 }: {
-  value?: { variacaoPercentual: number; tendencia: string } | null;
-  className?: string;
+  label: string;
+  value: string | number;
+  icon?: any;
+  variant?: "default" | "alert" | "success";
 }) {
-  if (!value) return null;
-  const positive = value.tendencia === "ALTA";
-  const negative = value.tendencia === "BAIXA";
   return (
-    <span
-      className={cn(
-        "text-xs font-medium tracking-wide",
-        positive && "text-emerald-600",
-        negative && "text-red-600",
-        !positive && !negative && "text-brand-gray",
-        className,
+    <div className="flex items-start justify-between rounded-2xl bg-white p-5 shadow-sm border border-neutral-100 transition-shadow hover:shadow-md">
+      <div>
+        <p className="text-sm font-medium text-neutral-500">{label}</p>
+        <p className="mt-2 font-display text-2xl font-bold text-brand-black">{value}</p>
+      </div>
+      {Icon && (
+        <div className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-xl ${
+          variant === "alert" ? "bg-red-50 text-red-600" :
+          variant === "success" ? "bg-emerald-50 text-emerald-600" :
+          "bg-neutral-50 text-neutral-600"
+        }`}>
+          <Icon className="h-5 w-5" />
+        </div>
       )}
-    >
-      {value.variacaoPercentual > 0 ? "+" : ""}
-      {value.variacaoPercentual.toFixed(1)}%
-    </span>
+    </div>
   );
 }
 
@@ -93,364 +114,310 @@ export function AdminDashboardPage() {
     enabled,
   });
 
+  const cards = data?.cards ?? [];
+
   if (isLoading) {
     return (
-      <div className="flex min-h-[50vh] items-center justify-center">
-        <p className="animate-pulse text-sm uppercase tracking-[0.2em] text-brand-gray">
-          Carregando operação...
-        </p>
+      <div className="flex h-[60vh] flex-col items-center justify-center gap-4">
+        <RefreshCw className="h-8 w-8 animate-spin text-neutral-300" />
+        <p className="text-sm font-medium text-neutral-500">Preparando o seu dashboard...</p>
       </div>
     );
   }
 
   if (!data) {
     return (
-      <div className="flex min-h-[40vh] items-center justify-center">
-        <p className="text-sm text-brand-gray">Não foi possível carregar o dashboard.</p>
+      <div className="flex h-[60vh] flex-col items-center justify-center gap-3 rounded-2xl bg-white border border-neutral-100 shadow-sm">
+        <AlertTriangle className="h-10 w-10 text-red-400" />
+        <p className="text-sm font-medium text-neutral-500">Não foi possível carregar os dados do dashboard.</p>
+        <button 
+          onClick={() => refetch()} 
+          className="mt-4 rounded-xl bg-brand-black px-5 py-2.5 text-sm font-medium text-white transition-colors hover:bg-neutral-800"
+        >
+          Tentar novamente
+        </button>
       </div>
     );
   }
 
-  const cards = data.cards;
-  const faturamento = findCard(cards, "faturamento-dia");
-  const pedidosHoje = findCard(cards, "pedidos-hoje");
-  const entregas = findCard(cards, "entregas-pendentes");
-  const semEstoque = findCard(cards, "sem-estoque");
-  const receber = findCard(cards, "contas-receber");
-  const pagar = findCard(cards, "contas-pagar");
-
-  const entregasAndamento = data.deliveries
-    ? data.deliveries.emPreparacao +
-      data.deliveries.prontas +
-      data.deliveries.saiuParaEntrega
-    : 0;
-
-  const alertasEstoque =
-    (data.stock?.totais?.semEstoque ?? 0) + (data.stock?.totais?.estoqueBaixo ?? 0);
-
-  const modules = [
-    {
-      href: "/admin/pedidos",
-      label: "Pedidos",
-      metric: formatValue(pedidosHoje, "0"),
-      hint: "hoje",
-    },
-    {
-      href: "/admin/estoque",
-      label: "Estoque",
-      metric: String(alertasEstoque),
-      hint: "alertas",
-    },
-    {
-      href: "/admin/financeiro",
-      label: "Financeiro",
-      metric: data.financial ? formatCurrency(data.financial.saldo) : "—",
-      hint: "saldo do período",
-    },
-    {
-      href: "/admin/entregas",
-      label: "Entregas",
-      metric: String(entregasAndamento || entregas?.valor || 0),
-      hint: "em andamento",
-    },
-  ];
-
   return (
-    <div className="dashboard-shell -mx-4 -mt-4 space-y-0 sm:-mx-6 sm:-mt-6 lg:-mx-8 lg:-mt-8">
-      {/* Command header */}
-      <header className="relative overflow-hidden bg-brand-black px-4 py-8 text-brand-white sm:px-6 lg:px-8 lg:py-10">
-        <div
-          className="pointer-events-none absolute inset-0 opacity-[0.12]"
-          style={{
-            backgroundImage:
-              "linear-gradient(135deg, transparent 40%, #c8a96e 100%), repeating-linear-gradient(-45deg, transparent, transparent 12px, rgba(255,255,255,0.03) 12px, rgba(255,255,255,0.03) 13px)",
-          }}
-        />
-        <div className="relative animate-fade-in space-y-8">
-          <div className="flex flex-col gap-6 lg:flex-row lg:items-end lg:justify-between">
-            <div className="max-w-xl space-y-3">
-              <p className="text-[11px] font-medium uppercase tracking-[0.35em] text-brand-accent">
-                Centro de comando
-              </p>
-              <h1 className="font-display text-4xl font-semibold uppercase leading-none tracking-wide sm:text-5xl">
-                Operação
-              </h1>
-              <p className="max-w-md text-sm leading-relaxed text-neutral-400">
-                Leitura rápida do dia e do período. Um painel, quatro frentes.
-              </p>
-            </div>
+    <div className="space-y-8 animate-fade-in pb-10">
+      {/* Header Area */}
+      <div className="flex flex-col gap-6 lg:flex-row lg:items-end lg:justify-between">
+        <div>
+          <h1 className="font-display text-3xl font-bold tracking-tight text-brand-black">
+            Visão Geral
+          </h1>
+          <p className="mt-2 text-sm text-neutral-500">
+            Acompanhe o desempenho da sua operação, pedidos e indicadores em tempo real.
+          </p>
+          <div className="mt-4 flex flex-wrap items-center gap-3">
+            {[
+              { href: "/admin/pedidos", label: "Pedidos", icon: ShoppingCart },
+              { href: "/admin/estoque", label: "Estoque", icon: Boxes },
+              { href: "/admin/financeiro", label: "Financeiro", icon: CreditCard },
+              { href: "/admin/entregas", label: "Entregas", icon: Truck },
+            ].map((link) => {
+              const LinkIcon = link.icon;
+              return (
+                <Link key={link.href} href={link.href} className="group flex items-center gap-1.5 rounded-full bg-white px-3.5 py-1.5 text-xs font-semibold text-neutral-600 shadow-sm border border-neutral-200 transition-colors hover:border-brand-black hover:text-brand-black">
+                  <LinkIcon className="h-3.5 w-3.5 transition-transform group-hover:scale-110" />
+                  {link.label}
+                </Link>
+              );
+            })}
+          </div>
+        </div>
+        
+        <button 
+          onClick={() => refetch()} 
+          disabled={isFetching}
+          className="flex h-11 items-center justify-center gap-2 rounded-xl bg-white px-5 text-sm font-semibold text-brand-black shadow-sm border border-neutral-200 transition-all hover:bg-neutral-50 hover:border-neutral-300 active:scale-95 disabled:opacity-50"
+        >
+          <RefreshCw className={cn("h-4 w-4 text-neutral-500", isFetching && "animate-spin")} />
+          {isFetching ? "Atualizando..." : "Atualizar dados"}
+        </button>
+      </div>
 
-            <div className="flex flex-col items-stretch gap-3 sm:items-end">
-              <button
-                type="button"
-                onClick={() => refetch()}
-                disabled={isFetching}
-                className="border border-white/20 px-4 py-2 text-xs font-medium uppercase tracking-[0.2em] text-white transition hover:border-brand-accent hover:text-brand-accent disabled:opacity-50"
-              >
-                {isFetching ? "Sincronizando" : "Sincronizar"}
-              </button>
-              <p className="text-[11px] uppercase tracking-wider text-neutral-500">
-                {new Date(data.periodo.dataInicio).toLocaleDateString("pt-BR")} —{" "}
+      {/* Filters Area */}
+      <section className="rounded-2xl bg-white p-5 shadow-sm border border-neutral-100">
+        <div className="flex flex-col gap-5 md:flex-row md:items-center md:justify-between">
+          <div className="flex items-center gap-3">
+            <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-neutral-100 text-neutral-600">
+              <Calendar className="h-5 w-5" />
+            </div>
+            <div>
+              <h2 className="text-base font-semibold text-brand-black">Período de Análise</h2>
+              <p className="text-xs font-medium text-neutral-400">
+                {new Date(data.periodo.dataInicio).toLocaleDateString("pt-BR")} até{" "}
                 {new Date(data.periodo.dataFim).toLocaleDateString("pt-BR")}
               </p>
             </div>
           </div>
-
-          <div className="flex flex-wrap gap-2">
-            {ADMIN_DASHBOARD_PERIOD_OPTIONS.filter((option) => option.value !== "PERSONALIZADO").map(
-              (option) => (
-                <button
-                  key={option.value}
-                  type="button"
-                  onClick={() => setPreset(option.value)}
-                  className={cn(
-                    "px-3 py-1.5 text-[11px] font-medium uppercase tracking-[0.16em] transition",
-                    preset === option.value
-                      ? "bg-brand-accent text-brand-black"
-                      : "bg-white/5 text-neutral-300 hover:bg-white/10 hover:text-white",
-                  )}
-                >
-                  {option.label}
-                </button>
-              ),
-            )}
-            <button
-              type="button"
-              onClick={() => setPreset("PERSONALIZADO")}
-              className={cn(
-                "px-3 py-1.5 text-[11px] font-medium uppercase tracking-[0.16em] transition",
-                preset === "PERSONALIZADO"
-                  ? "bg-brand-accent text-brand-black"
-                  : "bg-white/5 text-neutral-300 hover:bg-white/10 hover:text-white",
-              )}
-            >
-              Personalizado
-            </button>
-          </div>
-
-          {preset === "PERSONALIZADO" ? (
-            <div className="flex flex-wrap gap-3">
-              <label className="flex flex-col gap-1 text-[10px] uppercase tracking-wider text-neutral-400">
-                De
+          <div className="flex flex-wrap items-end gap-3">
+            <div className="w-full sm:w-56">
+              <select
+                className="w-full rounded-xl border border-neutral-200 bg-white px-4 py-2.5 text-sm font-medium text-brand-black outline-none transition-colors focus:border-brand-black focus:ring-1 focus:ring-brand-black"
+                value={preset}
+                onChange={(event) => setPreset(event.target.value as AdminDashboardPeriodPreset)}
+              >
+                {ADMIN_DASHBOARD_PERIOD_OPTIONS.map((option) => (
+                  <option key={option.value} value={option.value}>
+                    {option.label}
+                  </option>
+                ))}
+              </select>
+            </div>
+            {preset === "PERSONALIZADO" && (
+              <div className="flex w-full items-center gap-2 sm:w-auto">
                 <input
                   type="date"
                   value={dataInicio}
                   onChange={(event) => setDataInicio(event.target.value)}
-                  className="border border-white/20 bg-transparent px-3 py-2 text-sm text-white outline-none focus:border-brand-accent"
+                  className="w-full sm:w-40 rounded-xl border border-neutral-200 px-3 py-2.5 text-sm outline-none focus:border-brand-black"
                 />
-              </label>
-              <label className="flex flex-col gap-1 text-[10px] uppercase tracking-wider text-neutral-400">
-                Até
+                <span className="text-neutral-400 font-medium text-sm">até</span>
                 <input
                   type="date"
                   value={dataFim}
                   onChange={(event) => setDataFim(event.target.value)}
-                  className="border border-white/20 bg-transparent px-3 py-2 text-sm text-white outline-none focus:border-brand-accent"
+                  className="w-full sm:w-40 rounded-xl border border-neutral-200 px-3 py-2.5 text-sm outline-none focus:border-brand-black"
                 />
-              </label>
-            </div>
-          ) : null}
-
-          <div className="grid gap-8 border-t border-white/10 pt-8 lg:grid-cols-[1.4fr_1fr]">
-            <div className="animate-slide-up space-y-2">
-              <p className="text-[11px] uppercase tracking-[0.25em] text-neutral-400">
-                Faturamento do dia
-              </p>
-              <p className="font-display text-5xl font-semibold tracking-tight text-white sm:text-6xl">
-                {formatValue(faturamento)}
-              </p>
-              <div className="flex items-center gap-3">
-                <Trend value={faturamento?.comparacao} className="text-sm" />
-                <span className="text-xs text-neutral-500">vs ontem</span>
               </div>
-            </div>
-            <div className="grid grid-cols-2 gap-6 animate-slide-up sm:gap-8">
-              <div>
-                <p className="text-[11px] uppercase tracking-[0.2em] text-neutral-400">
-                  Pedidos hoje
-                </p>
-                <p className="mt-2 font-display text-3xl font-semibold sm:text-4xl">
-                  {formatValue(pedidosHoje, "0")}
-                </p>
-                <Trend value={pedidosHoje?.comparacao} className="mt-1 block" />
-              </div>
-              <div>
-                <p className="text-[11px] uppercase tracking-[0.2em] text-neutral-400">
-                  Entregas abertas
-                </p>
-                <p className="mt-2 font-display text-3xl font-semibold sm:text-4xl">
-                  {formatValue(entregas, "0")}
-                </p>
-              </div>
-            </div>
+            )}
           </div>
         </div>
-      </header>
+      </section>
 
-      <div className="space-y-10 bg-brand-light px-4 py-8 sm:px-6 lg:px-8 lg:py-10">
-        {/* Module launchers — interactive destinations */}
-        <section className="animate-slide-up">
-          <div className="mb-4 flex items-end justify-between gap-3">
-            <h2 className="font-display text-sm font-semibold uppercase tracking-[0.2em] text-brand-black">
-              Frentes
-            </h2>
-          </div>
-          <div className="grid gap-px bg-brand-black sm:grid-cols-2 xl:grid-cols-4">
-            {modules.map((module, index) => (
-              <Link
-                key={module.href}
-                href={module.href}
-                className="group relative bg-brand-white p-5 transition duration-300 hover:bg-brand-black hover:text-white sm:p-6"
-                style={{ animationDelay: `${index * 60}ms` }}
-              >
-                <div className="flex items-start justify-between gap-3">
-                  <p className="text-[11px] font-medium uppercase tracking-[0.22em] text-brand-gray transition group-hover:text-brand-accent">
-                    {module.label}
-                  </p>
-                  <span className="text-brand-accent opacity-0 transition group-hover:opacity-100">
-                    →
-                  </span>
-                </div>
-                <p className="mt-6 font-display text-3xl font-semibold tracking-tight">
-                  {module.metric}
-                </p>
-                <p className="mt-1 text-xs text-brand-gray transition group-hover:text-neutral-400">
-                  {module.hint}
-                </p>
-              </Link>
-            ))}
-          </div>
-        </section>
-
-        {/* KPI strip */}
-        <section className="grid gap-6 border-y border-neutral-300 py-6 sm:grid-cols-3">
-          <div>
-            <p className="text-[11px] uppercase tracking-[0.2em] text-brand-gray">A receber</p>
-            <p className="mt-2 font-display text-2xl font-semibold text-brand-black">
-              {formatValue(receber)}
-            </p>
-          </div>
-          <div>
-            <p className="text-[11px] uppercase tracking-[0.2em] text-brand-gray">A pagar</p>
-            <p className="mt-2 font-display text-2xl font-semibold text-brand-black">
-              {formatValue(pagar)}
-            </p>
-          </div>
-          <div>
-            <p className="text-[11px] uppercase tracking-[0.2em] text-brand-gray">Sem estoque</p>
-            <p className="mt-2 font-display text-2xl font-semibold text-brand-black">
-              {formatValue(semEstoque, "0")}
-            </p>
-          </div>
-        </section>
-
-        {/* Charts + pulse */}
-        <section className="grid gap-8 xl:grid-cols-[1.6fr_0.9fr]">
-          <div className="min-w-0">
-            <div className="mb-4 flex items-baseline justify-between gap-3">
-              <h2 className="font-display text-sm font-semibold uppercase tracking-[0.2em] text-brand-black">
-                Movimento
-              </h2>
-              <p className="text-[11px] uppercase tracking-wider text-brand-gray">
-                Faturamento × pedidos
-              </p>
-            </div>
-            {data.charts ? <DashboardChartsPanel charts={data.charts} /> : null}
-          </div>
-
-          <aside className="space-y-0 border border-brand-black bg-brand-white">
-            <div className="border-b border-neutral-200 bg-brand-black px-5 py-4 text-white">
-              <p className="text-[11px] uppercase tracking-[0.25em] text-brand-accent">Pulso</p>
-              <p className="mt-1 font-display text-lg uppercase tracking-wide">Resumo do período</p>
-            </div>
-            {data.financial ? (
-              <>
-                <div className="border-b border-neutral-200 px-5 py-4">
-                  <p className="text-[11px] uppercase tracking-[0.18em] text-brand-gray">Receitas</p>
-                  <p className="mt-1 font-display text-xl font-semibold">
-                    {formatCurrency(data.financial.receitasPeriodo)}
-                  </p>
-                </div>
-                <div className="border-b border-neutral-200 px-5 py-4">
-                  <p className="text-[11px] uppercase tracking-[0.18em] text-brand-gray">Despesas</p>
-                  <p className="mt-1 font-display text-xl font-semibold">
-                    {formatCurrency(data.financial.despesasPeriodo)}
-                  </p>
-                </div>
-                <div className="border-b border-neutral-200 px-5 py-4">
-                  <p className="text-[11px] uppercase tracking-[0.18em] text-brand-gray">Saldo</p>
-                  <p
-                    className={cn(
-                      "mt-1 font-display text-xl font-semibold",
-                      data.financial.saldo >= 0 ? "text-emerald-700" : "text-red-700",
-                    )}
-                  >
-                    {formatCurrency(data.financial.saldo)}
-                  </p>
-                </div>
-              </>
-            ) : null}
-            <div className="border-b border-neutral-200 px-5 py-4">
-              <p className="text-[11px] uppercase tracking-[0.18em] text-brand-gray">
-                Entregas em curso
-              </p>
-              <p className="mt-1 font-display text-xl font-semibold">{entregasAndamento}</p>
-            </div>
-            <div className="px-5 py-4">
-              <p className="text-[11px] uppercase tracking-[0.18em] text-brand-gray">
-                Alertas de estoque
-              </p>
-              <p className="mt-1 font-display text-xl font-semibold">{alertasEstoque}</p>
-            </div>
-          </aside>
-        </section>
-
-        {/* Recent orders */}
-        <section>
-          <div className="mb-4 flex items-end justify-between gap-3">
-            <div>
-              <h2 className="font-display text-sm font-semibold uppercase tracking-[0.2em] text-brand-black">
-                Fluxo recente
-              </h2>
-              <p className="mt-1 text-xs text-brand-gray">Últimos pedidos entrando no sistema</p>
-            </div>
+      {/* Main KPI Cards */}
+      <section className="grid gap-5 sm:grid-cols-2 xl:grid-cols-4">
+        {cards.map((card) => {
+          const tendAl = card.comparacao?.tendencia === "ALTA";
+          const tendBa = card.comparacao?.tendencia === "BAIXA";
+          
+          return (
             <Link
-              href="/admin/pedidos"
-              className="text-[11px] font-medium uppercase tracking-[0.18em] text-brand-black transition hover:text-brand-accent"
+              key={card.id}
+              href={card.href}
+              className="group relative flex flex-col justify-between overflow-hidden rounded-2xl bg-white p-6 shadow-sm border border-neutral-100 transition-all hover:-translate-y-1 hover:shadow-md hover:border-brand-black"
             >
-              Ver pedidos
+              <div className="flex items-center justify-between">
+                <p className="text-sm font-semibold text-neutral-500">{card.titulo}</p>
+                <div className="flex h-8 w-8 items-center justify-center rounded-full bg-neutral-50 text-neutral-400 transition-colors group-hover:bg-brand-black group-hover:text-white">
+                  <ArrowRight className="h-4 w-4" />
+                </div>
+              </div>
+              <p className="mt-4 font-display text-3xl font-bold text-brand-black">
+                {formatCardValue(card)}
+              </p>
+              
+              {card.comparacao && (
+                <div className="mt-4 flex items-center gap-2">
+                  <span className={cn(
+                    "flex items-center gap-1 rounded-md px-2 py-1 text-xs font-bold",
+                    tendAl ? "bg-emerald-50 text-emerald-700" :
+                    tendBa ? "bg-red-50 text-red-700" : "bg-neutral-100 text-neutral-600"
+                  )}>
+                    {tendAl && <TrendingUp className="h-3 w-3" />}
+                    {tendBa && <TrendingDown className="h-3 w-3" />}
+                    {card.comparacao.variacaoPercentual > 0 ? "+" : ""}
+                    {card.comparacao.variacaoPercentual.toFixed(1)}%
+                  </span>
+                  <span className="text-xs font-medium text-neutral-400">vs período anterior</span>
+                </div>
+              )}
+            </Link>
+          );
+        })}
+      </section>
+
+      {/* Charts Section */}
+      {data.charts && (
+        <section className="rounded-2xl bg-white p-5 shadow-sm border border-neutral-100">
+          <div className="mb-6 flex items-center gap-2">
+            <LineChart className="h-5 w-5 text-brand-black" />
+            <h2 className="text-lg font-bold text-brand-black">Desempenho Geral</h2>
+          </div>
+          <DashboardChartsPanel charts={data.charts} />
+        </section>
+      )}
+
+      {/* Grid: Recent Orders and Quick Summaries */}
+      <div className="grid gap-6 xl:grid-cols-3">
+        {/* Recent Orders List */}
+        <section className="xl:col-span-2 flex flex-col gap-4">
+          <div className="flex items-center justify-between px-1">
+            <div className="flex items-center gap-2">
+              <ShoppingCart className="h-5 w-5 text-brand-black" />
+              <h2 className="text-lg font-bold text-brand-black">Pedidos Recentes</h2>
+            </div>
+            <Link href="/admin/pedidos" className="group flex items-center gap-1 text-sm font-semibold text-neutral-500 hover:text-brand-black">
+              Ver todos <ChevronRight className="h-4 w-4 transition-transform group-hover:translate-x-1" />
             </Link>
           </div>
+          
+          <div className="overflow-hidden rounded-2xl bg-white shadow-sm border border-neutral-100">
+            <div className="overflow-x-auto">
+              <table className="min-w-full text-left text-sm">
+                <thead className="border-b border-neutral-100 bg-neutral-50/80">
+                  <tr>
+                    <th className="px-6 py-4 text-xs font-bold uppercase tracking-wider text-neutral-500">Número</th>
+                    <th className="px-6 py-4 text-xs font-bold uppercase tracking-wider text-neutral-500">Cliente</th>
+                    <th className="px-6 py-4 text-xs font-bold uppercase tracking-wider text-neutral-500">Data</th>
+                    <th className="px-6 py-4 text-xs font-bold uppercase tracking-wider text-neutral-500">Status</th>
+                    <th className="px-6 py-4 text-xs font-bold uppercase tracking-wider text-neutral-500 text-right">Valor</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-neutral-100">
+                  {data.recentOrders.length === 0 ? (
+                    <tr>
+                      <td colSpan={5} className="px-6 py-12 text-center text-neutral-500">
+                        <div className="flex flex-col items-center justify-center gap-2">
+                          <Package className="h-8 w-8 text-neutral-300" />
+                          <p>Nenhum pedido recente no período selecionado.</p>
+                        </div>
+                      </td>
+                    </tr>
+                  ) : (
+                    data.recentOrders.slice(0, 7).map((order) => (
+                      <tr key={order.id} className="transition-colors hover:bg-neutral-50/80 group">
+                        <td className="px-6 py-4">
+                          <Link href={order.href} className="font-semibold text-brand-black underline-offset-4 group-hover:underline">
+                            {order.numeroFormatado}
+                          </Link>
+                        </td>
+                        <td className="px-6 py-4 font-medium text-neutral-700">
+                          {order.clienteNome}
+                        </td>
+                        <td className="px-6 py-4 text-neutral-500 text-xs font-medium">
+                          {formatDateTime(order.createdAt)}
+                        </td>
+                        <td className="px-6 py-4">
+                          <span className="inline-flex rounded-full bg-neutral-100 px-3 py-1 text-[10px] font-bold uppercase tracking-wider text-neutral-700">
+                            {order.statusLabel}
+                          </span>
+                        </td>
+                        <td className="px-6 py-4 text-right font-bold text-brand-black">
+                          {formatCurrency(order.total)}
+                        </td>
+                      </tr>
+                    ))
+                  )}
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </section>
 
-          <div className="overflow-hidden border border-brand-black bg-brand-white">
-            {data.recentOrders.length === 0 ? (
-              <p className="px-5 py-10 text-sm text-brand-gray">Nenhum pedido recente.</p>
-            ) : (
-              <ul className="divide-y divide-neutral-200">
-                {data.recentOrders.slice(0, 7).map((order) => (
-                  <li key={order.id}>
-                    <Link
-                      href={order.href}
-                      className="grid grid-cols-[auto_1fr_auto] items-center gap-4 px-5 py-4 transition hover:bg-brand-light sm:grid-cols-[7rem_1fr_8rem_9rem_7rem]"
-                    >
-                      <span className="font-display text-sm font-semibold tracking-wide">
-                        {order.numeroFormatado}
-                      </span>
-                      <span className="truncate text-sm text-brand-black">{order.clienteNome}</span>
-                      <span className="hidden text-right text-sm font-medium sm:block">
-                        {formatCurrency(order.total)}
-                      </span>
-                      <span className="hidden text-right text-[11px] uppercase tracking-wider text-brand-gray sm:block">
-                        {order.statusLabel}
-                      </span>
-                      <span className="text-right text-xs text-brand-gray">
-                        {formatDateTime(order.createdAt)}
-                      </span>
-                    </Link>
-                  </li>
-                ))}
-              </ul>
+        {/* Quick Summaries Column */}
+        <section className="flex flex-col gap-4">
+          <div className="flex items-center gap-2 px-1">
+            <PieChart className="h-5 w-5 text-brand-black" />
+            <h2 className="text-lg font-bold text-brand-black">Resumo Operacional</h2>
+          </div>
+          
+          <div className="space-y-4">
+            {data.financial && (
+              <div className="space-y-4">
+                <SummaryCard
+                  label="Receitas do período"
+                  value={formatCurrency(data.financial.receitasPeriodo)}
+                  icon={TrendingUp}
+                  variant="success"
+                />
+                <SummaryCard
+                  label="Despesas do período"
+                  value={formatCurrency(data.financial.despesasPeriodo)}
+                  icon={TrendingDown}
+                  variant="alert"
+                />
+                <SummaryCard 
+                  label="Saldo do Período" 
+                  value={formatCurrency(data.financial.saldo)} 
+                  icon={CreditCard}
+                />
+              </div>
             )}
+            
+            <div className="grid grid-cols-2 gap-4">
+              {data.deliveries && (
+                <div className="rounded-2xl bg-brand-black p-5 text-white shadow-md relative overflow-hidden group">
+                  <div className="absolute -right-4 -top-4 opacity-10 transition-transform group-hover:scale-110">
+                    <Truck className="h-24 w-24" />
+                  </div>
+                  <div className="relative z-10">
+                    <div className="flex items-center justify-between mb-3">
+                      <Truck className="h-5 w-5 text-white/80" />
+                    </div>
+                    <p className="font-display text-3xl font-bold">
+                      {data.deliveries.emPreparacao + data.deliveries.prontas + data.deliveries.saiuParaEntrega}
+                    </p>
+                    <p className="text-xs font-semibold uppercase tracking-wider text-white/70 mt-2 leading-tight">
+                      Entregas<br/>Pendentes
+                    </p>
+                  </div>
+                </div>
+              )}
+              {data.stock && (
+                <div className="rounded-2xl bg-amber-500 p-5 text-white shadow-md relative overflow-hidden group">
+                  <div className="absolute -right-4 -top-4 opacity-20 transition-transform group-hover:scale-110">
+                    <AlertTriangle className="h-24 w-24" />
+                  </div>
+                  <div className="relative z-10">
+                    <div className="flex items-center justify-between mb-3">
+                      <AlertTriangle className="h-5 w-5 text-white/90" />
+                    </div>
+                    <p className="font-display text-3xl font-bold">
+                      {(data.stock.totais?.semEstoque ?? data.stock.semEstoque.length) +
+                       (data.stock.totais?.estoqueBaixo ?? data.stock.estoqueBaixo.length)}
+                    </p>
+                    <p className="text-xs font-semibold uppercase tracking-wider text-white/90 mt-2 leading-tight">
+                      Alertas de<br/>Estoque
+                    </p>
+                  </div>
+                </div>
+              )}
+            </div>
           </div>
         </section>
       </div>

@@ -5,6 +5,7 @@ import {
   CategoryScale,
   Chart as ChartJS,
   Filler,
+  Legend,
   LinearScale,
   LineElement,
   PointElement,
@@ -21,31 +22,60 @@ ChartJS.register(
   LineElement,
   BarElement,
   Tooltip,
+  Legend,
   Filler,
 );
+
+ChartJS.defaults.font.family = "inherit";
+ChartJS.defaults.color = "#737373";
 
 function formatDayLabel(value: string) {
   const [, month, day] = value.split("-");
   return `${day}/${month}`;
 }
 
-const chartDefaults = {
+const commonOptions = {
   responsive: true,
   maintainAspectRatio: false,
-  plugins: { legend: { display: false } },
+  plugins: {
+    legend: { display: false },
+    tooltip: {
+      backgroundColor: "#0a0a0a",
+      titleColor: "#ffffff",
+      bodyColor: "#ffffff",
+      padding: 12,
+      cornerRadius: 8,
+      displayColors: false,
+    },
+  },
+  scales: {
+    x: {
+      grid: {
+        display: false,
+      },
+      border: {
+        display: false,
+      }
+    },
+    y: {
+      border: {
+        display: false,
+      },
+      grid: {
+        color: "#f5f5f5",
+      }
+    }
+  }
 };
 
 export function DashboardChartsPanel({ charts }: { charts: DashboardCharts }) {
   return (
     <div className="grid gap-6 lg:grid-cols-2">
-      <div className="border border-brand-black bg-brand-white p-5">
-        <div className="mb-5 flex items-baseline justify-between gap-2">
-          <h3 className="text-[11px] font-medium uppercase tracking-[0.22em] text-brand-gray">
-            Faturamento
-          </h3>
-          <span className="h-px flex-1 bg-neutral-200" />
-        </div>
-        <div className="h-56">
+      <div className="rounded-xl bg-neutral-50/50 p-5 border border-neutral-100 transition-colors hover:border-neutral-200">
+        <h3 className="mb-6 text-sm font-bold text-brand-black">
+          Faturamento
+        </h3>
+        <div className="h-64">
           <Line
             data={{
               labels: charts.faturamento.map((item) => formatDayLabel(item.periodo)),
@@ -54,38 +84,35 @@ export function DashboardChartsPanel({ charts }: { charts: DashboardCharts }) {
                   label: "Faturamento",
                   data: charts.faturamento.map((item) => item.valor),
                   borderColor: "#0a0a0a",
-                  backgroundColor: "rgba(200,169,110,0.25)",
-                  borderWidth: 2,
+                  backgroundColor: "rgba(10, 10, 10, 0.05)",
                   fill: true,
-                  tension: 0.35,
-                  pointRadius: 0,
-                  pointHoverRadius: 4,
+                  tension: 0.4,
+                  pointBackgroundColor: "#ffffff",
+                  pointBorderColor: "#0a0a0a",
+                  pointBorderWidth: 2,
+                  pointRadius: 3,
+                  pointHoverRadius: 6,
                 },
               ],
             }}
             options={{
-              ...chartDefaults,
+              ...commonOptions,
               plugins: {
-                ...chartDefaults.plugins,
+                ...commonOptions.plugins,
                 tooltip: {
+                  ...commonOptions.plugins.tooltip,
                   callbacks: {
                     label: (ctx) => formatCurrency(Number(ctx.raw) || 0),
                   },
                 },
               },
               scales: {
-                x: {
-                  grid: { display: false },
-                  ticks: { color: "#6b6b6b", maxRotation: 0, autoSkipPadding: 12 },
-                  border: { display: false },
-                },
+                ...commonOptions.scales,
                 y: {
-                  grid: { color: "rgba(0,0,0,0.06)" },
+                  ...commonOptions.scales.y,
                   ticks: {
-                    color: "#6b6b6b",
                     callback: (value) => formatCurrency(Number(value) || 0),
                   },
-                  border: { display: false },
                 },
               },
             }}
@@ -93,14 +120,11 @@ export function DashboardChartsPanel({ charts }: { charts: DashboardCharts }) {
         </div>
       </div>
 
-      <div className="border border-brand-black bg-brand-white p-5">
-        <div className="mb-5 flex items-baseline justify-between gap-2">
-          <h3 className="text-[11px] font-medium uppercase tracking-[0.22em] text-brand-gray">
-            Pedidos
-          </h3>
-          <span className="h-px flex-1 bg-neutral-200" />
-        </div>
-        <div className="h-56">
+      <div className="rounded-xl bg-neutral-50/50 p-5 border border-neutral-100 transition-colors hover:border-neutral-200">
+        <h3 className="mb-6 text-sm font-bold text-brand-black">
+          Pedidos
+        </h3>
+        <div className="h-64">
           <Bar
             data={{
               labels: charts.pedidos.map((item) => formatDayLabel(item.periodo)),
@@ -109,24 +133,20 @@ export function DashboardChartsPanel({ charts }: { charts: DashboardCharts }) {
                   label: "Pedidos",
                   data: charts.pedidos.map((item) => item.quantidade),
                   backgroundColor: "#0a0a0a",
-                  hoverBackgroundColor: "#c8a96e",
-                  borderSkipped: false,
+                  borderRadius: 4,
+                  barPercentage: 0.6,
+                  hoverBackgroundColor: "#262626",
                 },
               ],
             }}
             options={{
-              ...chartDefaults,
+              ...commonOptions,
               scales: {
-                x: {
-                  grid: { display: false },
-                  ticks: { color: "#6b6b6b", maxRotation: 0, autoSkipPadding: 12 },
-                  border: { display: false },
-                },
+                ...commonOptions.scales,
                 y: {
-                  beginAtZero: true,
-                  grid: { color: "rgba(0,0,0,0.06)" },
-                  ticks: { color: "#6b6b6b", precision: 0 },
-                  border: { display: false },
+                  ...commonOptions.scales.y,
+                  beginAtZero: true, 
+                  ticks: { precision: 0 }
                 },
               },
             }}
