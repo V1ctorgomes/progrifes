@@ -4,6 +4,7 @@ import type { AuthSession, AuthUser, LoginCredentials } from "@/types/auth";
 const api = axios.create({
   baseURL: "/api/auth",
   withCredentials: true,
+  timeout: 15_000,
   headers: { "Content-Type": "application/json" },
 });
 

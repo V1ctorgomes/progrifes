@@ -60,6 +60,38 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     };
   }, [applySession]);
 
+  // Após hibernação / idle longo, renova a sessão ao voltar para a aba
+  useEffect(() => {
+    let lastRefreshAt = 0;
+
+    const maybeRefresh = () => {
+      const now = Date.now();
+      if (now - lastRefreshAt < 5_000) return;
+      lastRefreshAt = now;
+      void refreshSession();
+    };
+
+    const onVisibility = () => {
+      if (document.visibilityState === "visible") maybeRefresh();
+    };
+
+    const onOnline = () => maybeRefresh();
+
+    const onPageShow = (event: PageTransitionEvent) => {
+      if (event.persisted) maybeRefresh();
+    };
+
+    document.addEventListener("visibilitychange", onVisibility);
+    window.addEventListener("online", onOnline);
+    window.addEventListener("pageshow", onPageShow);
+
+    return () => {
+      document.removeEventListener("visibilitychange", onVisibility);
+      window.removeEventListener("online", onOnline);
+      window.removeEventListener("pageshow", onPageShow);
+    };
+  }, [refreshSession]);
+
   const login = useCallback(
     async (credentials: LoginCredentials) => {
       const data = await apiLogin(credentials);

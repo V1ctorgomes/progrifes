@@ -153,8 +153,53 @@ import type {
 const api = axios.create({
   baseURL: "/api/admin",
   withCredentials: true,
+  timeout: 20_000,
   headers: { "Content-Type": "application/json" },
 });
+
+let refreshPromise: Promise<void> | null = null;
+
+async function refreshAuthCookies() {
+  if (!refreshPromise) {
+    refreshPromise = axios
+      .post("/api/auth/refresh", null, { withCredentials: true, timeout: 15_000 })
+      .then(() => undefined)
+      .finally(() => {
+        refreshPromise = null;
+      });
+  }
+  await refreshPromise;
+}
+
+api.interceptors.response.use(
+  (response) => response,
+  async (error) => {
+    const original = error.config as
+      | (typeof error.config & { _retry?: boolean })
+      | undefined;
+
+    if (
+      !original ||
+      original._retry ||
+      !isAxiosError(error) ||
+      error.response?.status !== 401
+    ) {
+      return Promise.reject(error);
+    }
+
+    original._retry = true;
+
+    try {
+      await refreshAuthCookies();
+      return api(original);
+    } catch {
+      if (typeof window !== "undefined" && !window.location.pathname.includes("/admin/login")) {
+        window.location.assign("/admin/login");
+      }
+      return Promise.reject(error);
+    }
+  },
+);
 
 function getErrorMessage(error: unknown): string {
   if (isAxiosError(error)) {
