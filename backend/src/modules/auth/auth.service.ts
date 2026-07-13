@@ -114,7 +114,7 @@ export class AuthService {
 
     const accessToken = await this.jwtService.signAsync(payload, {
       secret: process.env.JWT_ACCESS_SECRET ?? "dev-access-secret",
-      expiresIn: process.env.JWT_ACCESS_EXPIRES_IN ?? "15m",
+      expiresIn: process.env.JWT_ACCESS_EXPIRES_IN ?? "2h",
     });
 
     const refreshToken = randomBytes(48).toString("hex");
@@ -163,7 +163,7 @@ export class AuthService {
 
     res.cookie("access_token", tokens.accessToken, {
       ...common,
-      maxAge: 15 * 60 * 1000,
+      maxAge: 2 * 60 * 60 * 1000,
     });
 
     res.cookie("refresh_token", tokens.refreshToken, {
