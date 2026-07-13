@@ -24,6 +24,7 @@ import { AccountsPayableModule } from "./modules/accounts-payable/accounts-payab
 import { CashFlowModule } from "./modules/cash-flow/cash-flow.module";
 import { ExpensesModule } from "./modules/expenses/expenses.module";
 import { FinancialDashboardModule } from "./modules/financial-dashboard/financial-dashboard.module";
+import { DashboardModule } from "./modules/dashboard/dashboard.module";
 import { DeliveryModule } from "./modules/delivery/delivery.module";
 
 @Module({
@@ -54,6 +55,7 @@ import { DeliveryModule } from "./modules/delivery/delivery.module";
     CashFlowModule,
     ExpensesModule,
     FinancialDashboardModule,
+    DashboardModule,
     DeliveryModule,
   ],
   controllers: [AppController],

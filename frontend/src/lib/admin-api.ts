@@ -119,6 +119,10 @@ import type {
   FinancialDashboardSummary,
 } from "@/types/financial-dashboard";
 import type {
+  AdminDashboard,
+  AdminDashboardPeriodPreset,
+} from "@/types/admin-dashboard";
+import type {
   DeliverySettings,
   UpdateDeliverySettingsInput,
 } from "@/types/delivery";
@@ -662,6 +666,26 @@ export const financialDashboardAdminApi = {
   }) =>
     (await api.get<FinancialDashboardSummary>("/dashboard/financial/summary", { params }))
       .data,
+};
+
+export const adminDashboardApi = {
+  get: async (params?: {
+    preset?: AdminDashboardPeriodPreset;
+    dataInicio?: string;
+    dataFim?: string;
+  }) => (await api.get<AdminDashboard>("/dashboard", { params })).data,
+  cards: async (params?: {
+    preset?: AdminDashboardPeriodPreset;
+    dataInicio?: string;
+    dataFim?: string;
+  }) => (await api.get("/dashboard/cards", { params })).data,
+  charts: async (params?: {
+    preset?: AdminDashboardPeriodPreset;
+    dataInicio?: string;
+    dataFim?: string;
+  }) => (await api.get("/dashboard/charts", { params })).data,
+  recentOrders: async () => (await api.get("/dashboard/recent-orders")).data,
+  activities: async () => (await api.get("/dashboard/activities")).data,
 };
 
 export const deliveryAdminApi = {
