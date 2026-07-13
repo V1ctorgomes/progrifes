@@ -77,7 +77,9 @@ export function AdminDashboardPage() {
     enabled,
   });
 
-  const cards = data?.cards ?? [];
+  const cards = (data?.cards ?? []).filter(
+    (card) => card.id !== "contas-receber" && card.id !== "contas-pagar",
+  );
 
   if (isLoading) {
     return (
@@ -176,7 +178,6 @@ export function AdminDashboardPage() {
         </div>
       </section>
 
-      {/* Main KPI Cards */}
       <section className="grid gap-5 sm:grid-cols-2 xl:grid-cols-4">
         {cards.map((card) => {
           const tendAl = card.comparacao?.tendencia === "ALTA";
@@ -229,9 +230,9 @@ export function AdminDashboardPage() {
         </section>
       )}
 
-      <div className="grid gap-6 xl:grid-cols-3">
-        <section className="xl:col-span-2 flex flex-col gap-4">
-          <div className="flex items-center justify-between px-1">
+      <div className="grid gap-6 xl:grid-cols-3 xl:items-stretch">
+        <section className="xl:col-span-2 flex h-full min-h-0 flex-col gap-4">
+          <div className="flex h-8 items-center justify-between px-1">
             <div className="flex items-center gap-2">
               <ShoppingCart className="h-5 w-5 text-brand-black" />
               <h2 className="text-lg font-bold text-brand-black">Pedidos Recentes</h2>
@@ -245,8 +246,8 @@ export function AdminDashboardPage() {
             </Link>
           </div>
 
-          <div className="overflow-hidden rounded-2xl bg-white shadow-sm border border-neutral-100">
-            <div className="overflow-x-auto">
+          <div className="flex min-h-0 flex-1 flex-col overflow-hidden rounded-2xl bg-white shadow-sm border border-neutral-100">
+            <div className="min-h-0 flex-1 overflow-auto">
               <table className="min-w-full text-left text-sm">
                 <thead className="border-b border-neutral-100 bg-neutral-50/80">
                   <tr>
@@ -314,108 +315,118 @@ export function AdminDashboardPage() {
           </div>
         </section>
 
-        <section className="flex flex-col gap-4">
-          <div className="flex items-center gap-2 px-1">
-            <Package className="h-5 w-5 text-brand-black" />
-            <h2 className="text-lg font-bold text-brand-black">Produtos no Período</h2>
+        <section className="flex h-full min-h-0 flex-col gap-4">
+          <div className="flex h-8 items-center px-1">
+            <div className="flex items-center gap-2">
+              <Package className="h-5 w-5 text-brand-black" />
+              <h2 className="text-lg font-bold text-brand-black">Produtos no Período</h2>
+            </div>
           </div>
 
-          <div className="overflow-hidden rounded-2xl bg-white shadow-sm border border-neutral-100">
-            <div className="border-b border-neutral-100 px-5 py-3">
-              <p className="text-xs font-bold uppercase tracking-wider text-emerald-700">
-                Mais saem
-              </p>
-            </div>
-            <table className="min-w-full text-left text-sm">
-              <thead className="border-b border-neutral-100 bg-neutral-50/80">
-                <tr>
-                  <th className="px-5 py-3 text-xs font-bold uppercase tracking-wider text-neutral-500">
-                    Produto
-                  </th>
-                  <th className="px-5 py-3 text-xs font-bold uppercase tracking-wider text-neutral-500 text-right">
-                    Qtd
-                  </th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-neutral-100">
-                {(data.productSales?.maisVendidos.length ?? 0) === 0 ? (
-                  <tr>
-                    <td colSpan={2} className="px-5 py-8 text-center text-sm text-neutral-500">
-                      Sem vendas no período.
-                    </td>
-                  </tr>
-                ) : (
-                  data.productSales?.maisVendidos.map((product, index) => (
-                    <tr key={`mais-${product.id}`} className="hover:bg-neutral-50/80">
-                      <td className="px-5 py-3">
-                        <div className="flex items-center gap-2 min-w-0">
-                          <span className="flex h-6 w-6 shrink-0 items-center justify-center rounded-md bg-emerald-50 text-[11px] font-bold text-emerald-700">
-                            {index + 1}
-                          </span>
-                          <Link
-                            href={product.href}
-                            className="truncate font-medium text-brand-black hover:underline"
-                          >
-                            {product.produtoNome}
-                          </Link>
-                        </div>
-                      </td>
-                      <td className="px-5 py-3 text-right font-bold text-brand-black">
-                        {product.quantidade}
-                      </td>
+          <div className="flex min-h-0 flex-1 flex-col overflow-hidden rounded-2xl bg-white shadow-sm border border-neutral-100">
+            <div className="flex min-h-0 flex-1 flex-col border-b border-neutral-100">
+              <div className="shrink-0 px-5 py-3">
+                <p className="text-xs font-bold uppercase tracking-wider text-emerald-700">
+                  Mais saem
+                </p>
+              </div>
+              <div className="min-h-0 flex-1 overflow-auto">
+                <table className="min-w-full text-left text-sm">
+                  <thead className="border-b border-neutral-100 bg-neutral-50/80">
+                    <tr>
+                      <th className="px-5 py-3 text-xs font-bold uppercase tracking-wider text-neutral-500">
+                        Produto
+                      </th>
+                      <th className="px-5 py-3 text-xs font-bold uppercase tracking-wider text-neutral-500 text-right">
+                        Qtd
+                      </th>
                     </tr>
-                  ))
-                )}
-              </tbody>
-            </table>
+                  </thead>
+                  <tbody className="divide-y divide-neutral-100">
+                    {(data.productSales?.maisVendidos.length ?? 0) === 0 ? (
+                      <tr>
+                        <td colSpan={2} className="h-24 px-5 text-center text-sm text-neutral-500">
+                          Sem vendas no período.
+                        </td>
+                      </tr>
+                    ) : (
+                      data.productSales?.maisVendidos.map((product, index) => (
+                        <tr key={`mais-${product.id}`} className="hover:bg-neutral-50/80">
+                          <td className="px-5 py-3">
+                            <div className="flex min-w-0 items-center gap-2">
+                              <span className="flex h-6 w-6 shrink-0 items-center justify-center rounded-md bg-emerald-50 text-[11px] font-bold text-emerald-700">
+                                {index + 1}
+                              </span>
+                              <Link
+                                href={product.href}
+                                className="truncate font-medium text-brand-black hover:underline"
+                              >
+                                {product.produtoNome}
+                              </Link>
+                            </div>
+                          </td>
+                          <td className="px-5 py-3 text-right font-bold text-brand-black">
+                            {product.quantidade}
+                          </td>
+                        </tr>
+                      ))
+                    )}
+                  </tbody>
+                </table>
+              </div>
+            </div>
 
-            <div className="border-y border-neutral-100 bg-neutral-50/50 px-5 py-3">
-              <p className="text-xs font-bold uppercase tracking-wider text-amber-700">
-                Menos saem
-              </p>
-            </div>
-            <table className="min-w-full text-left text-sm">
-              <thead className="border-b border-neutral-100 bg-neutral-50/80">
-                <tr>
-                  <th className="px-5 py-3 text-xs font-bold uppercase tracking-wider text-neutral-500">
-                    Produto
-                  </th>
-                  <th className="px-5 py-3 text-xs font-bold uppercase tracking-wider text-neutral-500 text-right">
-                    Qtd
-                  </th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-neutral-100">
-                {(data.productSales?.menosVendidos.length ?? 0) === 0 ? (
-                  <tr>
-                    <td colSpan={2} className="px-5 py-8 text-center text-sm text-neutral-500">
-                      Sem dados suficientes no período.
-                    </td>
-                  </tr>
-                ) : (
-                  data.productSales?.menosVendidos.map((product, index) => (
-                    <tr key={`menos-${product.id}`} className="hover:bg-neutral-50/80">
-                      <td className="px-5 py-3">
-                        <div className="flex items-center gap-2 min-w-0">
-                          <span className="flex h-6 w-6 shrink-0 items-center justify-center rounded-md bg-amber-50 text-[11px] font-bold text-amber-700">
-                            {index + 1}
-                          </span>
-                          <Link
-                            href={product.href}
-                            className="truncate font-medium text-brand-black hover:underline"
-                          >
-                            {product.produtoNome}
-                          </Link>
-                        </div>
-                      </td>
-                      <td className="px-5 py-3 text-right font-bold text-brand-black">
-                        {product.quantidade}
-                      </td>
+            <div className="flex min-h-0 flex-1 flex-col">
+              <div className="shrink-0 bg-neutral-50/50 px-5 py-3">
+                <p className="text-xs font-bold uppercase tracking-wider text-amber-700">
+                  Menos saem
+                </p>
+              </div>
+              <div className="min-h-0 flex-1 overflow-auto">
+                <table className="min-w-full text-left text-sm">
+                  <thead className="border-b border-neutral-100 bg-neutral-50/80">
+                    <tr>
+                      <th className="px-5 py-3 text-xs font-bold uppercase tracking-wider text-neutral-500">
+                        Produto
+                      </th>
+                      <th className="px-5 py-3 text-xs font-bold uppercase tracking-wider text-neutral-500 text-right">
+                        Qtd
+                      </th>
                     </tr>
-                  ))
-                )}
-              </tbody>
-            </table>
+                  </thead>
+                  <tbody className="divide-y divide-neutral-100">
+                    {(data.productSales?.menosVendidos.length ?? 0) === 0 ? (
+                      <tr>
+                        <td colSpan={2} className="h-24 px-5 text-center text-sm text-neutral-500">
+                          Sem dados suficientes no período.
+                        </td>
+                      </tr>
+                    ) : (
+                      data.productSales?.menosVendidos.map((product, index) => (
+                        <tr key={`menos-${product.id}`} className="hover:bg-neutral-50/80">
+                          <td className="px-5 py-3">
+                            <div className="flex min-w-0 items-center gap-2">
+                              <span className="flex h-6 w-6 shrink-0 items-center justify-center rounded-md bg-amber-50 text-[11px] font-bold text-amber-700">
+                                {index + 1}
+                              </span>
+                              <Link
+                                href={product.href}
+                                className="truncate font-medium text-brand-black hover:underline"
+                              >
+                                {product.produtoNome}
+                              </Link>
+                            </div>
+                          </td>
+                          <td className="px-5 py-3 text-right font-bold text-brand-black">
+                            {product.quantidade}
+                          </td>
+                        </tr>
+                      ))
+                    )}
+                  </tbody>
+                </table>
+              </div>
+            </div>
           </div>
         </section>
       </div>

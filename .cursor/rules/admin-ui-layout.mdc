@@ -1,0 +1,37 @@
+---
+description: Layout visual do admin (sidebar + páginas) — padrão vigente
+globs: frontend/src/{layouts/AdminLayout.tsx,features/admin/**/*.tsx,app/admin/**/*.tsx,components/admin/**/*.tsx}
+alwaysApply: false
+---
+
+# Admin UI — layout vigente
+
+Referência oficial: `frontend/src/layouts/AdminLayout.tsx` e `frontend/src/features/admin/dashboard/AdminDashboardPage.tsx`.
+
+Ao criar ou alterar telas do admin, **replicar este visual** — não voltar a layouts antigos (pills genéricas, cards densos, sidebar clara, etc.).
+
+## Shell / sidebar
+
+- Fundo da área de conteúdo: `bg-[#F8F9FA]`
+- Sidebar fixa `w-[280px]`, fundo `#0A0A0A`, logo + título `font-display` uppercase
+- Ícones **Lucide** em todos os itens de navegação
+- Item ativo: `rounded-xl bg-brand-white text-brand-black shadow-sm`
+- Item inativo: `text-neutral-400 hover:bg-white/5 hover:text-brand-white`
+- Footer da sidebar: avatar inicial + nome/cargo + botão “Sair” `rounded-xl bg-white/5`
+- Conteúdo: `main` com `p-4 sm:p-6 lg:p-8` e `max-w-[1600px]`
+
+## Página (padrão dashboard)
+
+- Container: `space-y-8 animate-fade-in pb-10`
+- Header: título `font-display text-3xl font-bold tracking-tight text-brand-black` + subtítulo `text-sm text-neutral-500`
+- Ações do header na mesma linha (`sm:flex-row sm:items-center sm:justify-between`), botões secundários brancos com `rounded-xl border border-neutral-200 shadow-sm`
+- Seções/painéis: `rounded-2xl bg-white p-5 shadow-sm border border-neutral-100`
+- Cards KPI / interativos: mesmo card branco; hover leve (`hover:-translate-y-1 hover:shadow-md hover:border-brand-black`)
+- Inputs/selects: `rounded-xl border-neutral-200`, focus em `brand-black`
+- CTA primário: `rounded-xl bg-brand-black text-white`
+- Espaçamento e tipografia sóbrios; evitar clutter (pills de atalho, resumos extras sem necessidade)
+
+## Ícones e componente
+
+- Preferir Lucide; manter pesos/tamanhos consistentes (`h-4/h-5`)
+- Não reinventar o shell — estender páginas dentro do `AdminShell` existente

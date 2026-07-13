@@ -1,0 +1,17 @@
+---
+description: Sempre commit e push após concluir alterações
+alwaysApply: true
+---
+
+# Commit e push automáticos
+
+Após concluir uma tarefa com alterações no repositório (código, configs ou regras do projeto):
+
+1. **Sempre** criar um commit local (não esperar o usuário pedir).
+2. **Sempre** fazer `git push` para o remote da branch atual.
+3. Seguir o protocolo de commit do projeto (status/diff/log, mensagem via HEREDOC, sem `--no-verify`, sem alterar git config, sem force push em main/master).
+4. Não commitar segredos (`.env`, credenciais, etc.).
+5. Pode incluir `.cursor/rules/*.mdc` quando fizer sentido para o time.
+6. Ao final, informar o hash/branch e que o push foi feito.
+
+Exceção: se o push falhar por auth/rede, informar o erro e o que falta. Não usar force push sem pedido explícito.
