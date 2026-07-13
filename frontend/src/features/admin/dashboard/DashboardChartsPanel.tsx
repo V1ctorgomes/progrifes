@@ -5,7 +5,6 @@ import {
   CategoryScale,
   Chart as ChartJS,
   Filler,
-  Legend,
   LinearScale,
   LineElement,
   PointElement,
@@ -22,7 +21,6 @@ ChartJS.register(
   LineElement,
   BarElement,
   Tooltip,
-  Legend,
   Filler,
 );
 
@@ -31,14 +29,23 @@ function formatDayLabel(value: string) {
   return `${day}/${month}`;
 }
 
+const chartDefaults = {
+  responsive: true,
+  maintainAspectRatio: false,
+  plugins: { legend: { display: false } },
+};
+
 export function DashboardChartsPanel({ charts }: { charts: DashboardCharts }) {
   return (
-    <div className="grid gap-4 lg:grid-cols-2">
-      <div className="border border-neutral-200 bg-brand-white p-4">
-        <h3 className="mb-4 text-sm font-semibold uppercase tracking-wide text-brand-black">
-          Faturamento
-        </h3>
-        <div className="h-64">
+    <div className="grid gap-6 lg:grid-cols-2">
+      <div className="border border-brand-black bg-brand-white p-5">
+        <div className="mb-5 flex items-baseline justify-between gap-2">
+          <h3 className="text-[11px] font-medium uppercase tracking-[0.22em] text-brand-gray">
+            Faturamento
+          </h3>
+          <span className="h-px flex-1 bg-neutral-200" />
+        </div>
+        <div className="h-56">
           <Line
             data={{
               labels: charts.faturamento.map((item) => formatDayLabel(item.periodo)),
@@ -46,18 +53,20 @@ export function DashboardChartsPanel({ charts }: { charts: DashboardCharts }) {
                 {
                   label: "Faturamento",
                   data: charts.faturamento.map((item) => item.valor),
-                  borderColor: "#111111",
-                  backgroundColor: "rgba(17,17,17,0.08)",
+                  borderColor: "#0a0a0a",
+                  backgroundColor: "rgba(200,169,110,0.25)",
+                  borderWidth: 2,
                   fill: true,
-                  tension: 0.3,
+                  tension: 0.35,
+                  pointRadius: 0,
+                  pointHoverRadius: 4,
                 },
               ],
             }}
             options={{
-              responsive: true,
-              maintainAspectRatio: false,
+              ...chartDefaults,
               plugins: {
-                legend: { display: false },
+                ...chartDefaults.plugins,
                 tooltip: {
                   callbacks: {
                     label: (ctx) => formatCurrency(Number(ctx.raw) || 0),
@@ -65,10 +74,18 @@ export function DashboardChartsPanel({ charts }: { charts: DashboardCharts }) {
                 },
               },
               scales: {
+                x: {
+                  grid: { display: false },
+                  ticks: { color: "#6b6b6b", maxRotation: 0, autoSkipPadding: 12 },
+                  border: { display: false },
+                },
                 y: {
+                  grid: { color: "rgba(0,0,0,0.06)" },
                   ticks: {
+                    color: "#6b6b6b",
                     callback: (value) => formatCurrency(Number(value) || 0),
                   },
+                  border: { display: false },
                 },
               },
             }}
@@ -76,11 +93,14 @@ export function DashboardChartsPanel({ charts }: { charts: DashboardCharts }) {
         </div>
       </div>
 
-      <div className="border border-neutral-200 bg-brand-white p-4">
-        <h3 className="mb-4 text-sm font-semibold uppercase tracking-wide text-brand-black">
-          Pedidos
-        </h3>
-        <div className="h-64">
+      <div className="border border-brand-black bg-brand-white p-5">
+        <div className="mb-5 flex items-baseline justify-between gap-2">
+          <h3 className="text-[11px] font-medium uppercase tracking-[0.22em] text-brand-gray">
+            Pedidos
+          </h3>
+          <span className="h-px flex-1 bg-neutral-200" />
+        </div>
+        <div className="h-56">
           <Bar
             data={{
               labels: charts.pedidos.map((item) => formatDayLabel(item.periodo)),
@@ -88,15 +108,27 @@ export function DashboardChartsPanel({ charts }: { charts: DashboardCharts }) {
                 {
                   label: "Pedidos",
                   data: charts.pedidos.map((item) => item.quantidade),
-                  backgroundColor: "#111111",
+                  backgroundColor: "#0a0a0a",
+                  hoverBackgroundColor: "#c8a96e",
+                  borderSkipped: false,
                 },
               ],
             }}
             options={{
-              responsive: true,
-              maintainAspectRatio: false,
-              plugins: { legend: { display: false } },
-              scales: { y: { beginAtZero: true, ticks: { precision: 0 } } },
+              ...chartDefaults,
+              scales: {
+                x: {
+                  grid: { display: false },
+                  ticks: { color: "#6b6b6b", maxRotation: 0, autoSkipPadding: 12 },
+                  border: { display: false },
+                },
+                y: {
+                  beginAtZero: true,
+                  grid: { color: "rgba(0,0,0,0.06)" },
+                  ticks: { color: "#6b6b6b", precision: 0 },
+                  border: { display: false },
+                },
+              },
             }}
           />
         </div>
