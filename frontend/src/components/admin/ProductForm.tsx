@@ -1,11 +1,14 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
-import { Button } from "@/components/ui/Button";
+import { Plus } from "lucide-react";
 import { Input } from "@/components/ui/Input";
 import type { ProductInput } from "@/types/product";
 import type { Category } from "@/types/category";
 import type { Product } from "@/types/product";
+
+const fieldClass =
+  "w-full rounded-xl border border-neutral-200 bg-white px-4 py-2.5 text-sm font-medium text-brand-black outline-none transition-colors focus:border-brand-black focus:ring-1 focus:ring-brand-black";
 
 interface ProductFormProps {
   initial?: Product | null;
@@ -160,7 +163,7 @@ export function ProductForm({
           placeholder="Buscar categoria..."
         />
         <select
-          className="mt-2 w-full border border-neutral-300 bg-brand-white px-4 py-2.5 text-sm"
+          className={`mt-2 ${fieldClass}`}
           value={form.categoriaId}
           onChange={(e) => update("categoriaId", e.target.value)}
           required
@@ -185,7 +188,7 @@ export function ProductForm({
           Descrição completa
         </label>
         <textarea
-          className="min-h-32 w-full border border-neutral-300 px-4 py-2.5 text-sm"
+          className={`min-h-32 ${fieldClass}`}
           value={form.descricaoCompleta}
           onChange={(e) => update("descricaoCompleta", e.target.value)}
           required
@@ -232,10 +235,11 @@ export function ProductForm({
         />
       </div>
 
-      <div className="flex flex-wrap gap-4 text-sm">
+      <div className="flex flex-wrap gap-4 text-sm font-medium text-brand-black">
         <label className="flex items-center gap-2">
           <input
             type="checkbox"
+            className="h-4 w-4 rounded border-neutral-300"
             checked={form.mostrarPrecoPromocional ?? false}
             onChange={(e) => update("mostrarPrecoPromocional", e.target.checked)}
           />
@@ -244,6 +248,7 @@ export function ProductForm({
         <label className="flex items-center gap-2">
           <input
             type="checkbox"
+            className="h-4 w-4 rounded border-neutral-300"
             checked={form.ativo ?? true}
             onChange={(e) => update("ativo", e.target.checked)}
           />
@@ -252,6 +257,7 @@ export function ProductForm({
         <label className="flex items-center gap-2">
           <input
             type="checkbox"
+            className="h-4 w-4 rounded border-neutral-300"
             checked={form.destaque ?? false}
             onChange={(e) => update("destaque", e.target.checked)}
           />
@@ -260,6 +266,7 @@ export function ProductForm({
         <label className="flex items-center gap-2">
           <input
             type="checkbox"
+            className="h-4 w-4 rounded border-neutral-300"
             checked={form.novo ?? false}
             onChange={(e) => update("novo", e.target.checked)}
           />
@@ -270,23 +277,35 @@ export function ProductForm({
       <div className="space-y-3">
         <div className="flex items-center justify-between">
           <p className="text-sm font-medium text-brand-black">Galeria de imagens (URLs)</p>
-          <Button type="button" size="sm" variant="outline" onClick={addImage}>
+          <button
+            type="button"
+            onClick={addImage}
+            className="flex h-9 items-center gap-1.5 rounded-xl border border-neutral-200 bg-white px-3 text-xs font-semibold text-brand-black shadow-sm transition-all hover:border-neutral-300 hover:bg-neutral-50"
+          >
+            <Plus className="h-3.5 w-3.5" />
             Adicionar imagem
-          </Button>
+          </button>
         </div>
         {form.imagens.map((image, index) => (
-          <div key={index} className="rounded border border-neutral-200 p-3">
+          <div
+            key={index}
+            className="rounded-2xl border border-neutral-100 bg-neutral-50/50 p-4"
+          >
             <Input
               label={`Imagem ${index + 1}`}
               value={image.url}
               onChange={(e) => updateImage(index, e.target.value)}
               required={index === 0}
             />
-            {image.url && (
-              <img src={image.url} alt="" className="mt-2 h-24 w-full rounded object-cover" />
-            )}
+            {image.url ? (
+              <img
+                src={image.url}
+                alt=""
+                className="mt-2 h-24 w-full rounded-xl border border-neutral-100 object-cover"
+              />
+            ) : null}
             <div className="mt-2 flex items-center justify-between">
-              <label className="flex items-center gap-2 text-sm">
+              <label className="flex items-center gap-2 text-sm font-medium text-brand-black">
                 <input
                   type="radio"
                   name="principal"
@@ -295,29 +314,41 @@ export function ProductForm({
                 />
                 Imagem principal
               </label>
-              {form.imagens.length > 1 && (
+              {form.imagens.length > 1 ? (
                 <button
                   type="button"
-                  className="text-xs text-red-600"
+                  className="text-xs font-semibold text-red-600 hover:text-red-700"
                   onClick={() => removeImage(index)}
                 >
                   Remover
                 </button>
-              )}
+              ) : null}
             </div>
           </div>
         ))}
       </div>
 
-      {error && <p className="text-sm text-red-600">{error}</p>}
+      {error ? (
+        <p className="rounded-xl border border-red-100 bg-red-50 px-4 py-3 text-sm font-medium text-red-600">
+          {error}
+        </p>
+      ) : null}
 
-      <div className="flex justify-end gap-3">
-        <Button type="button" variant="outline" onClick={onCancel}>
+      <div className="flex justify-end gap-3 border-t border-neutral-100 pt-4">
+        <button
+          type="button"
+          onClick={onCancel}
+          className="flex h-11 items-center justify-center rounded-xl border border-neutral-200 bg-white px-5 text-sm font-semibold text-brand-black shadow-sm transition-all hover:border-neutral-300 hover:bg-neutral-50"
+        >
           Cancelar
-        </Button>
-        <Button type="submit" disabled={loading}>
+        </button>
+        <button
+          type="submit"
+          disabled={loading}
+          className="flex h-11 items-center justify-center rounded-xl bg-brand-black px-5 text-sm font-semibold text-white transition-colors hover:bg-neutral-800 disabled:opacity-50"
+        >
           {loading ? "Salvando..." : "Salvar"}
-        </Button>
+        </button>
       </div>
     </form>
   );

@@ -1,10 +1,12 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { Button } from "@/components/ui/Button";
 import { Input } from "@/components/ui/Input";
 import type { CategoryInput } from "@/lib/admin-api";
 import type { Category } from "@/types/category";
+
+const fieldClass =
+  "w-full rounded-xl border border-neutral-200 bg-white px-4 py-2.5 text-sm font-medium text-brand-black outline-none transition-colors focus:border-brand-black focus:ring-1 focus:ring-brand-black";
 
 interface CategoryFormProps {
   initial?: Category | null;
@@ -83,7 +85,7 @@ export function CategoryForm({
       <div>
         <label className="mb-1.5 block text-sm font-medium text-brand-black">Descrição</label>
         <textarea
-          className="min-h-24 w-full border border-neutral-300 px-4 py-2.5 text-sm"
+          className={`min-h-24 ${fieldClass}`}
           value={form.descricao}
           onChange={(e) => update("descricao", e.target.value)}
           required
@@ -103,14 +105,18 @@ export function CategoryForm({
         required
       />
 
-      {form.imagem && (
-        <img src={form.imagem} alt="Preview" className="h-32 w-full rounded object-cover" />
-      )}
+      {form.imagem ? (
+        <img
+          src={form.imagem}
+          alt="Preview"
+          className="h-32 w-full rounded-xl border border-neutral-100 object-cover"
+        />
+      ) : null}
 
       <div>
         <label className="mb-1.5 block text-sm font-medium text-brand-black">Categoria pai</label>
         <select
-          className="w-full border border-neutral-300 bg-brand-white px-4 py-2.5 text-sm"
+          className={fieldClass}
           value={form.categoriaPaiId ?? ""}
           onChange={(e) => update("categoriaPaiId", e.target.value || null)}
         >
@@ -123,24 +129,37 @@ export function CategoryForm({
         </select>
       </div>
 
-      <label className="flex items-center gap-2 text-sm text-brand-black">
+      <label className="flex items-center gap-2 text-sm font-medium text-brand-black">
         <input
           type="checkbox"
+          className="h-4 w-4 rounded border-neutral-300"
           checked={form.ativo ?? true}
           onChange={(e) => update("ativo", e.target.checked)}
         />
         Categoria ativa
       </label>
 
-      {error && <p className="text-sm text-red-600">{error}</p>}
+      {error ? (
+        <p className="rounded-xl border border-red-100 bg-red-50 px-4 py-3 text-sm font-medium text-red-600">
+          {error}
+        </p>
+      ) : null}
 
-      <div className="flex justify-end gap-3">
-        <Button type="button" variant="outline" onClick={onCancel}>
+      <div className="flex justify-end gap-3 border-t border-neutral-100 pt-4">
+        <button
+          type="button"
+          onClick={onCancel}
+          className="flex h-11 items-center justify-center rounded-xl border border-neutral-200 bg-white px-5 text-sm font-semibold text-brand-black shadow-sm transition-all hover:border-neutral-300 hover:bg-neutral-50"
+        >
           Cancelar
-        </Button>
-        <Button type="submit" disabled={loading}>
+        </button>
+        <button
+          type="submit"
+          disabled={loading}
+          className="flex h-11 items-center justify-center rounded-xl bg-brand-black px-5 text-sm font-semibold text-white transition-colors hover:bg-neutral-800 disabled:opacity-50"
+        >
           {loading ? "Salvando..." : "Salvar"}
-        </Button>
+        </button>
       </div>
     </form>
   );

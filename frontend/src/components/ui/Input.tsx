@@ -27,8 +27,8 @@ export function Input({
       <input
         id={inputId}
         className={cn(
-          "w-full border border-neutral-300 bg-brand-white px-4 py-2.5 text-sm text-brand-black placeholder:text-brand-gray transition-colors focus:border-brand-black focus:outline-none",
-          error && "border-red-500",
+          "w-full rounded-xl border border-neutral-200 bg-white px-4 py-2.5 text-sm font-medium text-brand-black placeholder:text-neutral-400 outline-none transition-colors focus:border-brand-black focus:ring-1 focus:ring-brand-black",
+          error && "border-red-400 focus:border-red-500 focus:ring-red-500",
           className,
         )}
         {...props}

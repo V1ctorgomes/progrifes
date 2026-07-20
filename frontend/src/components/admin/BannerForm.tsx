@@ -1,7 +1,6 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
-import { Button } from "@/components/ui/Button";
 import { Input } from "@/components/ui/Input";
 import {
   BANNER_TYPE_LABELS,
@@ -16,6 +15,9 @@ const bannerTypes = (Object.keys(BANNER_TYPE_LABELS) as BannerType[]).map((value
   value,
   label: BANNER_TYPE_LABELS[value],
 }));
+
+const fieldClass =
+  "w-full rounded-xl border border-neutral-200 bg-white px-4 py-2.5 text-sm font-medium text-brand-black outline-none transition-colors focus:border-brand-black focus:ring-1 focus:ring-brand-black";
 
 interface BannerFormProps {
   initial?: Banner | null;
@@ -110,11 +112,15 @@ export function BannerForm({
   return (
     <form onSubmit={handleSubmit} className="space-y-4">
       <div className="grid gap-4 sm:grid-cols-2">
-        <Input label="Nome interno" value={form.nome ?? ""} onChange={(e) => update("nome", e.target.value)} />
+        <Input
+          label="Nome interno"
+          value={form.nome ?? ""}
+          onChange={(e) => update("nome", e.target.value)}
+        />
         <div>
           <label className="mb-1.5 block text-sm font-medium text-brand-black">Tipo</label>
           <select
-            className="w-full border border-neutral-300 bg-brand-white px-4 py-2.5 text-sm"
+            className={fieldClass}
             value={form.tipo}
             onChange={(e) => update("tipo", e.target.value as BannerType)}
           >
@@ -131,22 +137,31 @@ export function BannerForm({
             })}
           </select>
           {selectedTypeLimitMessage ? (
-            <p className="mt-1.5 text-xs text-brand-gray">{selectedTypeLimitMessage}</p>
+            <p className="mt-1.5 text-xs font-medium text-neutral-400">{selectedTypeLimitMessage}</p>
           ) : null}
           {!initial && availableTypes.length === 0 ? (
-            <p className="mt-1.5 text-xs text-red-600">
+            <p className="mt-1.5 text-xs font-medium text-red-600">
               Todos os tipos com limite já foram utilizados.
             </p>
           ) : null}
         </div>
       </div>
 
-      <Input label="Título" value={form.titulo} onChange={(e) => update("titulo", e.target.value)} required />
-      <Input label="Subtítulo" value={form.subtitulo ?? ""} onChange={(e) => update("subtitulo", e.target.value)} />
+      <Input
+        label="Título"
+        value={form.titulo}
+        onChange={(e) => update("titulo", e.target.value)}
+        required
+      />
+      <Input
+        label="Subtítulo"
+        value={form.subtitulo ?? ""}
+        onChange={(e) => update("subtitulo", e.target.value)}
+      />
       <div>
         <label className="mb-1.5 block text-sm font-medium text-brand-black">Descrição</label>
         <textarea
-          className="min-h-24 w-full border border-neutral-300 px-4 py-2.5 text-sm"
+          className={`min-h-24 ${fieldClass}`}
           value={form.descricao ?? ""}
           onChange={(e) => update("descricao", e.target.value)}
         />
@@ -164,9 +179,13 @@ export function BannerForm({
         onChange={(e) => update("imagemMobile", e.target.value)}
       />
 
-      {form.imagemDesktop && (
-        <img src={form.imagemDesktop} alt="Preview" className="h-32 w-full rounded object-cover" />
-      )}
+      {form.imagemDesktop ? (
+        <img
+          src={form.imagemDesktop}
+          alt="Preview"
+          className="h-32 w-full rounded-xl border border-neutral-100 object-cover"
+        />
+      ) : null}
 
       <div className="grid gap-4 sm:grid-cols-2">
         <Input
@@ -191,24 +210,37 @@ export function BannerForm({
         />
       </div>
 
-      <label className="flex items-center gap-2 text-sm text-brand-black">
+      <label className="flex items-center gap-2 text-sm font-medium text-brand-black">
         <input
           type="checkbox"
+          className="h-4 w-4 rounded border-neutral-300"
           checked={form.ativo ?? true}
           onChange={(e) => update("ativo", e.target.checked)}
         />
         Banner ativo
       </label>
 
-      {error && <p className="text-sm text-red-600">{error}</p>}
+      {error ? (
+        <p className="rounded-xl border border-red-100 bg-red-50 px-4 py-3 text-sm font-medium text-red-600">
+          {error}
+        </p>
+      ) : null}
 
-      <div className="flex justify-end gap-3">
-        <Button type="button" variant="outline" onClick={onCancel}>
+      <div className="flex justify-end gap-3 border-t border-neutral-100 pt-4">
+        <button
+          type="button"
+          onClick={onCancel}
+          className="flex h-11 items-center justify-center rounded-xl border border-neutral-200 bg-white px-5 text-sm font-semibold text-brand-black shadow-sm transition-all hover:border-neutral-300 hover:bg-neutral-50"
+        >
           Cancelar
-        </Button>
-        <Button type="submit" disabled={loading || (!initial && availableTypes.length === 0)}>
+        </button>
+        <button
+          type="submit"
+          disabled={loading || (!initial && availableTypes.length === 0)}
+          className="flex h-11 items-center justify-center rounded-xl bg-brand-black px-5 text-sm font-semibold text-white transition-colors hover:bg-neutral-800 disabled:opacity-50"
+        >
           {loading ? "Salvando..." : "Salvar"}
-        </Button>
+        </button>
       </div>
     </form>
   );

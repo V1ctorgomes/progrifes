@@ -31,6 +31,15 @@ Ao criar ou alterar telas do admin, **replicar este visual** — não voltar a l
 - CTA primário: `rounded-xl bg-brand-black text-white`
 - Espaçamento e tipografia sóbrios; evitar clutter (pills de atalho, resumos extras sem necessidade)
 
+## Modais
+
+- Usar `frontend/src/components/admin/Modal.tsx` (já no padrão novo)
+- Overlay: `bg-brand-black/40 backdrop-blur-sm`
+- Painel: `rounded-2xl border-neutral-100 bg-white shadow-sm`
+- Título: `font-display text-xl font-bold tracking-tight` (sem uppercase forçado)
+- Fechar: botão ícone Lucide `X` em `rounded-xl`
+- Formulários internos: inputs/selects `rounded-xl`, footer Cancelar/Salvar alinhado ao padrão das páginas
+
 ## Ícones e componente
 
 - Preferir Lucide; manter pesos/tamanhos consistentes (`h-4/h-5`)
