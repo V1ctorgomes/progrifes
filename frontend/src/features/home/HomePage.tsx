@@ -137,9 +137,9 @@ export function HomePage({
             </div>
           </Container>
         </section>
-
-        <WhatsAppCTA />
       </main>
+
+      <WhatsAppCTA />
     </StoreLayout>
   );
 }
