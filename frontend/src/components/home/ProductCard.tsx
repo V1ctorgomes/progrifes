@@ -12,7 +12,10 @@ interface ProductCardProps {
 export function ProductCard({ product }: ProductCardProps) {
   return (
     <article className="group flex flex-col">
-      <Link href={`/produtos/${product.slug}`} className="relative overflow-hidden bg-brand-light">
+      <Link
+        href={`/produtos/${product.slug}`}
+        className="relative overflow-hidden rounded-2xl border border-neutral-100 bg-neutral-50 shadow-sm transition-shadow group-hover:shadow-md"
+      >
         <div className="absolute left-3 top-3 z-10 flex flex-col gap-1">
           {product.discountPercent !== undefined && product.discountPercent > 0 && (
             <Badge variant="sale">{product.discountPercent}% OFF</Badge>
@@ -31,7 +34,7 @@ export function ProductCard({ product }: ProductCardProps) {
           />
         </div>
 
-        <div className="absolute bottom-0 left-0 right-0 translate-y-full bg-brand-white/95 p-3 backdrop-blur transition-transform duration-300 group-hover:translate-y-0">
+        <div className="absolute bottom-0 left-0 right-0 translate-y-full bg-white/95 p-3 backdrop-blur transition-transform duration-300 group-hover:translate-y-0">
           <div className="flex gap-2">
             <Button size="sm" variant="outline" fullWidth aria-label={`Visualizar ${product.name}`}>
               Ver
@@ -43,15 +46,15 @@ export function ProductCard({ product }: ProductCardProps) {
         </div>
       </Link>
 
-      <div className="mt-3 flex flex-1 flex-col gap-2">
+      <div className="mt-3 flex flex-1 flex-col gap-2 px-0.5">
         <Link href={`/produtos/${product.slug}`}>
-          <h3 className="line-clamp-2 text-sm font-medium leading-snug text-brand-black">
+          <h3 className="line-clamp-2 text-sm font-semibold leading-snug text-brand-black">
             {product.name}
           </h3>
         </Link>
 
         {product.colors && product.colors.length > 0 && (
-          <p className="text-xs text-brand-gray">
+          <p className="text-xs font-medium text-neutral-500">
             {product.colors.length > 1
               ? `${product.colors.length} cores`
               : `Cor ${product.colors[0]}`}

@@ -2,10 +2,10 @@
 
 import Link from "next/link";
 import { useEffect, useState } from "react";
+import { ChevronRight, X } from "lucide-react";
 import { cn } from "@/utils/cn";
 import type { Category } from "@/types/category";
 import type { NavItem } from "@/types/home";
-import { CloseIcon, ChevronRightIcon } from "@/components/ui/Icons";
 
 interface MobileMenuProps {
   isOpen: boolean;
@@ -38,7 +38,7 @@ export function MobileMenu({
     <>
       <div
         className={cn(
-          "fixed inset-0 z-40 bg-black/50 transition-opacity lg:hidden",
+          "fixed inset-0 z-40 bg-brand-black/40 backdrop-blur-sm transition-opacity lg:hidden",
           isOpen ? "opacity-100" : "pointer-events-none opacity-0",
         )}
         onClick={onClose}
@@ -47,21 +47,21 @@ export function MobileMenu({
       <nav
         id="mobile-menu"
         className={cn(
-          "fixed right-0 top-0 z-50 flex h-full w-80 max-w-[85vw] flex-col bg-brand-white shadow-xl transition-transform duration-300 lg:hidden",
+          "fixed right-0 top-0 z-50 flex h-full w-80 max-w-[85vw] flex-col border-l border-neutral-100 bg-white shadow-sm transition-transform duration-300 lg:hidden",
           isOpen ? "translate-x-0" : "translate-x-full",
         )}
         aria-label="Menu mobile"
         aria-hidden={!isOpen}
       >
-        <div className="flex items-center justify-between border-b border-neutral-200 px-6 py-4">
-          <span className="font-display text-lg font-bold uppercase tracking-widest">Menu</span>
+        <div className="flex items-center justify-between border-b border-neutral-100 px-5 py-4">
+          <span className="font-display text-lg font-bold tracking-tight">Menu</span>
           <button
             type="button"
             onClick={onClose}
-            className="rounded p-2 hover:bg-brand-light"
+            className="flex h-9 w-9 items-center justify-center rounded-xl border border-neutral-200 text-neutral-500 transition-colors hover:bg-neutral-50 hover:text-brand-black"
             aria-label="Fechar menu"
           >
-            <CloseIcon className="h-5 w-5" />
+            <X className="h-4 w-4" />
           </button>
         </div>
 
@@ -71,15 +71,15 @@ export function MobileMenu({
               <Link
                 href={item.href}
                 onClick={onClose}
-                className="block rounded px-4 py-3 text-sm font-medium uppercase tracking-wide text-brand-black transition-colors hover:bg-brand-light"
+                className="block rounded-xl px-4 py-3 text-sm font-semibold uppercase tracking-wide text-brand-black transition-colors hover:bg-neutral-50"
               >
                 {item.label}
               </Link>
             </li>
           ))}
 
-          <li className="mt-4 border-t border-neutral-200 pt-4">
-            <p className="px-4 pb-2 text-xs font-semibold uppercase tracking-widest text-brand-gray">
+          <li className="mt-4 border-t border-neutral-100 pt-4">
+            <p className="px-4 pb-2 text-xs font-bold uppercase tracking-widest text-neutral-400">
               Categorias
             </p>
             {rootCategories.map((category) => {
@@ -95,10 +95,10 @@ export function MobileMenu({
                         onClick={() =>
                           setExpandedCategory(isExpanded ? null : category.id)
                         }
-                        className="flex w-full items-center justify-between rounded px-4 py-3 text-sm font-medium uppercase tracking-wide text-brand-black"
+                        className="flex w-full items-center justify-between rounded-xl px-4 py-3 text-sm font-semibold uppercase tracking-wide text-brand-black hover:bg-neutral-50"
                       >
                         {category.nome}
-                        <ChevronRightIcon
+                        <ChevronRight
                           className={cn(
                             "h-4 w-4 transition-transform",
                             isExpanded && "rotate-90",
@@ -111,7 +111,7 @@ export function MobileMenu({
                             <Link
                               href={`/categorias/${category.slug}`}
                               onClick={onClose}
-                              className="block rounded px-4 py-2 text-sm text-brand-gray hover:text-brand-black"
+                              className="block rounded-xl px-4 py-2 text-sm text-neutral-500 hover:text-brand-black"
                             >
                               Ver tudo
                             </Link>
@@ -121,7 +121,7 @@ export function MobileMenu({
                               <Link
                                 href={`/categorias/${child.slug}`}
                                 onClick={onClose}
-                                className="block rounded px-4 py-2 text-sm text-brand-gray hover:text-brand-black"
+                                className="block rounded-xl px-4 py-2 text-sm text-neutral-500 hover:text-brand-black"
                               >
                                 {child.nome}
                               </Link>
@@ -134,7 +134,7 @@ export function MobileMenu({
                     <Link
                       href={`/categorias/${category.slug}`}
                       onClick={onClose}
-                      className="block rounded px-4 py-3 text-sm font-medium uppercase tracking-wide text-brand-black hover:bg-brand-light"
+                      className="block rounded-xl px-4 py-3 text-sm font-semibold uppercase tracking-wide text-brand-black hover:bg-neutral-50"
                     >
                       {category.nome}
                     </Link>
@@ -145,7 +145,7 @@ export function MobileMenu({
             <Link
               href="/categorias"
               onClick={onClose}
-              className="mt-2 block rounded px-4 py-2 text-sm text-brand-accent hover:underline"
+              className="mt-2 block rounded-xl px-4 py-2 text-sm font-semibold text-brand-accent hover:underline"
             >
               Ver todas as categorias
             </Link>

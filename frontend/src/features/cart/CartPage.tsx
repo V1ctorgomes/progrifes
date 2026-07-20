@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { useQuery } from "@tanstack/react-query";
+import { ShoppingBag } from "lucide-react";
 import { CartItem } from "@/features/cart/components/CartItem";
 import { CartSummary } from "@/features/cart/components/CartSummary";
 import { useCart } from "@/features/cart/hooks/useCart";
@@ -39,54 +40,55 @@ function CartPageContent() {
       : undefined;
 
   return (
-    <main className="py-8 sm:py-12">
-        <Container>
-          <div className="mb-8 flex flex-wrap items-center justify-between gap-3">
-            <div>
-              <h1 className="font-display text-3xl font-bold uppercase tracking-wide text-brand-black">
-                Carrinho
-              </h1>
-              <p className="mt-2 text-sm text-brand-gray">
-                {totals.itemCount} {totals.itemCount === 1 ? "item" : "itens"}
-              </p>
-            </div>
-            {items.length > 0 && (
-              <Button variant="ghost" onClick={clearCart}>
-                Esvaziar carrinho
-              </Button>
-            )}
+    <main className="animate-fade-in py-8 sm:py-12">
+      <Container>
+        <div className="mb-8 flex flex-wrap items-center justify-between gap-3">
+          <div>
+            <h1 className="font-display text-3xl font-bold tracking-tight text-brand-black">
+              Carrinho
+            </h1>
+            <p className="mt-2 text-sm text-neutral-500">
+              {totals.itemCount} {totals.itemCount === 1 ? "item" : "itens"}
+            </p>
           </div>
+          {items.length > 0 ? (
+            <Button variant="ghost" onClick={clearCart}>
+              Esvaziar carrinho
+            </Button>
+          ) : null}
+        </div>
 
-          {items.length === 0 ? (
-            <div className="border border-neutral-200 p-10 text-center">
-              <p className="text-brand-gray">Seu carrinho está vazio.</p>
-              <Link href="/" className="mt-4 inline-block">
-                <Button variant="outline">Continuar comprando</Button>
-              </Link>
+        {items.length === 0 ? (
+          <div className="flex flex-col items-center justify-center gap-3 rounded-2xl border border-neutral-100 bg-white px-5 py-16 text-center shadow-sm">
+            <ShoppingBag className="h-10 w-10 text-neutral-300" />
+            <p className="text-sm font-medium text-neutral-500">Seu carrinho está vazio.</p>
+            <Link href="/" className="mt-2 inline-block">
+              <Button variant="outline">Continuar comprando</Button>
+            </Link>
+          </div>
+        ) : (
+          <div className="grid gap-8 lg:grid-cols-[1fr_360px]">
+            <div className="divide-y divide-neutral-100 overflow-hidden rounded-2xl border border-neutral-100 bg-white px-4 shadow-sm sm:px-5">
+              {items.map((item) => (
+                <CartItem
+                  key={item.varianteId}
+                  item={item}
+                  onUpdateQuantity={(quantity) => updateQuantity(item.varianteId, quantity)}
+                  onRemove={() => removeItem(item.varianteId)}
+                />
+              ))}
             </div>
-          ) : (
-            <div className="grid gap-8 lg:grid-cols-[1fr_360px]">
-              <div className="divide-y divide-neutral-200 border border-neutral-200 px-4">
-                {items.map((item) => (
-                  <CartItem
-                    key={item.varianteId}
-                    item={item}
-                    onUpdateQuantity={(quantity) => updateQuantity(item.varianteId, quantity)}
-                    onRemove={() => removeItem(item.varianteId)}
-                  />
-                ))}
-              </div>
 
-              <CartSummary
-                totals={totals}
-                canCheckout={canCheckout}
-                checkoutDisabledReason={checkoutDisabledReason}
-                deliveryMessage={deliverySettings?.message}
-                minimumOrderValue={deliverySettings?.minimumOrderValue ?? 0}
-              />
-            </div>
-          )}
-        </Container>
-      </main>
+            <CartSummary
+              totals={totals}
+              canCheckout={canCheckout}
+              checkoutDisabledReason={checkoutDisabledReason}
+              deliveryMessage={deliverySettings?.message}
+              minimumOrderValue={deliverySettings?.minimumOrderValue ?? 0}
+            />
+          </div>
+        )}
+      </Container>
+    </main>
   );
 }

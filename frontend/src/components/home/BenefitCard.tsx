@@ -21,14 +21,12 @@ export function BenefitCard({ benefit }: BenefitCardProps) {
   const Icon = iconMap[benefit.icon];
 
   return (
-    <div className="flex flex-col items-center text-center sm:items-start sm:text-left">
-      <div className="mb-4 flex h-12 w-12 items-center justify-center rounded-full bg-brand-light text-brand-black">
+    <div className="rounded-2xl border border-neutral-100 bg-white p-5 shadow-sm transition-all hover:-translate-y-1 hover:shadow-md sm:p-6">
+      <div className="mb-4 flex h-12 w-12 items-center justify-center rounded-xl bg-neutral-100 text-brand-black">
         <Icon className="h-6 w-6" />
       </div>
-      <h3 className="text-sm font-semibold uppercase tracking-wide text-brand-black">
-        {benefit.title}
-      </h3>
-      <p className="mt-2 text-sm leading-relaxed text-brand-gray">{benefit.description}</p>
+      <h3 className="text-sm font-semibold tracking-tight text-brand-black">{benefit.title}</h3>
+      <p className="mt-2 text-sm leading-relaxed text-neutral-500">{benefit.description}</p>
     </div>
   );
 }

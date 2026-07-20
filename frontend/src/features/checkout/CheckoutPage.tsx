@@ -246,14 +246,14 @@ function CheckoutContent() {
             <Link href="/carrinho" className="text-sm text-brand-gray underline">
               ← Voltar ao carrinho
             </Link>
-            <h1 className="mt-2 font-display text-3xl font-bold uppercase tracking-wide text-brand-black">
+            <h1 className="mt-2 font-display text-3xl font-bold tracking-tight text-brand-black">
               Checkout
             </h1>
             <p className="mt-2 text-sm text-brand-gray">
               Preencha seus dados para finalizar o pedido via WhatsApp
             </p>
             {deliverySettings.message ? (
-              <p className="mt-3 whitespace-pre-line rounded border border-neutral-200 bg-brand-light p-3 text-sm text-brand-gray">
+              <p className="mt-3 whitespace-pre-line rounded-xl border border-neutral-100 bg-neutral-50 p-3 text-sm text-brand-gray">
                 {deliverySettings.message}
               </p>
             ) : null}
@@ -271,8 +271,8 @@ function CheckoutContent() {
 
           <form onSubmit={handleSubmit} className="grid gap-8 lg:grid-cols-[1fr_360px]">
             <div className="space-y-8">
-              <section className="space-y-4 border border-neutral-200 p-4">
-                <h2 className="font-display text-lg font-semibold uppercase tracking-wide text-brand-black">
+              <section className="space-y-4 rounded-2xl border border-neutral-100 bg-white p-5 shadow-sm">
+                <h2 className="font-display text-lg font-bold tracking-tight text-brand-black">
                   Dados do cliente
                 </h2>
                 <Input
@@ -296,8 +296,8 @@ function CheckoutContent() {
                 />
               </section>
 
-              <section className="space-y-4 border border-neutral-200 p-4">
-                <h2 className="font-display text-lg font-semibold uppercase tracking-wide text-brand-black">
+              <section className="space-y-4 rounded-2xl border border-neutral-100 bg-white p-5 shadow-sm">
+                <h2 className="font-display text-lg font-bold tracking-tight text-brand-black">
                   Endereço de entrega
                 </h2>
                 <div className="grid gap-4 sm:grid-cols-2">
@@ -353,8 +353,8 @@ function CheckoutContent() {
                 />
               </section>
 
-              <section className="space-y-4 border border-neutral-200 p-4">
-                <h2 className="font-display text-lg font-semibold uppercase tracking-wide text-brand-black">
+              <section className="space-y-4 rounded-2xl border border-neutral-100 bg-white p-5 shadow-sm">
+                <h2 className="font-display text-lg font-bold tracking-tight text-brand-black">
                   Forma de pagamento
                 </h2>
                 <div className="grid gap-2 sm:grid-cols-3">
@@ -397,12 +397,12 @@ function CheckoutContent() {
                 )}
               </section>
 
-              <section className="space-y-4 border border-neutral-200 p-4">
-                <h2 className="font-display text-lg font-semibold uppercase tracking-wide text-brand-black">
+              <section className="space-y-4 rounded-2xl border border-neutral-100 bg-white p-5 shadow-sm">
+                <h2 className="font-display text-lg font-bold tracking-tight text-brand-black">
                   Observações
                 </h2>
                 <textarea
-                  className="min-h-[100px] w-full border border-neutral-300 px-4 py-2.5 text-sm"
+                  className="min-h-[100px] w-full rounded-xl border border-neutral-200 bg-white px-4 py-2.5 text-sm outline-none focus:border-brand-black focus:ring-1 focus:ring-brand-black"
                   value={form.observacoes}
                   onChange={(e) => update("observacoes", e.target.value)}
                   placeholder="Ex.: Entregar após 18h, não tocar a campainha..."
@@ -411,14 +411,14 @@ function CheckoutContent() {
             </div>
 
             <div className="space-y-4">
-              <div className="border border-neutral-200 p-4">
-                <h2 className="mb-4 font-display text-lg font-semibold uppercase tracking-wide text-brand-black">
+              <div className="rounded-2xl border border-neutral-100 bg-white p-5 shadow-sm">
+                <h2 className="mb-4 font-display text-lg font-bold tracking-tight text-brand-black">
                   Seu pedido
                 </h2>
                 <div className="space-y-3">
                   {items.map((item) => (
                     <div key={item.varianteId} className="flex gap-3">
-                      <div className="relative h-16 w-12 shrink-0 bg-brand-light">
+                      <div className="relative h-16 w-12 shrink-0 overflow-hidden rounded-xl bg-neutral-50">
                         {item.imagem && (
                           <Image
                             src={item.imagem}

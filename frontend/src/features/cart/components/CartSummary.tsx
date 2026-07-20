@@ -43,39 +43,39 @@ export function CartSummary({
       : undefined);
 
   return (
-    <div className="space-y-3 border border-neutral-200 bg-brand-light p-4">
-      <h2 className="font-display text-lg font-semibold uppercase tracking-wide text-brand-black">
+    <div className="space-y-4 rounded-2xl border border-neutral-100 bg-white p-5 shadow-sm">
+      <h2 className="font-display text-lg font-bold tracking-tight text-brand-black">
         Resumo do pedido
       </h2>
 
       {deliveryMessage ? (
-        <p className="whitespace-pre-line text-xs text-brand-gray">{deliveryMessage}</p>
+        <p className="whitespace-pre-line text-xs font-medium text-neutral-500">{deliveryMessage}</p>
       ) : null}
 
       <div className="space-y-2 text-sm">
-        <div className="flex justify-between text-brand-gray">
+        <div className="flex justify-between text-neutral-500">
           <span>Subtotal</span>
-          <span className="text-brand-black">{formatCurrency(totals.subtotal)}</span>
+          <span className="font-medium text-brand-black">{formatCurrency(totals.subtotal)}</span>
         </div>
-        <div className="flex justify-between text-brand-gray">
+        <div className="flex justify-between text-neutral-500">
           <span>Taxa de entrega</span>
-          <span className="text-brand-black">
+          <span className="font-medium text-brand-black">
             {displayShipping === null || displayShipping === undefined
               ? "A calcular"
               : formatCurrency(displayShipping)}
           </span>
         </div>
         {deliveryTimeMinutes ? (
-          <div className="flex justify-between text-brand-gray">
+          <div className="flex justify-between text-neutral-500">
             <span>Prazo estimado</span>
-            <span className="text-brand-black">{deliveryTimeMinutes} min</span>
+            <span className="font-medium text-brand-black">{deliveryTimeMinutes} min</span>
           </div>
         ) : null}
-        <div className="flex justify-between text-brand-gray">
+        <div className="flex justify-between text-neutral-500">
           <span>Descontos</span>
           <span>—</span>
         </div>
-        <div className="flex justify-between border-t border-neutral-300 pt-2 text-base font-semibold text-brand-black">
+        <div className="flex justify-between border-t border-neutral-100 pt-2 text-base font-bold text-brand-black">
           <span>Total</span>
           <span>{formatCurrency(displayTotal)}</span>
         </div>

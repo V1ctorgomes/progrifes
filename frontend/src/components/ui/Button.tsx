@@ -13,14 +13,14 @@ interface ButtonProps extends ButtonHTMLAttributes<HTMLButtonElement> {
 
 const variantStyles: Record<ButtonVariant, string> = {
   primary:
-    "bg-brand-black text-brand-white hover:bg-brand-dark border border-brand-black",
+    "bg-brand-black text-brand-white hover:bg-neutral-800 border border-brand-black shadow-sm",
   secondary:
-    "bg-brand-white text-brand-black hover:bg-brand-light border border-brand-black",
+    "bg-white text-brand-black hover:bg-neutral-50 border border-neutral-200 shadow-sm",
   outline:
-    "bg-transparent text-brand-black border border-brand-black hover:bg-brand-black hover:text-brand-white",
-  ghost: "bg-transparent text-brand-black hover:bg-brand-light",
+    "bg-white text-brand-black border border-neutral-200 hover:border-neutral-300 hover:bg-neutral-50 shadow-sm",
+  ghost: "bg-transparent text-brand-black hover:bg-neutral-100",
   whatsapp:
-    "bg-brand-whatsapp text-brand-white hover:opacity-90 border border-brand-whatsapp",
+    "bg-brand-whatsapp text-brand-white hover:opacity-90 border border-brand-whatsapp shadow-sm",
 };
 
 const sizeStyles: Record<ButtonSize, string> = {
@@ -40,7 +40,7 @@ export function Button({
   return (
     <button
       className={cn(
-        "inline-flex items-center justify-center gap-2 font-medium tracking-wide uppercase transition-colors duration-200 disabled:cursor-not-allowed disabled:opacity-50",
+        "inline-flex items-center justify-center gap-2 rounded-xl font-semibold tracking-wide transition-all duration-200 disabled:cursor-not-allowed disabled:opacity-50 active:scale-[0.99]",
         variantStyles[variant],
         sizeStyles[size],
         fullWidth && "w-full",

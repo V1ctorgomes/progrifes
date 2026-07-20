@@ -45,7 +45,7 @@ export function CheckoutSuccessPage({ categories }: CheckoutSuccessPageProps) {
             <span className="text-2xl font-bold">!</span>
           </div>
 
-          <h1 className="font-display text-3xl font-bold uppercase tracking-wide text-brand-black">
+          <h1 className="font-display text-3xl font-bold tracking-tight text-brand-black">
             Quase lá!
           </h1>
 
@@ -55,7 +55,7 @@ export function CheckoutSuccessPage({ categories }: CheckoutSuccessPageProps) {
             </p>
           ) : null}
 
-          <div className="mt-6 space-y-3 text-left border border-neutral-200 bg-brand-light p-5 text-sm text-brand-gray">
+          <div className="mt-6 space-y-3 rounded-2xl border border-neutral-100 bg-white p-5 text-left text-sm text-neutral-500 shadow-sm">
             <p>
               Seu pedido foi salvo no sistema, mas ainda <strong className="text-brand-black">não está confirmado</strong>.
             </p>
@@ -91,7 +91,7 @@ export function CheckoutSuccessPage({ categories }: CheckoutSuccessPageProps) {
             </Link>
           </div>
 
-          <p className="mt-6 text-xs text-brand-gray">
+          <p className="mt-6 text-xs font-medium text-neutral-400">
             Sem a confirmação pelo WhatsApp, o pedido pode não ser processado.
           </p>
         </Container>

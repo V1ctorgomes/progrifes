@@ -138,7 +138,7 @@ function ProductDetailContent({ product }: { product: Product }) {
 
           <div className="grid gap-10 lg:grid-cols-2">
             <div>
-              <div className="relative aspect-[3/4] overflow-hidden bg-brand-light">
+              <div className="relative aspect-[3/4] overflow-hidden rounded-2xl border border-neutral-100 bg-neutral-50 shadow-sm">
                 {selectedImage && (
                   <Image
                     src={selectedImage}
@@ -172,10 +172,10 @@ function ProductDetailContent({ product }: { product: Product }) {
 
             <div className="space-y-6">
               <div>
-                <p className="text-sm uppercase tracking-wide text-brand-gray">
+                <p className="text-sm font-medium text-neutral-500">
                   {product.categoria.nome}
                 </p>
-                <h1 className="mt-2 font-display text-3xl font-bold uppercase tracking-wide text-brand-black">
+                <h1 className="mt-2 font-display text-3xl font-bold tracking-tight text-brand-black">
                   {product.nome}
                 </h1>
                 {product.marca && (
@@ -201,7 +201,7 @@ function ProductDetailContent({ product }: { product: Product }) {
 
                   return (
                     <div key={attributeName}>
-                      <p className="mb-2 text-sm font-medium uppercase tracking-wide text-brand-black">
+                      <p className="mb-2 text-sm font-semibold text-brand-black">
                         {attributeName}
                       </p>
                       <div className="flex flex-wrap gap-2">
@@ -258,7 +258,7 @@ function ProductDetailContent({ product }: { product: Product }) {
               </Button>
 
               <div className="border-t border-neutral-200 pt-6">
-                <h2 className="mb-3 font-display text-lg font-semibold uppercase tracking-wide text-brand-black">
+                <h2 className="mb-3 font-display text-lg font-bold tracking-tight text-brand-black">
                   Descrição
                 </h2>
                 <p className="whitespace-pre-line text-sm leading-relaxed text-brand-gray">

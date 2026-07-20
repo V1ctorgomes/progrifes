@@ -1,0 +1,20 @@
+---
+description: Layout visual da loja (storefront) — padrão moderno
+globs: frontend/src/{layouts/StoreLayout.tsx,features/{home,cart,checkout,categories,products}/**/*.tsx,components/{home,category,banner,ui}/**/*.tsx}
+alwaysApply: false
+---
+
+# Storefront UI — layout vigente
+
+Referência: Navbar/Footer modernos + cards `rounded-2xl` (ProductCard, CategoryCard).
+
+Ao alterar a loja, manter a identidade Grifres (preto, accent dourado, Oswald) e o visual moderno:
+
+- Fundo geral: `#F8F9FA`
+- Navbar: branco/blur, top bar `#0A0A0A`, ícones Lucide, botões `rounded-xl`
+- Footer: fundo `#0A0A0A`
+- Cards de produto/categoria: `rounded-2xl border-neutral-100 shadow-sm`
+- Botões: `rounded-xl` (componente `Button`)
+- Títulos de seção: `font-display ... tracking-tight` (evitar uppercase forçado em excesso)
+- Painéis (carrinho/checkout): `rounded-2xl bg-white border-neutral-100 shadow-sm`
+- Hero continua full-bleed; não transformar a loja em dashboard admin

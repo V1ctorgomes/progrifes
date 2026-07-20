@@ -19,11 +19,11 @@ export function CategoryCard({ category, variant = "home", className }: Category
     return (
       <article
         className={cn(
-          "group flex flex-col overflow-hidden border border-neutral-200 bg-brand-white transition-shadow hover:shadow-md",
+          "group flex flex-col overflow-hidden rounded-2xl border border-neutral-100 bg-white shadow-sm transition-all hover:-translate-y-1 hover:shadow-md",
           className,
         )}
       >
-        <Link href={href} className="relative block aspect-[16/10] overflow-hidden bg-brand-light">
+        <Link href={href} className="relative block aspect-[16/10] overflow-hidden bg-neutral-50">
           <Image
             src={category.imagem}
             alt={category.nome}
@@ -35,12 +35,14 @@ export function CategoryCard({ category, variant = "home", className }: Category
         </Link>
         <div className="flex flex-1 flex-col p-5">
           <Link href={href}>
-            <h3 className="font-display text-lg font-bold uppercase tracking-wider text-brand-black">
+            <h3 className="font-display text-lg font-bold tracking-tight text-brand-black">
               {category.nome}
             </h3>
           </Link>
-          <p className="mt-2 line-clamp-2 flex-1 text-sm text-brand-gray">{category.descricao}</p>
-          <p className="mt-3 text-xs text-brand-gray">{category.productCount} produtos</p>
+          <p className="mt-2 line-clamp-2 flex-1 text-sm text-neutral-500">{category.descricao}</p>
+          <p className="mt-3 text-xs font-medium text-neutral-400">
+            {category.productCount} produtos
+          </p>
           <div className="mt-4">
             <Link href={href}>
               <Button size="sm" fullWidth>
@@ -57,7 +59,7 @@ export function CategoryCard({ category, variant = "home", className }: Category
     <article className={cn("group flex flex-col", className)}>
       <Link
         href={href}
-        className="relative block overflow-hidden bg-brand-light"
+        className="relative block overflow-hidden rounded-2xl border border-neutral-100 bg-neutral-50 shadow-sm transition-shadow group-hover:shadow-md"
       >
         <div className="relative aspect-[3/4] sm:aspect-square">
           <Image
@@ -69,11 +71,11 @@ export function CategoryCard({ category, variant = "home", className }: Category
             sizes="(max-width: 640px) 50vw, 25vw"
           />
           <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent" />
-          <div className="absolute bottom-0 left-0 right-0 p-4 text-brand-white">
-            <h3 className="font-display text-lg font-bold uppercase tracking-wider">
-              {category.nome}
-            </h3>
-            <p className="mt-1 text-xs text-neutral-200">{category.productCount} produtos</p>
+          <div className="absolute bottom-0 left-0 right-0 p-4 text-white">
+            <h3 className="font-display text-lg font-bold tracking-tight">{category.nome}</h3>
+            <p className="mt-1 text-xs font-medium text-neutral-200">
+              {category.productCount} produtos
+            </p>
           </div>
         </div>
       </Link>

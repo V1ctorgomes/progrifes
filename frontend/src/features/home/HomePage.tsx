@@ -70,7 +70,7 @@ export function HomePage({
           <BannerHorizontal key={banner.id} banner={banner} />
         ))}
 
-        <section id="produtos" className="bg-brand-light py-16 sm:py-20" aria-label="Produtos em destaque">
+        <section id="produtos" className="bg-white py-16 sm:py-20" aria-label="Produtos em destaque">
           <Container>
             <SectionTitle
               title="Chegou agora"
@@ -112,10 +112,10 @@ export function HomePage({
           </Container>
         </section>
 
-        <section className="border-y border-neutral-200 bg-brand-white py-16 sm:py-20" aria-label="Benefícios">
+        <section className="border-y border-neutral-100 bg-white py-16 sm:py-20" aria-label="Benefícios">
           <Container>
             <SectionTitle title="Por que comprar conosco?" />
-            <div className="grid gap-8 sm:grid-cols-2 lg:grid-cols-4">
+            <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-4">
               {benefits.map((benefit) => (
                 <BenefitCard key={benefit.id} benefit={benefit} />
               ))}

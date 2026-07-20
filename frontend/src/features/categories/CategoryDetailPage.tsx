@@ -66,7 +66,7 @@ export function CategoryDetailPage({
           <Breadcrumb items={breadcrumb} className="mb-6" />
 
           <div className="mb-8">
-            <h1 className="font-display text-3xl font-bold uppercase tracking-wider text-brand-black sm:text-4xl">
+            <h1 className="font-display text-3xl font-bold tracking-tightr text-brand-black sm:text-4xl">
               {category.nome}
             </h1>
             <p className="mt-4 max-w-3xl text-sm leading-relaxed text-brand-gray sm:text-base">
@@ -83,7 +83,7 @@ export function CategoryDetailPage({
 
           {subcategories.length > 0 && (
             <section className="mb-12" aria-label="Subcategorias">
-              <h2 className="mb-6 font-display text-xl font-bold uppercase tracking-wider text-brand-black">
+              <h2 className="mb-6 font-display text-xl font-bold tracking-tight text-brand-black">
                 Subcategorias
               </h2>
               <CategoryGrid categories={subcategories} variant="home" columns={3} />
@@ -92,7 +92,7 @@ export function CategoryDetailPage({
 
           <section aria-label="Produtos da categoria">
             <div className="mb-6 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-              <h2 className="font-display text-xl font-bold uppercase tracking-wider text-brand-black">
+              <h2 className="font-display text-xl font-bold tracking-tight text-brand-black">
                 Produtos
               </h2>
               <div className="flex flex-col gap-3 sm:flex-row sm:items-center">

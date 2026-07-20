@@ -27,11 +27,11 @@ export function SectionTitle({
       )}
     >
       <div>
-        <h2 className="font-display text-2xl font-bold uppercase tracking-widest text-brand-black sm:text-3xl">
+        <h2 className="font-display text-2xl font-bold tracking-tight text-brand-black sm:text-3xl">
           {title}
         </h2>
         {subtitle && (
-          <p className="mt-2 max-w-2xl text-sm text-brand-gray sm:text-base">{subtitle}</p>
+          <p className="mt-2 max-w-2xl text-sm text-neutral-500 sm:text-base">{subtitle}</p>
         )}
       </div>
       {action}
