@@ -10,22 +10,22 @@ interface BannerInstitucionalProps {
 
 export function BannerInstitucional({ banner }: BannerInstitucionalProps) {
   return (
-    <BannerCard id="sobre" className="bg-brand-light py-16 sm:py-20" ariaLabel="Sobre a marca">
+    <BannerCard id="sobre" className="bg-white py-16 sm:py-20" ariaLabel="Sobre a marca">
       <Container>
         <div className="grid items-center gap-8 md:grid-cols-2 md:gap-12">
-          <div className="relative aspect-[4/3] overflow-hidden">
+          <div className="relative aspect-[4/3] overflow-hidden rounded-2xl border border-neutral-100 bg-neutral-50 shadow-sm">
             <BannerImage banner={banner} sizes="(max-width: 768px) 100vw, 50vw" />
           </div>
 
           <div>
-            <p className="mb-2 text-xs font-medium uppercase tracking-[0.3em] text-brand-accent">
+            <p className="mb-2 text-xs font-bold uppercase tracking-[0.28em] text-brand-accent">
               Nossa marca
             </p>
-            <h2 className="font-display text-2xl font-bold uppercase tracking-wider text-brand-black sm:text-3xl">
+            <h2 className="font-display text-2xl font-bold tracking-tight text-brand-black sm:text-3xl">
               {banner.titulo}
             </h2>
             {banner.descricao && (
-              <p className="mt-4 text-sm leading-relaxed text-brand-gray sm:text-base">
+              <p className="mt-4 text-sm leading-relaxed text-neutral-500 sm:text-base">
                 {banner.descricao}
               </p>
             )}

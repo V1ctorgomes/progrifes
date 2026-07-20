@@ -12,12 +12,12 @@ export function BannerHorizontal({ banner }: BannerHorizontalProps) {
   return (
     <BannerCard ariaLabel={banner.nome}>
       <Container className="py-8 sm:py-10">
-        <div className="relative overflow-hidden">
+        <div className="relative overflow-hidden rounded-2xl border border-neutral-100 shadow-sm">
           <div className="relative aspect-[16/7] sm:aspect-[21/7]">
             <BannerImage banner={banner} sizes="(max-width: 768px) 100vw, 1280px" overlay />
             <div className="absolute inset-0 flex items-center">
               <div className="px-6 py-8 text-brand-white sm:px-12">
-                <h2 className="font-display text-2xl font-bold uppercase tracking-wider sm:text-3xl">
+                <h2 className="font-display text-2xl font-bold tracking-tight sm:text-3xl">
                   {banner.titulo}
                 </h2>
                 {banner.descricao && (

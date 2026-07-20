@@ -9,7 +9,12 @@ interface CategoryBannerProps {
 
 export function CategoryBanner({ category, className }: CategoryBannerProps) {
   return (
-    <div className={cn("relative aspect-[16/7] w-full overflow-hidden bg-brand-light sm:aspect-[21/7]", className)}>
+    <div
+      className={cn(
+        "relative aspect-[16/7] w-full overflow-hidden rounded-2xl border border-neutral-100 bg-neutral-50 shadow-sm sm:aspect-[21/7]",
+        className,
+      )}
+    >
       <Image
         src={category.banner}
         alt={category.nome}
