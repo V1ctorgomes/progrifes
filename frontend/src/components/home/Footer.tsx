@@ -1,6 +1,6 @@
 import Link from "next/link";
-import { Facebook, Instagram, MessageCircle } from "lucide-react";
 import { Container } from "@/components/ui/Container";
+import { FacebookIcon, InstagramIcon, WhatsAppIcon } from "@/components/ui/Icons";
 import { storeInfo } from "@/lib/mock-data";
 
 const footerLinks = [
@@ -11,9 +11,9 @@ const footerLinks = [
 ];
 
 const socialLinks = [
-  { label: "Instagram", href: "#", icon: Instagram },
-  { label: "Facebook", href: "#", icon: Facebook },
-  { label: "WhatsApp", href: "#", icon: MessageCircle },
+  { label: "Instagram", href: "#", icon: InstagramIcon },
+  { label: "Facebook", href: "#", icon: FacebookIcon },
+  { label: "WhatsApp", href: "#", icon: WhatsAppIcon },
 ];
 
 export function Footer() {
