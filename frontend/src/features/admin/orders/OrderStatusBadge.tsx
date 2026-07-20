@@ -1,3 +1,4 @@
+import { cn } from "@/utils/cn";
 import type { OrderStatus } from "@/types/order";
 
 interface OrderStatusBadgeProps {
@@ -9,7 +10,10 @@ interface OrderStatusBadgeProps {
 export function OrderStatusBadge({ label, color, className }: OrderStatusBadgeProps) {
   return (
     <span
-      className={`inline-flex items-center rounded px-2 py-0.5 text-xs font-medium text-white ${className ?? ""}`}
+      className={cn(
+        "inline-flex items-center rounded-full px-3 py-1 text-[10px] font-bold uppercase tracking-wider text-white",
+        className,
+      )}
       style={{ backgroundColor: color }}
     >
       {label}
