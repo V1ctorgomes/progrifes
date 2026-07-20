@@ -3,10 +3,19 @@
 import Link from "next/link";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useState } from "react";
+import {
+  AlertTriangle,
+  Copy,
+  PackageSearch,
+  Pencil,
+  Plus,
+  Power,
+  RefreshCw,
+  Search,
+  Trash2,
+} from "lucide-react";
 import { Modal } from "@/components/admin/Modal";
 import { ProductForm } from "@/components/admin/ProductForm";
-import { Button } from "@/components/ui/Button";
-import { Input } from "@/components/ui/Input";
 import {
   categoriesAdminApi,
   getErrorMessage,
@@ -41,7 +50,7 @@ export function ProductsAdminPage() {
     queryFn: categoriesAdminApi.list,
   });
 
-  const { data, isLoading } = useQuery({
+  const { data, isLoading, isFetching, refetch, isError } = useQuery({
     queryKey: ["admin", "products", search, categoryFilter, statusFilter],
     queryFn: () =>
       productsAdminApi.list({
@@ -103,21 +112,67 @@ export function ProductsAdminPage() {
     setModalOpen(true);
   };
 
+  if (isLoading) {
+    return (
+      <div className="flex h-[60vh] flex-col items-center justify-center gap-4">
+        <RefreshCw className="h-8 w-8 animate-spin text-neutral-300" />
+        <p className="text-sm font-medium text-neutral-500">Carregando produtos...</p>
+      </div>
+    );
+  }
+
+  if (isError) {
+    return (
+      <div className="flex h-[60vh] flex-col items-center justify-center gap-3 rounded-2xl border border-neutral-100 bg-white shadow-sm">
+        <AlertTriangle className="h-10 w-10 text-red-400" />
+        <p className="text-sm font-medium text-neutral-500">
+          Não foi possível carregar os produtos.
+        </p>
+        <button
+          type="button"
+          onClick={() => refetch()}
+          className="mt-4 rounded-xl bg-brand-black px-5 py-2.5 text-sm font-medium text-white transition-colors hover:bg-neutral-800"
+        >
+          Tentar novamente
+        </button>
+      </div>
+    );
+  }
+
   return (
-    <div className="space-y-8">
-      <div className="flex flex-wrap items-start justify-between gap-4">
+    <div className="animate-fade-in space-y-8 pb-10">
+      <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
         <div>
-          <h1 className="font-display text-2xl font-semibold uppercase tracking-wide text-brand-black">
+          <h1 className="font-display text-3xl font-bold tracking-tight text-brand-black">
             Produtos
           </h1>
-          <p className="mt-1 text-sm text-brand-gray">
+          <p className="mt-2 text-sm text-neutral-500">
             Gerencie o catálogo da loja, variantes e destaques.
           </p>
         </div>
-        <Button onClick={openCreate}>Novo produto</Button>
+
+        <div className="flex flex-wrap items-center gap-3">
+          <button
+            type="button"
+            onClick={() => refetch()}
+            disabled={isFetching}
+            className="flex h-11 w-fit shrink-0 items-center justify-center gap-2 rounded-xl border border-neutral-200 bg-white px-5 text-sm font-semibold text-brand-black shadow-sm transition-all hover:border-neutral-300 hover:bg-neutral-50 active:scale-95 disabled:opacity-50"
+          >
+            <RefreshCw className={cn("h-4 w-4 text-neutral-500", isFetching && "animate-spin")} />
+            {isFetching ? "Atualizando..." : "Atualizar"}
+          </button>
+          <button
+            type="button"
+            onClick={openCreate}
+            className="flex h-11 w-fit shrink-0 items-center justify-center gap-2 rounded-xl bg-brand-black px-5 text-sm font-semibold text-white transition-colors hover:bg-neutral-800 active:scale-95"
+          >
+            <Plus className="h-4 w-4" />
+            Novo produto
+          </button>
+        </div>
       </div>
 
-      <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
+      <section className="grid gap-5 sm:grid-cols-2 xl:grid-cols-4">
         <SummaryCard label="Total" value={totalProducts} hint="Produtos no catálogo" />
         <SummaryCard
           label="Ativos"
@@ -130,23 +185,34 @@ export function ProductsAdminPage() {
           hint="Produtos marcados para vitrine"
         />
         <SummaryCard label="Novos" value={newCount} hint="Produtos com selo de novidade" />
-      </div>
+      </section>
 
-      <section className="border border-neutral-200 bg-brand-white p-4 sm:p-5">
-        <h2 className="font-display text-sm font-semibold uppercase tracking-wide text-brand-black">
-          Filtros
-        </h2>
-        <div className="mt-4 grid gap-3 sm:grid-cols-3">
-          <Input
-            label="Pesquisar"
-            value={search}
-            onChange={(e) => setSearch(e.target.value)}
-            placeholder="Nome, slug, marca..."
-          />
+      <section className="rounded-2xl border border-neutral-100 bg-white p-5 shadow-sm">
+        <div className="mb-5 flex items-center gap-3">
+          <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-neutral-100 text-neutral-600">
+            <Search className="h-5 w-5" />
+          </div>
+          <div>
+            <h2 className="text-base font-semibold text-brand-black">Filtros</h2>
+            <p className="text-xs font-medium text-neutral-400">
+              Refine a busca por nome, categoria ou status
+            </p>
+          </div>
+        </div>
+        <div className="grid gap-3 sm:grid-cols-3">
+          <div>
+            <label className="mb-1.5 block text-sm font-medium text-brand-black">Pesquisar</label>
+            <input
+              value={search}
+              onChange={(e) => setSearch(e.target.value)}
+              placeholder="Nome, slug, marca..."
+              className="w-full rounded-xl border border-neutral-200 bg-white px-4 py-2.5 text-sm font-medium text-brand-black outline-none transition-colors focus:border-brand-black focus:ring-1 focus:ring-brand-black"
+            />
+          </div>
           <div>
             <label className="mb-1.5 block text-sm font-medium text-brand-black">Categoria</label>
             <select
-              className="w-full border border-neutral-300 bg-brand-white px-4 py-2.5 text-sm"
+              className="w-full rounded-xl border border-neutral-200 bg-white px-4 py-2.5 text-sm font-medium text-brand-black outline-none transition-colors focus:border-brand-black focus:ring-1 focus:ring-brand-black"
               value={categoryFilter}
               onChange={(e) => setCategoryFilter(e.target.value)}
             >
@@ -161,7 +227,7 @@ export function ProductsAdminPage() {
           <div>
             <label className="mb-1.5 block text-sm font-medium text-brand-black">Status</label>
             <select
-              className="w-full border border-neutral-300 bg-brand-white px-4 py-2.5 text-sm"
+              className="w-full rounded-xl border border-neutral-200 bg-white px-4 py-2.5 text-sm font-medium text-brand-black outline-none transition-colors focus:border-brand-black focus:ring-1 focus:ring-brand-black"
               value={statusFilter}
               onChange={(e) => setStatusFilter(e.target.value as StatusFilter)}
             >
@@ -173,27 +239,38 @@ export function ProductsAdminPage() {
         </div>
       </section>
 
-      {isLoading ? (
-        <p className="text-sm text-brand-gray">Carregando produtos...</p>
-      ) : products.length === 0 ? (
-        <section className="border border-neutral-200 px-4 py-16 text-center">
-          <p className="text-sm text-brand-gray">Nenhum produto encontrado com os filtros atuais.</p>
-          <Button size="sm" variant="ghost" className="mt-3" onClick={openCreate}>
+      {products.length === 0 ? (
+        <section className="flex flex-col items-center justify-center gap-3 rounded-2xl border border-neutral-100 bg-white px-5 py-16 text-center shadow-sm">
+          <PackageSearch className="h-10 w-10 text-neutral-300" />
+          <p className="text-sm font-medium text-neutral-500">
+            Nenhum produto encontrado com os filtros atuais.
+          </p>
+          <button
+            type="button"
+            onClick={openCreate}
+            className="mt-1 rounded-xl bg-brand-black px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-neutral-800"
+          >
             Cadastrar produto
-          </Button>
+          </button>
         </section>
       ) : (
         <div className="space-y-4">
-          <section className="overflow-hidden border border-neutral-200 bg-brand-white shadow-sm">
-            <div className="border-b border-neutral-200 bg-brand-light px-4 py-3 sm:px-6">
-              <h2 className="font-display text-sm font-semibold uppercase tracking-wide text-brand-black">
-                Catálogo
-              </h2>
-              <p className="text-xs text-brand-gray">
-                {sortedProducts.length} produto{sortedProducts.length === 1 ? "" : "s"} nesta lista
-              </p>
+          <section className="overflow-hidden rounded-2xl border border-neutral-100 bg-white shadow-sm">
+            <div className="flex flex-wrap items-center justify-between gap-3 border-b border-neutral-100 px-5 py-4">
+              <div className="flex items-center gap-3">
+                <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-neutral-100 text-neutral-600">
+                  <PackageSearch className="h-5 w-5" />
+                </div>
+                <div>
+                  <h2 className="text-base font-semibold text-brand-black">Catálogo</h2>
+                  <p className="text-xs font-medium text-neutral-400">
+                    {sortedProducts.length} produto
+                    {sortedProducts.length === 1 ? "" : "s"} nesta lista
+                  </p>
+                </div>
+              </div>
             </div>
-            <ul className="divide-y divide-neutral-200">
+            <ul className="divide-y divide-neutral-100">
               {sortedProducts.map((product) => (
                 <li key={product.id}>
                   <ProductRow
@@ -215,7 +292,7 @@ export function ProductsAdminPage() {
           </section>
 
           {hasMorePages ? (
-            <p className="text-center text-xs text-brand-gray">
+            <p className="text-center text-xs font-medium text-neutral-400">
               Exibindo os primeiros {products.length} de {totalProducts} produtos. Refine os filtros
               para encontrar itens específicos.
             </p>
@@ -261,10 +338,15 @@ function SummaryCard({
   hint: string;
 }) {
   return (
-    <div className="border border-neutral-200 bg-brand-white p-4">
-      <p className="text-xs font-medium uppercase tracking-widest text-brand-gray">{label}</p>
-      <p className="mt-2 font-display text-2xl font-semibold text-brand-black">{value}</p>
-      <p className="mt-1 text-xs text-brand-gray">{hint}</p>
+    <div className="rounded-2xl border border-neutral-100 bg-white p-6 shadow-sm transition-all hover:-translate-y-1 hover:border-brand-black hover:shadow-md">
+      <div className="flex items-center justify-between gap-3">
+        <p className="text-sm font-semibold text-neutral-500">{label}</p>
+        <div className="flex h-8 w-8 items-center justify-center rounded-full bg-neutral-50 text-neutral-400">
+          <PackageSearch className="h-4 w-4" />
+        </div>
+      </div>
+      <p className="mt-4 font-display text-3xl font-bold text-brand-black">{value}</p>
+      <p className="mt-2 text-xs font-medium text-neutral-400">{hint}</p>
     </div>
   );
 }
@@ -291,50 +373,52 @@ function ProductRow({
   return (
     <div
       className={cn(
-        "flex flex-col gap-4 px-4 py-5 sm:flex-row sm:items-center sm:px-6",
-        !product.ativo && "bg-neutral-50",
+        "flex flex-col gap-4 px-5 py-5 transition-colors hover:bg-neutral-50/80 sm:flex-row sm:items-center",
+        !product.ativo && "bg-neutral-50/60",
       )}
     >
       <div className="flex min-w-0 flex-1 items-center gap-4">
-        <div className="relative h-20 w-20 shrink-0 overflow-hidden border border-neutral-200 bg-brand-light">
+        <div className="relative h-20 w-20 shrink-0 overflow-hidden rounded-xl border border-neutral-100 bg-neutral-50">
           {image ? (
             <img src={image.url} alt={product.nome} className="h-full w-full object-cover" />
           ) : (
-            <div className="flex h-full w-full items-center justify-center text-[10px] text-brand-gray">
+            <div className="flex h-full w-full items-center justify-center text-[10px] text-neutral-400">
               Sem foto
             </div>
           )}
-          <span className="absolute left-1 top-1 bg-brand-black/75 px-1.5 py-0.5 text-[10px] font-semibold text-brand-white">
+          <span className="absolute left-1.5 top-1.5 rounded-md bg-brand-black/80 px-1.5 py-0.5 text-[10px] font-bold text-white">
             #{product.ordem}
           </span>
         </div>
 
         <div className="min-w-0 flex-1">
           <div className="flex flex-wrap items-center gap-2">
-            <p className="font-medium text-brand-black">{product.nome}</p>
+            <p className="font-semibold text-brand-black">{product.nome}</p>
             <StatusBadge active={product.ativo} label={product.ativo ? "Ativo" : "Inativo"} />
             {product.destaque ? <StatusBadge active label="Destaque" tone="amber" /> : null}
             {product.novo ? <StatusBadge active label="Novo" tone="blue" /> : null}
           </div>
 
-          <p className="mt-1 text-xs text-brand-gray">/{product.slug}</p>
+          <p className="mt-1 text-xs font-medium text-neutral-400">/{product.slug}</p>
 
           <div className="mt-2 flex flex-wrap items-center gap-3 text-sm">
-            <span className="font-semibold text-brand-black">{formatCurrency(displayPrice)}</span>
+            <span className="font-bold text-brand-black">{formatCurrency(displayPrice)}</span>
             {product.mostrarPrecoPromocional && product.precoPromocional ? (
-              <span className="text-xs text-brand-gray line-through">
+              <span className="text-xs text-neutral-400 line-through">
                 {formatCurrency(product.preco)}
               </span>
             ) : null}
             {product.marca ? (
-              <span className="text-xs text-brand-gray">Marca: {product.marca}</span>
+              <span className="text-xs font-medium text-neutral-400">Marca: {product.marca}</span>
             ) : null}
             {product.codigoInterno ? (
-              <span className="text-xs text-brand-gray">Cód.: {product.codigoInterno}</span>
+              <span className="text-xs font-medium text-neutral-400">
+                Cód.: {product.codigoInterno}
+              </span>
             ) : null}
           </div>
 
-          <p className="mt-1 text-xs text-brand-gray">
+          <p className="mt-1 text-xs font-medium text-neutral-400">
             {product.categoria.nome} · Criado em{" "}
             {new Date(product.createdAt).toLocaleDateString("pt-BR")}
           </p>
@@ -342,23 +426,44 @@ function ProductRow({
       </div>
 
       <div className="flex flex-wrap items-center gap-2 sm:justify-end">
-        <Link href={`/admin/produtos/${product.id}/variantes`}>
-          <Button size="sm" variant="outline" type="button">
-            Variantes
-          </Button>
+        <Link
+          href={`/admin/produtos/${product.id}/variantes`}
+          className="flex h-9 items-center gap-1.5 rounded-xl border border-neutral-200 bg-white px-3 text-xs font-semibold text-brand-black shadow-sm transition-all hover:border-neutral-300 hover:bg-neutral-50"
+        >
+          Variantes
         </Link>
-        <Button size="sm" variant="outline" onClick={onEdit}>
+        <button
+          type="button"
+          onClick={onEdit}
+          className="flex h-9 items-center gap-1.5 rounded-xl border border-neutral-200 bg-white px-3 text-xs font-semibold text-brand-black shadow-sm transition-all hover:border-neutral-300 hover:bg-neutral-50"
+        >
+          <Pencil className="h-3.5 w-3.5" />
           Editar
-        </Button>
-        <Button size="sm" variant="ghost" onClick={onDuplicate}>
+        </button>
+        <button
+          type="button"
+          onClick={onDuplicate}
+          className="flex h-9 items-center gap-1.5 rounded-xl border border-neutral-200 bg-white px-3 text-xs font-semibold text-brand-black shadow-sm transition-all hover:border-neutral-300 hover:bg-neutral-50"
+        >
+          <Copy className="h-3.5 w-3.5" />
           Duplicar
-        </Button>
-        <Button size="sm" variant="ghost" onClick={onToggle}>
+        </button>
+        <button
+          type="button"
+          onClick={onToggle}
+          className="flex h-9 items-center gap-1.5 rounded-xl border border-neutral-200 bg-white px-3 text-xs font-semibold text-brand-black shadow-sm transition-all hover:border-neutral-300 hover:bg-neutral-50"
+        >
+          <Power className="h-3.5 w-3.5" />
           {product.ativo ? "Desativar" : "Ativar"}
-        </Button>
-        <Button size="sm" variant="ghost" onClick={onDelete}>
+        </button>
+        <button
+          type="button"
+          onClick={onDelete}
+          className="flex h-9 items-center gap-1.5 rounded-xl border border-red-100 bg-white px-3 text-xs font-semibold text-red-600 shadow-sm transition-all hover:border-red-200 hover:bg-red-50"
+        >
+          <Trash2 className="h-3.5 w-3.5" />
           Excluir
-        </Button>
+        </button>
       </div>
     </div>
   );
@@ -376,11 +481,11 @@ function StatusBadge({
   return (
     <span
       className={cn(
-        "rounded-full px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wide",
-        !active && "bg-neutral-200 text-brand-gray",
-        active && tone === "green" && "bg-emerald-100 text-emerald-800",
-        active && tone === "amber" && "bg-amber-100 text-amber-800",
-        active && tone === "blue" && "bg-sky-100 text-sky-800",
+        "inline-flex rounded-full px-3 py-1 text-[10px] font-bold uppercase tracking-wider",
+        !active && "bg-neutral-100 text-neutral-600",
+        active && tone === "green" && "bg-emerald-50 text-emerald-700",
+        active && tone === "amber" && "bg-amber-50 text-amber-700",
+        active && tone === "blue" && "bg-sky-50 text-sky-700",
       )}
     >
       {label}
