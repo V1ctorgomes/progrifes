@@ -2,9 +2,20 @@
 
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useMemo, useState, type ReactNode } from "react";
+import {
+  AlertTriangle,
+  ChevronDown,
+  ChevronUp,
+  FolderTree,
+  Pencil,
+  Plus,
+  Power,
+  RefreshCw,
+  Tags,
+  Trash2,
+} from "lucide-react";
 import { CategoryForm } from "@/components/admin/CategoryForm";
 import { Modal } from "@/components/admin/Modal";
-import { Button } from "@/components/ui/Button";
 import { categoriesAdminApi, getErrorMessage, type CategoryInput } from "@/lib/admin-api";
 import {
   getChildCategoriesAll,
@@ -22,7 +33,7 @@ export function CategoriesAdminPage() {
   const [editing, setEditing] = useState<Category | null>(null);
   const [defaultParentId, setDefaultParentId] = useState<string | null>(null);
 
-  const { data: categories = [], isLoading } = useQuery({
+  const { data: categories = [], isLoading, isFetching, refetch, isError } = useQuery({
     queryKey: ["admin", "categories"],
     queryFn: categoriesAdminApi.list,
   });
@@ -93,158 +104,214 @@ export function CategoriesAdminPage() {
   const activeCategories = categories.filter((category) => category.ativo).length;
   const subcategoriesCount = categories.filter((category) => category.categoriaPai).length;
 
+  if (isLoading) {
+    return (
+      <div className="flex h-[60vh] flex-col items-center justify-center gap-4">
+        <RefreshCw className="h-8 w-8 animate-spin text-neutral-300" />
+        <p className="text-sm font-medium text-neutral-500">Carregando categorias...</p>
+      </div>
+    );
+  }
+
+  if (isError) {
+    return (
+      <div className="flex h-[60vh] flex-col items-center justify-center gap-3 rounded-2xl border border-neutral-100 bg-white shadow-sm">
+        <AlertTriangle className="h-10 w-10 text-red-400" />
+        <p className="text-sm font-medium text-neutral-500">
+          Não foi possível carregar as categorias.
+        </p>
+        <button
+          type="button"
+          onClick={() => refetch()}
+          className="mt-4 rounded-xl bg-brand-black px-5 py-2.5 text-sm font-medium text-white transition-colors hover:bg-neutral-800"
+        >
+          Tentar novamente
+        </button>
+      </div>
+    );
+  }
+
   return (
-    <div className="space-y-8">
-      <div className="flex flex-wrap items-start justify-between gap-4">
+    <div className="animate-fade-in space-y-8 pb-10">
+      <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
         <div>
-          <h1 className="font-display text-2xl font-semibold uppercase tracking-wide text-brand-black">
+          <h1 className="font-display text-3xl font-bold tracking-tight text-brand-black">
             Categorias
           </h1>
-          <p className="mt-1 text-sm text-brand-gray">
+          <p className="mt-2 text-sm text-neutral-500">
             Organize a hierarquia da loja. A home exibe até {HOME_CATEGORIES_LIMIT} categorias
             principais ativas.
           </p>
         </div>
-        <Button onClick={() => openCreate(null)}>Nova categoria</Button>
+
+        <div className="flex flex-wrap items-center gap-3">
+          <button
+            type="button"
+            onClick={() => refetch()}
+            disabled={isFetching}
+            className="flex h-11 w-fit shrink-0 items-center justify-center gap-2 rounded-xl border border-neutral-200 bg-white px-5 text-sm font-semibold text-brand-black shadow-sm transition-all hover:border-neutral-300 hover:bg-neutral-50 active:scale-95 disabled:opacity-50"
+          >
+            <RefreshCw className={cn("h-4 w-4 text-neutral-500", isFetching && "animate-spin")} />
+            {isFetching ? "Atualizando..." : "Atualizar"}
+          </button>
+          <button
+            type="button"
+            onClick={() => openCreate(null)}
+            className="flex h-11 w-fit shrink-0 items-center justify-center gap-2 rounded-xl bg-brand-black px-5 text-sm font-semibold text-white transition-colors hover:bg-neutral-800 active:scale-95"
+          >
+            <Plus className="h-4 w-4" />
+            Nova categoria
+          </button>
+        </div>
       </div>
 
-      <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
+      <section className="grid gap-5 sm:grid-cols-2 xl:grid-cols-4">
         <SummaryCard label="Total" value={totalCategories} hint="Categorias cadastradas" />
         <SummaryCard
           label="Principais"
           value={rootCategories.length}
           hint={`${activeRoots.length} ativas na loja`}
         />
-        <SummaryCard label="Subcategorias" value={subcategoriesCount} hint="Vinculadas a uma categoria pai" />
+        <SummaryCard
+          label="Subcategorias"
+          value={subcategoriesCount}
+          hint="Vinculadas a uma categoria pai"
+        />
         <SummaryCard
           label="Ativas"
           value={activeCategories}
           hint={`${totalCategories - activeCategories} inativas`}
         />
-      </div>
+      </section>
 
-      {isLoading ? (
-        <p className="text-sm text-brand-gray">Carregando categorias...</p>
-      ) : (
-        <div className="space-y-8">
+      <div className="space-y-6">
+        <CategorySection
+          title="Categorias principais"
+          description={`${rootCategories.length} categoria${rootCategories.length === 1 ? "" : "s"} raiz · ordem define exibição na home e em /categorias`}
+          actionLabel="Nova categoria principal"
+          onCreate={() => openCreate(null)}
+          emptyMessage="Nenhuma categoria principal cadastrada."
+          isReordering={reorderMutation.isPending}
+        >
+          {rootCategories.map((category, index) => {
+            const children = getChildCategoriesAll(categories, category.id);
+
+            return (
+              <article
+                key={category.id}
+                className="overflow-hidden rounded-2xl border border-neutral-100 bg-white shadow-sm"
+              >
+                <CategoryRow
+                  category={category}
+                  badge="Principal"
+                  isFirst={index === 0}
+                  isLast={index === rootCategories.length - 1}
+                  isReordering={reorderMutation.isPending}
+                  onMove={(direction) => moveCategory(rootCategories, category.id, direction)}
+                  onEdit={() => openEdit(category)}
+                  onToggle={() =>
+                    toggleMutation.mutate({ id: category.id, ativo: category.ativo })
+                  }
+                  onDelete={() => {
+                    if (confirm("Excluir esta categoria?")) {
+                      deleteMutation.mutate(category.id);
+                    }
+                  }}
+                />
+
+                {children.length > 0 ? (
+                  <div className="border-t border-neutral-100 bg-neutral-50/50">
+                    <div className="flex flex-wrap items-center justify-between gap-3 px-5 py-3">
+                      <p className="text-xs font-bold uppercase tracking-wider text-neutral-500">
+                        Subcategorias
+                      </p>
+                      <button
+                        type="button"
+                        onClick={() => openCreate(category.id)}
+                        className="flex h-9 items-center gap-1.5 rounded-xl border border-neutral-200 bg-white px-3 text-xs font-semibold text-brand-black shadow-sm transition-all hover:border-neutral-300 hover:bg-neutral-50"
+                      >
+                        <Plus className="h-3.5 w-3.5" />
+                        Adicionar subcategoria
+                      </button>
+                    </div>
+                    <ul className="divide-y divide-neutral-100 border-t border-neutral-100">
+                      {children.map((child, childIndex) => (
+                        <li key={child.id}>
+                          <CategoryRow
+                            category={child}
+                            badge="Subcategoria"
+                            nested
+                            isFirst={childIndex === 0}
+                            isLast={childIndex === children.length - 1}
+                            isReordering={reorderMutation.isPending}
+                            onMove={(direction) => moveCategory(children, child.id, direction)}
+                            onEdit={() => openEdit(child)}
+                            onToggle={() =>
+                              toggleMutation.mutate({ id: child.id, ativo: child.ativo })
+                            }
+                            onDelete={() => {
+                              if (confirm("Excluir esta subcategoria?")) {
+                                deleteMutation.mutate(child.id);
+                              }
+                            }}
+                          />
+                        </li>
+                      ))}
+                    </ul>
+                  </div>
+                ) : (
+                  <div className="border-t border-neutral-100 bg-neutral-50/40 px-5 py-4">
+                    <button
+                      type="button"
+                      onClick={() => openCreate(category.id)}
+                      className="flex h-9 items-center gap-1.5 rounded-xl border border-neutral-200 bg-white px-3 text-xs font-semibold text-brand-black shadow-sm transition-all hover:border-neutral-300 hover:bg-neutral-50"
+                    >
+                      <Plus className="h-3.5 w-3.5" />
+                      Adicionar subcategoria
+                    </button>
+                  </div>
+                )}
+              </article>
+            );
+          })}
+        </CategorySection>
+
+        {orphanCategories.length > 0 ? (
           <CategorySection
-            title="Categorias principais"
-            description={`${rootCategories.length} categoria${rootCategories.length === 1 ? "" : "s"} raiz · ordem define exibição na home e em /categorias`}
-            actionLabel="Nova categoria principal"
+            title="Subcategorias sem pai"
+            description="Categorias com vínculo inválido que precisam ser reassociadas"
+            actionLabel="Nova categoria"
             onCreate={() => openCreate(null)}
-            emptyMessage="Nenhuma categoria principal cadastrada."
+            emptyMessage=""
             isReordering={reorderMutation.isPending}
           >
-            {rootCategories.map((category, index) => {
-              const children = getChildCategoriesAll(categories, category.id);
-
-              return (
-                <article
-                  key={category.id}
-                  className="overflow-hidden border border-neutral-200 bg-brand-white shadow-sm"
-                >
-                  <CategoryRow
-                    category={category}
-                    badge="Principal"
-                    isFirst={index === 0}
-                    isLast={index === rootCategories.length - 1}
-                    isReordering={reorderMutation.isPending}
-                    onMove={(direction) => moveCategory(rootCategories, category.id, direction)}
-                    onEdit={() => openEdit(category)}
-                    onToggle={() =>
-                      toggleMutation.mutate({ id: category.id, ativo: category.ativo })
+            {orphanCategories.map((category, index) => (
+              <article
+                key={category.id}
+                className="overflow-hidden rounded-2xl border border-neutral-100 bg-white shadow-sm"
+              >
+                <CategoryRow
+                  category={category}
+                  badge="Órfã"
+                  isFirst={index === 0}
+                  isLast={index === orphanCategories.length - 1}
+                  isReordering={reorderMutation.isPending}
+                  onMove={(direction) => moveCategory(orphanCategories, category.id, direction)}
+                  onEdit={() => openEdit(category)}
+                  onToggle={() =>
+                    toggleMutation.mutate({ id: category.id, ativo: category.ativo })
+                  }
+                  onDelete={() => {
+                    if (confirm("Excluir esta categoria?")) {
+                      deleteMutation.mutate(category.id);
                     }
-                    onDelete={() => {
-                      if (confirm("Excluir esta categoria?")) {
-                        deleteMutation.mutate(category.id);
-                      }
-                    }}
-                  />
-
-                  {children.length > 0 ? (
-                    <div className="border-t border-neutral-200 bg-neutral-50/50">
-                      <div className="flex flex-wrap items-center justify-between gap-3 px-4 py-3 sm:px-6">
-                        <p className="text-xs font-medium uppercase tracking-wide text-brand-gray">
-                          Subcategorias
-                        </p>
-                        <Button size="sm" variant="ghost" onClick={() => openCreate(category.id)}>
-                          Adicionar subcategoria
-                        </Button>
-                      </div>
-                      <ul className="divide-y divide-neutral-200 border-t border-neutral-200">
-                        {children.map((child, childIndex) => (
-                          <li key={child.id}>
-                            <CategoryRow
-                              category={child}
-                              badge="Subcategoria"
-                              nested
-                              isFirst={childIndex === 0}
-                              isLast={childIndex === children.length - 1}
-                              isReordering={reorderMutation.isPending}
-                              onMove={(direction) => moveCategory(children, child.id, direction)}
-                              onEdit={() => openEdit(child)}
-                              onToggle={() =>
-                                toggleMutation.mutate({ id: child.id, ativo: child.ativo })
-                              }
-                              onDelete={() => {
-                                if (confirm("Excluir esta subcategoria?")) {
-                                  deleteMutation.mutate(child.id);
-                                }
-                              }}
-                            />
-                          </li>
-                        ))}
-                      </ul>
-                    </div>
-                  ) : (
-                    <div className="border-t border-neutral-200 bg-neutral-50/40 px-4 py-4 sm:px-6">
-                      <Button size="sm" variant="ghost" onClick={() => openCreate(category.id)}>
-                        Adicionar subcategoria
-                      </Button>
-                    </div>
-                  )}
-                </article>
-              );
-            })}
+                  }}
+                />
+              </article>
+            ))}
           </CategorySection>
-
-          {orphanCategories.length > 0 ? (
-            <CategorySection
-              title="Subcategorias sem pai"
-              description="Categorias com vínculo inválido que precisam ser reassociadas"
-              actionLabel="Nova categoria"
-              onCreate={() => openCreate(null)}
-              emptyMessage=""
-              isReordering={reorderMutation.isPending}
-            >
-              {orphanCategories.map((category, index) => (
-                <article
-                  key={category.id}
-                  className="overflow-hidden border border-neutral-200 bg-brand-white shadow-sm"
-                >
-                  <CategoryRow
-                    category={category}
-                    badge="Órfã"
-                    isFirst={index === 0}
-                    isLast={index === orphanCategories.length - 1}
-                    isReordering={reorderMutation.isPending}
-                    onMove={(direction) => moveCategory(orphanCategories, category.id, direction)}
-                    onEdit={() => openEdit(category)}
-                    onToggle={() =>
-                      toggleMutation.mutate({ id: category.id, ativo: category.ativo })
-                    }
-                    onDelete={() => {
-                      if (confirm("Excluir esta categoria?")) {
-                        deleteMutation.mutate(category.id);
-                      }
-                    }}
-                  />
-                </article>
-              ))}
-            </CategorySection>
-          ) : null}
-        </div>
-      )}
+        ) : null}
+      </div>
 
       <Modal
         open={modalOpen}
@@ -287,10 +354,15 @@ function SummaryCard({
   hint: string;
 }) {
   return (
-    <div className="border border-neutral-200 bg-brand-white p-4">
-      <p className="text-xs font-medium uppercase tracking-widest text-brand-gray">{label}</p>
-      <p className="mt-2 font-display text-2xl font-semibold text-brand-black">{value}</p>
-      <p className="mt-1 text-xs text-brand-gray">{hint}</p>
+    <div className="rounded-2xl border border-neutral-100 bg-white p-6 shadow-sm transition-all hover:-translate-y-1 hover:border-brand-black hover:shadow-md">
+      <div className="flex items-center justify-between gap-3">
+        <p className="text-sm font-semibold text-neutral-500">{label}</p>
+        <div className="flex h-8 w-8 items-center justify-center rounded-full bg-neutral-50 text-neutral-400">
+          <Tags className="h-4 w-4" />
+        </div>
+      </div>
+      <p className="mt-4 font-display text-3xl font-bold text-brand-black">{value}</p>
+      <p className="mt-2 text-xs font-medium text-neutral-400">{hint}</p>
     </div>
   );
 }
@@ -313,32 +385,45 @@ function CategorySection({
   children: ReactNode;
 }) {
   const hasChildren =
-    children != null &&
-    !(Array.isArray(children) && children.length === 0);
+    children != null && !(Array.isArray(children) && children.length === 0);
 
   return (
-    <section className="border border-neutral-200">
-      <div className="flex flex-wrap items-center justify-between gap-3 border-b border-neutral-200 bg-brand-light px-4 py-3">
-        <div>
-          <h2 className="font-display text-sm font-semibold uppercase tracking-wide text-brand-black">
-            {title}
-          </h2>
-          <p className="text-xs text-brand-gray">{description}</p>
+    <section className="overflow-hidden rounded-2xl border border-neutral-100 bg-white shadow-sm">
+      <div className="flex flex-wrap items-center justify-between gap-3 border-b border-neutral-100 px-5 py-4">
+        <div className="flex items-center gap-3">
+          <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-neutral-100 text-neutral-600">
+            <FolderTree className="h-5 w-5" />
+          </div>
+          <div>
+            <h2 className="text-base font-semibold text-brand-black">{title}</h2>
+            <p className="text-xs font-medium text-neutral-400">{description}</p>
+          </div>
         </div>
-        <Button size="sm" variant="outline" onClick={onCreate} disabled={isReordering}>
+        <button
+          type="button"
+          disabled={isReordering}
+          onClick={onCreate}
+          className="flex h-10 items-center gap-2 rounded-xl border border-neutral-200 bg-white px-4 text-sm font-semibold text-brand-black shadow-sm transition-all hover:border-neutral-300 hover:bg-neutral-50 disabled:cursor-not-allowed disabled:opacity-50"
+        >
+          <Plus className="h-4 w-4" />
           {actionLabel}
-        </Button>
+        </button>
       </div>
 
       {!hasChildren ? (
-        <div className="px-4 py-10 text-center">
-          <p className="text-sm text-brand-gray">{emptyMessage}</p>
-          <Button size="sm" variant="ghost" className="mt-3" onClick={onCreate}>
+        <div className="flex flex-col items-center justify-center gap-3 px-5 py-12 text-center">
+          <FolderTree className="h-8 w-8 text-neutral-300" />
+          <p className="text-sm text-neutral-500">{emptyMessage}</p>
+          <button
+            type="button"
+            onClick={onCreate}
+            className="mt-1 rounded-xl bg-brand-black px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-neutral-800"
+          >
             Criar primeira categoria
-          </Button>
+          </button>
         </div>
       ) : (
-        <div className="space-y-8 p-4 sm:p-6">{children}</div>
+        <div className="space-y-5 p-5">{children}</div>
       )}
     </section>
   );
@@ -370,79 +455,95 @@ function CategoryRow({
   return (
     <div
       className={cn(
-        "flex flex-col gap-4 sm:flex-row sm:items-center",
+        "flex flex-col gap-4 transition-colors sm:flex-row sm:items-center",
         nested
-          ? "ml-4 border-l-4 border-neutral-300 bg-brand-white px-4 py-4 sm:ml-6 sm:px-6 sm:py-4"
-          : "px-4 py-5 sm:px-6 sm:py-5",
-        !category.ativo && "bg-neutral-50",
+          ? "ml-4 border-l-4 border-neutral-200 bg-white px-4 py-4 sm:ml-6 sm:px-5"
+          : "px-5 py-5",
+        !category.ativo && "bg-neutral-50/60",
+        "hover:bg-neutral-50/80",
       )}
     >
       <div className="flex min-w-0 flex-1 items-center gap-4">
-        <div className="relative h-16 w-16 shrink-0 overflow-hidden border border-neutral-200 bg-brand-light">
+        <div className="relative h-16 w-16 shrink-0 overflow-hidden rounded-xl border border-neutral-100 bg-neutral-50">
           <img src={category.imagem} alt={category.nome} className="h-full w-full object-cover" />
-          <span className="absolute left-1 top-1 bg-brand-black/75 px-1.5 py-0.5 text-[10px] font-semibold text-brand-white">
+          <span className="absolute left-1.5 top-1.5 rounded-md bg-brand-black/80 px-1.5 py-0.5 text-[10px] font-bold text-white">
             #{category.ordem}
           </span>
         </div>
 
         <div className="min-w-0 flex-1">
           <div className="flex flex-wrap items-center gap-2">
-            <p className="font-medium text-brand-black">{category.nome}</p>
-            <span className="rounded-full bg-neutral-200 px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-brand-gray">
+            <p className="font-semibold text-brand-black">{category.nome}</p>
+            <span className="inline-flex rounded-full bg-neutral-100 px-3 py-1 text-[10px] font-bold uppercase tracking-wider text-neutral-600">
               {badge}
             </span>
             <span
               className={cn(
-                "rounded-full px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wide",
+                "inline-flex rounded-full px-3 py-1 text-[10px] font-bold uppercase tracking-wider",
                 category.ativo
-                  ? "bg-emerald-100 text-emerald-800"
-                  : "bg-neutral-200 text-brand-gray",
+                  ? "bg-emerald-50 text-emerald-700"
+                  : "bg-neutral-100 text-neutral-600",
               )}
             >
               {category.ativo ? "Ativa" : "Inativa"}
             </span>
           </div>
-          <p className="mt-1 text-xs text-brand-gray">/{category.slug}</p>
+          <p className="mt-1 text-xs font-medium text-neutral-400">/{category.slug}</p>
           {category.descricao ? (
-            <p className="mt-1 line-clamp-2 text-sm text-brand-gray">{category.descricao}</p>
+            <p className="mt-1 line-clamp-2 text-sm text-neutral-500">{category.descricao}</p>
           ) : null}
-          <p className="mt-1 text-xs text-brand-gray">
+          <p className="mt-1 text-xs font-medium text-neutral-400">
             {category.productCount} produto{category.productCount === 1 ? "" : "s"}
           </p>
         </div>
       </div>
 
       <div className="flex flex-wrap items-center gap-2 sm:justify-end">
-        <div className="flex items-center gap-1 border border-neutral-200 bg-brand-white p-1">
-          <Button
-            size="sm"
-            variant="ghost"
+        <div className="flex items-center gap-1 rounded-xl border border-neutral-200 bg-white p-1 shadow-sm">
+          <button
+            type="button"
             disabled={isFirst || isReordering}
             onClick={() => onMove("up")}
             aria-label="Mover para cima"
+            className="flex h-8 w-8 items-center justify-center rounded-lg text-neutral-500 transition-colors hover:bg-neutral-100 hover:text-brand-black disabled:opacity-40"
           >
-            ↑
-          </Button>
-          <Button
-            size="sm"
-            variant="ghost"
+            <ChevronUp className="h-4 w-4" />
+          </button>
+          <button
+            type="button"
             disabled={isLast || isReordering}
             onClick={() => onMove("down")}
             aria-label="Mover para baixo"
+            className="flex h-8 w-8 items-center justify-center rounded-lg text-neutral-500 transition-colors hover:bg-neutral-100 hover:text-brand-black disabled:opacity-40"
           >
-            ↓
-          </Button>
+            <ChevronDown className="h-4 w-4" />
+          </button>
         </div>
 
-        <Button size="sm" variant="outline" onClick={onEdit}>
+        <button
+          type="button"
+          onClick={onEdit}
+          className="flex h-9 items-center gap-1.5 rounded-xl border border-neutral-200 bg-white px-3 text-xs font-semibold text-brand-black shadow-sm transition-all hover:border-neutral-300 hover:bg-neutral-50"
+        >
+          <Pencil className="h-3.5 w-3.5" />
           Editar
-        </Button>
-        <Button size="sm" variant="ghost" onClick={onToggle}>
+        </button>
+        <button
+          type="button"
+          onClick={onToggle}
+          className="flex h-9 items-center gap-1.5 rounded-xl border border-neutral-200 bg-white px-3 text-xs font-semibold text-brand-black shadow-sm transition-all hover:border-neutral-300 hover:bg-neutral-50"
+        >
+          <Power className="h-3.5 w-3.5" />
           {category.ativo ? "Desativar" : "Ativar"}
-        </Button>
-        <Button size="sm" variant="ghost" onClick={onDelete}>
+        </button>
+        <button
+          type="button"
+          onClick={onDelete}
+          className="flex h-9 items-center gap-1.5 rounded-xl border border-red-100 bg-white px-3 text-xs font-semibold text-red-600 shadow-sm transition-all hover:border-red-200 hover:bg-red-50"
+        >
+          <Trash2 className="h-3.5 w-3.5" />
           Excluir
-        </Button>
+        </button>
       </div>
     </div>
   );
