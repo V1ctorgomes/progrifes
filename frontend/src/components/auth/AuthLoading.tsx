@@ -1,12 +1,12 @@
 "use client";
 
+import { RefreshCw } from "lucide-react";
+
 export function AuthLoading() {
   return (
-    <div className="flex min-h-screen items-center justify-center bg-brand-light">
-      <div className="flex flex-col items-center gap-4">
-        <div className="h-10 w-10 animate-spin rounded-full border-2 border-brand-black border-t-transparent" />
-        <p className="text-sm text-brand-gray">Carregando sessão...</p>
-      </div>
+    <div className="flex min-h-screen flex-col items-center justify-center gap-4 bg-[#F8F9FA]">
+      <RefreshCw className="h-8 w-8 animate-spin text-neutral-300" />
+      <p className="text-sm font-medium text-neutral-500">Carregando sessão...</p>
     </div>
   );
 }
