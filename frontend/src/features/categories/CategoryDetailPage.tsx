@@ -66,7 +66,7 @@ export function CategoryDetailPage({
           <Breadcrumb items={breadcrumb} className="mb-6" />
 
           <div className="mb-8">
-            <h1 className="font-display text-3xl font-bold tracking-tightr text-brand-black sm:text-4xl">
+            <h1 className="font-display text-3xl font-bold tracking-tight text-brand-black sm:text-4xl">
               {category.nome}
             </h1>
             <p className="mt-4 max-w-3xl text-sm leading-relaxed text-brand-gray sm:text-base">
